@@ -23,6 +23,7 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
     completion_date: '',
     cost: '',
     mechanic: '',
+    oil_change_mileage: '',
     notes: ''
   };
 
@@ -36,7 +37,8 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
           ...recordToEdit,
           cost: recordToEdit.cost || '',
           completion_date: recordToEdit.completion_date || '',
-          vehicle_id: recordToEdit.vehicle_id || ''
+          vehicle_id: recordToEdit.vehicle_id || '',
+          oil_change_mileage: recordToEdit.oil_change_mileage || '',
         });
       } else {
         setFormData(initialFormState);
@@ -80,10 +82,11 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
         throw new Error("Le véhicule et le type d'intervention sont requis.");
       }
 
-      const recordData = { 
+      const recordData = {
         ...formData,
         cost: formData.cost ? parseFloat(formData.cost) : null,
-        completion_date: formData.completion_date || null
+        completion_date: formData.completion_date || null,
+        oil_change_mileage: formData.oil_change_mileage ? parseInt(formData.oil_change_mileage) : null,
       };
       
       // Remove the 'vehicles' object if it exists from the join query in edit mode
@@ -211,6 +214,7 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
                 >
                   <option value="breakdown">Panne</option>
                   <option value="scheduled">Entretien Planifié</option>
+                  <option value="oil_change">Vidange</option>
                   <option value="inspection">Inspection</option>
                 </select>
               </div>
@@ -247,6 +251,21 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
 
           {/* Details */}
           <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {formData.type === 'oil_change' && (
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-medium text-slate-700">Kilométrage à la vidange</label>
+                <input
+                  type="number"
+                  name="oil_change_mileage"
+                  value={formData.oil_change_mileage}
+                  onChange={handleChange}
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
+                  placeholder="ex: 45000"
+                  min="0"
+                />
+                <p className="text-xs text-slate-400">Ce kilométrage sera enregistré comme référence pour la prochaine vidange du véhicule</p>
+              </div>
+            )}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Mécanicien assigné</label>
               <input
@@ -260,7 +279,7 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Coût estimé / final (€)</label>
+              <label className="text-sm font-medium text-slate-700">Coût estimé / final (FCFA)</label>
               <input
                 type="number"
                 name="cost"

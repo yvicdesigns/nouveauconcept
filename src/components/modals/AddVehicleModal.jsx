@@ -40,7 +40,14 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
     last_insurance_date: '',
     insurance_expiry_date: '',
     last_technical_check_date: '',
-    technical_check_expiry_date: ''
+    technical_check_expiry_date: '',
+    // Patente
+    patente: '',
+    patente_expiry_date: '',
+    // Suivi vidange
+    last_oil_change_date: '',
+    last_oil_change_mileage: '',
+    oil_change_interval_km: 5000,
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -77,7 +84,14 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
           last_insurance_date: data.last_insurance_date || '',
           insurance_expiry_date: data.insurance_expiry_date || '',
           last_technical_check_date: data.last_technical_check_date || '',
-          technical_check_expiry_date: data.technical_check_expiry_date || ''
+          technical_check_expiry_date: data.technical_check_expiry_date || '',
+          // Patente
+          patente: data.patente || '',
+          patente_expiry_date: data.patente_expiry_date || '',
+          // Suivi vidange
+          last_oil_change_date: data.last_oil_change_date || '',
+          last_oil_change_mileage: data.last_oil_change_mileage || '',
+          oil_change_interval_km: data.oil_change_interval_km || 5000,
         });
         setPreviewUrl(data.image_url || null);
       } else {
@@ -199,7 +213,12 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
         last_insurance_date: formData.last_insurance_date || null,
         insurance_expiry_date: formData.insurance_expiry_date || null,
         last_technical_check_date: formData.last_technical_check_date || null,
-        technical_check_expiry_date: formData.technical_check_expiry_date || null
+        technical_check_expiry_date: formData.technical_check_expiry_date || null,
+        patente: formData.patente || null,
+        patente_expiry_date: formData.patente_expiry_date || null,
+        last_oil_change_date: formData.last_oil_change_date || null,
+        last_oil_change_mileage: formData.last_oil_change_mileage ? parseInt(formData.last_oil_change_mileage) : null,
+        oil_change_interval_km: parseInt(formData.oil_change_interval_km) || 5000,
       };
 
       let resultData;
@@ -579,6 +598,83 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                       className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                     />
                     <p className="text-xs text-slate-400 italic">Auto: +6 mois</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Patente & Vidange */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-slate-900 border-b pb-2">Patente & Suivi Vidange</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+              {/* Patente */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-slate-700">Patente</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-slate-500 uppercase">Référence</label>
+                    <input
+                      type="text"
+                      name="patente"
+                      value={formData.patente}
+                      onChange={handleChange}
+                      placeholder="ex: PAT-2024-001"
+                      className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-slate-500 uppercase">Expiration</label>
+                    <input
+                      type="date"
+                      name="patente_expiry_date"
+                      value={formData.patente_expiry_date}
+                      onChange={handleChange}
+                      className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Vidange */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-slate-700">Suivi Vidange</h4>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-slate-500 uppercase">Km à la dernière</label>
+                      <input
+                        type="number"
+                        name="last_oil_change_mileage"
+                        value={formData.last_oil_change_mileage}
+                        onChange={handleChange}
+                        min="0"
+                        placeholder="ex: 45000"
+                        className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-slate-500 uppercase">Intervalle (km)</label>
+                      <input
+                        type="number"
+                        name="oil_change_interval_km"
+                        value={formData.oil_change_interval_km}
+                        onChange={handleChange}
+                        min="1000"
+                        placeholder="5000"
+                        className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-slate-500 uppercase">Date dernière vidange</label>
+                    <input
+                      type="date"
+                      name="last_oil_change_date"
+                      value={formData.last_oil_change_date}
+                      onChange={handleChange}
+                      className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                    />
                   </div>
                 </div>
               </div>

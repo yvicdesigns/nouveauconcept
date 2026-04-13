@@ -98,6 +98,25 @@ const Vehicles = () => {
     }
   };
 
+  const getDocumentStatus = (expiryDateStr) => {
+    if (!expiryDateStr) return null;
+    const expiry = new Date(expiryDateStr);
+    const now = new Date();
+    const daysLeft = Math.floor((expiry - now) / (1000 * 60 * 60 * 24));
+    if (daysLeft < 0) return { label: 'Expiré', color: 'bg-red-100 text-red-700 border border-red-200' };
+    if (daysLeft <= 30) return { label: `${daysLeft}j`, color: 'bg-orange-100 text-orange-700 border border-orange-200' };
+    return { label: 'Valide', color: 'bg-green-100 text-green-700 border border-green-200' };
+  };
+
+  const getOilChangeStatus = (rawMileage, lastOilChangeMileage, intervalKm) => {
+    if (!lastOilChangeMileage) return null;
+    const next = Number(lastOilChangeMileage) + (intervalKm || 5000);
+    const kmLeft = next - rawMileage;
+    if (kmLeft <= 0) return { label: 'Vidange requise', color: 'bg-red-100 text-red-700 border border-red-200' };
+    if (kmLeft <= 500) return { label: `Vidange dans ${kmLeft} km`, color: 'bg-orange-100 text-orange-700 border border-orange-200' };
+    return { label: 'Vidange OK', color: 'bg-green-100 text-green-700 border border-green-200' };
+  };
+
   const mapDbVehicleToUi = (dbVehicle) => ({
     id: dbVehicle.id,
     name: dbVehicle.name,
@@ -113,7 +132,15 @@ const Vehicles = () => {
     imageUrl: dbVehicle.image_url,
     statusColor: getStatusColor(dbVehicle.status),
     isDb: true,
-    rawData: dbVehicle // Store raw data for editing
+    rawData: dbVehicle, // Store raw data for editing
+    // Admin docs
+    insurance_expiry_date: dbVehicle.insurance_expiry_date || null,
+    technical_check_expiry_date: dbVehicle.technical_check_expiry_date || null,
+    patente_expiry_date: dbVehicle.patente_expiry_date || null,
+    // Vidange
+    rawMileage: Number(dbVehicle.mileage || 0),
+    last_oil_change_mileage: dbVehicle.last_oil_change_mileage || null,
+    oil_change_interval_km: dbVehicle.oil_change_interval_km || 5000,
   });
 
   const handleVehicleSaved = (savedVehicle) => {
@@ -480,6 +507,39 @@ const Vehicles = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Statut documents & Vidange */}
+                {(() => {
+                  const insStatus = getDocumentStatus(vehicle.insurance_expiry_date);
+                  const ctStatus = getDocumentStatus(vehicle.technical_check_expiry_date);
+                  const patenteStatus = getDocumentStatus(vehicle.patente_expiry_date);
+                  const oilStatus = getOilChangeStatus(vehicle.rawMileage, vehicle.last_oil_change_mileage, vehicle.oil_change_interval_km);
+                  if (!insStatus && !ctStatus && !patenteStatus && !oilStatus) return null;
+                  return (
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {insStatus && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${insStatus.color}`}>
+                          Assur. {insStatus.label}
+                        </span>
+                      )}
+                      {ctStatus && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ctStatus.color}`}>
+                          Veritas {ctStatus.label}
+                        </span>
+                      )}
+                      {patenteStatus && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${patenteStatus.color}`}>
+                          Patente {patenteStatus.label}
+                        </span>
+                      )}
+                      {oilStatus && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${oilStatus.color}`}>
+                          {oilStatus.label}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* Actions */}
                 <div className="flex flex-col gap-3">

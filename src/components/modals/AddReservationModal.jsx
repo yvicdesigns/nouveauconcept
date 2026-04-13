@@ -26,6 +26,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
     end_date: '',
     total_price: 0,
     status: 'En attente',
+    driver_name: '',
     notes: ''
   };
 
@@ -43,6 +44,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
           end_date: reservationToEdit.end_date ? format(new Date(reservationToEdit.end_date), 'yyyy-MM-dd') : '',
           total_price: reservationToEdit.total_price,
           status: reservationToEdit.status,
+          driver_name: reservationToEdit.driver_name || '',
           notes: reservationToEdit.notes || ''
         });
         // Trigger fetch of existing reservations for this vehicle to populate calendar correctly
@@ -199,6 +201,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
         end_date: fullEndDate.toISOString(),
         status: formData.status,
         total_price: formData.total_price,
+        driver_name: formData.driver_name || null,
         notes: formData.notes
       };
 
@@ -300,6 +303,21 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
               </select>
             </div>
 
+            {/* Driver Name */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <User className="h-4 w-4" /> Nom du chauffeur
+              </label>
+              <input
+                type="text"
+                name="driver_name"
+                value={formData.driver_name}
+                onChange={handleChange}
+                placeholder="Nom du chauffeur (si différent du client)"
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
+              />
+            </div>
+
             {/* Vehicle Selection */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
@@ -353,7 +371,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                   <Calculator className="h-4 w-4" /> Total (FCFA)
+                   <Calculator className="h-4 w-4" /> Prix négocié (FCFA)
                 </label>
                 <input
                   type="number"
@@ -362,6 +380,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                   onChange={handleChange}
                   className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 font-bold text-slate-900"
                 />
+                <p className="text-xs text-slate-400 italic">Modifiable — calculé automatiquement, ajustable selon la négociation</p>
               </div>
             </div>
 

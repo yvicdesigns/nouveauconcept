@@ -11,6 +11,7 @@ import { historyService } from '@/lib/historyService';
 import { supabase } from '@/lib/customSupabaseClient';
 import usePagination from '@/hooks/usePagination';
 import PaginationBar from '@/components/ui/PaginationBar';
+import { SkeletonCards } from '@/components/ui/SkeletonTable';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import {
   DropdownMenu,
@@ -381,10 +382,7 @@ const Vehicles = () => {
 
       {/* Grid */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center h-64">
-          <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-4" />
-          <p className="text-gray-500 font-medium">Chargement de la flotte...</p>
-        </div>
+        <SkeletonCards count={6} />
       ) : filteredVehicles.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl border border-gray-200 border-dashed">
           <div className="p-4 bg-gray-50 rounded-full mb-4">

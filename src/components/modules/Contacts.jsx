@@ -7,6 +7,7 @@ import { supabase } from '@/lib/customSupabaseClient';
 import { historyService } from '@/lib/historyService';
 import usePagination from '@/hooks/usePagination';
 import PaginationBar from '@/components/ui/PaginationBar';
+import { SkeletonCards } from '@/components/ui/SkeletonTable';
 import AddContactModal from '@/components/modals/AddContactModal';
 import {
   AlertDialog,
@@ -157,9 +158,7 @@ const Contacts = () => {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-          </div>
+          <SkeletonCards count={6} />
         ) : filteredContacts.length === 0 ? (
           <div className="text-center py-12 text-slate-500">
             <p className="text-lg font-medium">Aucun contact trouvé</p>

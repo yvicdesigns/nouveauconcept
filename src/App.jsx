@@ -23,6 +23,7 @@ import History from '@/components/modules/History';
 import Maintenance from '@/components/modules/Maintenance';
 import { Toaster } from '@/components/ui/toaster';
 import { Loader2 } from 'lucide-react';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 
 // Layout component to include header and render module content
 const AppLayout = ({ userSession, onLogout, sidebarOpen, setSidebarOpen, activeModuleTitle }) => {
@@ -188,22 +189,22 @@ function App() {
             />
           }
         >
-          <Route index element={<Dashboard />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="contacts" element={<Contacts />} />
-          <Route path="reservations" element={<Reservations />} />
-          <Route path="vehicles" element={<Vehicles />} />
-          <Route path="maintenance" element={<Maintenance />} />
-          <Route path="billing" element={<Billing />} />
-          <Route path="history" element={<History />} />
-          <Route path="support" element={<Support />} />
-          <Route path="users" element={<Users />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="leads" element={<Leads />} />
-          <Route path="opportunities" element={<Opportunities />} />
-          <Route path="tasks" element={<Tasks />} />
-          <Route path="documents" element={<Documents />} />
-          <Route path="reports" element={<Reports />} />
+          <Route index element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
+          <Route path="dashboard" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
+          <Route path="contacts" element={<ErrorBoundary><Contacts /></ErrorBoundary>} />
+          <Route path="reservations" element={<ErrorBoundary><Reservations /></ErrorBoundary>} />
+          <Route path="vehicles" element={<ErrorBoundary><Vehicles /></ErrorBoundary>} />
+          <Route path="maintenance" element={<ErrorBoundary><Maintenance /></ErrorBoundary>} />
+          <Route path="billing" element={<ErrorBoundary><Billing /></ErrorBoundary>} />
+          <Route path="history" element={<ErrorBoundary><History /></ErrorBoundary>} />
+          <Route path="support" element={<ErrorBoundary><Support /></ErrorBoundary>} />
+          <Route path="users" element={<ErrorBoundary><Users /></ErrorBoundary>} />
+          <Route path="settings" element={<ErrorBoundary><Settings /></ErrorBoundary>} />
+          <Route path="leads" element={<ErrorBoundary><Leads /></ErrorBoundary>} />
+          <Route path="opportunities" element={<ErrorBoundary><Opportunities /></ErrorBoundary>} />
+          <Route path="tasks" element={<ErrorBoundary><Tasks /></ErrorBoundary>} />
+          <Route path="documents" element={<ErrorBoundary><Documents /></ErrorBoundary>} />
+          <Route path="reports" element={<ErrorBoundary><Reports /></ErrorBoundary>} />
         </Route>
         <Route path="*" element={<Dashboard />} />
       </Routes>

@@ -7,6 +7,7 @@ import { supabase } from '@/lib/customSupabaseClient';
 import { historyService } from '@/lib/historyService';
 import usePagination from '@/hooks/usePagination';
 import PaginationBar from '@/components/ui/PaginationBar';
+import { SkeletonRows } from '@/components/ui/SkeletonTable';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import AddMaintenanceModal from '@/components/modals/AddMaintenanceModal';
@@ -268,9 +269,7 @@ const Maintenance = () => {
 
         <div className="overflow-x-auto">
            {isLoading ? (
-             <div className="flex justify-center items-center h-64">
-               <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-             </div>
+             <table className="w-full text-sm"><tbody><SkeletonRows rows={7} cols={6} /></tbody></table>
            ) : filteredRecords.length === 0 ? (
              <div className="flex flex-col items-center justify-center h-64 text-slate-500">
                <Wrench className="h-12 w-12 mb-4 text-slate-300" />

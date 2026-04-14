@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Search, Plus, Download, Eye, Trash2, Edit, Receipt, Loader2, FileDown } from 'lucide-react';
 import usePagination from '@/hooks/usePagination';
 import PaginationBar from '@/components/ui/PaginationBar';
+import { SkeletonRows } from '@/components/ui/SkeletonTable';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
@@ -263,9 +264,7 @@ const Billing = () => {
 
         <div className="overflow-x-auto">
           {isLoading ? (
-             <div className="flex justify-center items-center h-64">
-               <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-             </div>
+            <table className="w-full text-sm"><tbody><SkeletonRows rows={8} cols={7} /></tbody></table>
           ) : filteredInvoices.length === 0 ? (
              <div className="flex flex-col items-center justify-center h-64 text-slate-500">
                <Receipt className="h-12 w-12 mb-4 text-slate-300" />

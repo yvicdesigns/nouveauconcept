@@ -6,6 +6,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 import usePagination from '@/hooks/usePagination';
 import PaginationBar from '@/components/ui/PaginationBar';
+import { SkeletonRows } from '@/components/ui/SkeletonTable';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -236,7 +237,7 @@ const Leads = () => {
 
         <div className="overflow-x-auto">
           {isLoading ? (
-            <div className="flex justify-center items-center h-48"><Loader2 className="h-8 w-8 animate-spin text-blue-500" /></div>
+            <table className="w-full text-sm"><tbody><SkeletonRows rows={8} cols={7} /></tbody></table>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-slate-400">
               <UserPlus className="h-10 w-10 mb-3 text-slate-200" />

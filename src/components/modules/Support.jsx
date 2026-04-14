@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 import { historyService } from '@/lib/historyService';
+import usePagination from '@/hooks/usePagination';
+import PaginationBar from '@/components/ui/PaginationBar';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import AddTicketModal from '@/components/modals/AddTicketModal';
@@ -149,11 +151,12 @@ const Support = () => {
     });
   };
 
-  const filteredTickets = tickets.filter(ticket => 
+  const filteredTickets = tickets.filter(ticket =>
     ticket.ticket_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (ticket.client_name && ticket.client_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
     ticket.subject.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const { paginated: paginatedTickets, page, setPage, totalPages, total, from, perPage } = usePagination(filteredTickets, 10);
 
   // Metrics
   const openCount = tickets.filter(t => t.status === 'Ouvert').length;
@@ -252,7 +255,7 @@ const Support = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredTickets.map((ticket, index) => {
+                {paginatedTickets.map((ticket, index) => {
                    const StatusIcon = getStatusIcon(ticket.status);
                    return (
                     <motion.tr
@@ -301,6 +304,7 @@ const Support = () => {
               </tbody>
             </table>
            )}
+          <PaginationBar page={page} setPage={setPage} totalPages={totalPages} total={total} from={from} perPage={perPage} />
         </div>
       </div>
 

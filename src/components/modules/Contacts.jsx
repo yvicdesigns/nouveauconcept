@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 import { historyService } from '@/lib/historyService';
+import usePagination from '@/hooks/usePagination';
+import PaginationBar from '@/components/ui/PaginationBar';
 import AddContactModal from '@/components/modals/AddContactModal';
 import {
   AlertDialog,
@@ -119,11 +121,12 @@ const Contacts = () => {
     });
   };
 
-  const filteredContacts = contacts.filter(contact => 
+  const filteredContacts = contacts.filter(contact =>
     contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (contact.company && contact.company.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (contact.email && contact.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+  const { paginated: paginatedContacts, page, setPage, totalPages, total, from, perPage } = usePagination(filteredContacts, 10);
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -164,7 +167,7 @@ const Contacts = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredContacts.map((contact, index) => (
+            {paginatedContacts.map((contact, index) => (
               <motion.div
                 key={contact.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -249,6 +252,7 @@ const Contacts = () => {
             ))}
           </div>
         )}
+        <PaginationBar page={page} setPage={setPage} totalPages={totalPages} total={total} from={from} perPage={perPage} />
       </div>
 
       {/* Add/Edit Modal */}

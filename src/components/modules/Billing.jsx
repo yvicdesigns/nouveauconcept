@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Plus, Download, Eye, Trash2, Edit, Receipt, Loader2, FileDown } from 'lucide-react';
+import usePagination from '@/hooks/usePagination';
+import PaginationBar from '@/components/ui/PaginationBar';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
@@ -204,10 +206,11 @@ const Billing = () => {
     });
   };
 
-  const filteredInvoices = invoices.filter(inv => 
+  const filteredInvoices = invoices.filter(inv =>
     inv.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
     inv.client_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const { paginated: paginatedInvoices, page, setPage, totalPages, total, from, perPage } = usePagination(filteredInvoices, 10);
 
   // Metrics
   const totalRevenue = invoices.reduce((sum, inv) => sum + (Number(inv.total_amount) || 0), 0);
@@ -283,7 +286,7 @@ const Billing = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredInvoices.map((invoice, index) => (
+                {paginatedInvoices.map((invoice, index) => (
                   <motion.tr
                     key={invoice.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -325,6 +328,7 @@ const Billing = () => {
               </tbody>
             </table>
           )}
+          <PaginationBar page={page} setPage={setPage} totalPages={totalPages} total={total} from={from} perPage={perPage} />
         </div>
       </div>
 

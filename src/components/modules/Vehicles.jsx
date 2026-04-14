@@ -9,6 +9,8 @@ import AddLoanModal from '@/components/modals/AddLoanModal';
 import HistoryTab from '@/components/history/HistoryTab';
 import { historyService } from '@/lib/historyService';
 import { supabase } from '@/lib/customSupabaseClient';
+import usePagination from '@/hooks/usePagination';
+import PaginationBar from '@/components/ui/PaginationBar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import {
   DropdownMenu,
@@ -339,10 +341,11 @@ const Vehicles = () => {
   };
 
   // Filter vehicles
-  const filteredVehicles = vehicles.filter(vehicle => 
+  const filteredVehicles = vehicles.filter(vehicle =>
     vehicle.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     vehicle.plate.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const { paginated: paginatedVehicles, page, setPage, totalPages, total, from, perPage } = usePagination(filteredVehicles, 10);
 
   return (
     <div className="p-6 lg:p-10 space-y-8 max-w-[1600px] mx-auto bg-gray-50 min-h-screen">
@@ -401,7 +404,7 @@ const Vehicles = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-          {filteredVehicles.map((vehicle, index) => {
+          {paginatedVehicles.map((vehicle, index) => {
             const isRented = vehicle.status === 'LOUÉ' || vehicle.status === 'PRÊTÉ';
             
             return (
@@ -605,6 +608,7 @@ const Vehicles = () => {
           )})}
         </div>
       )}
+      <PaginationBar page={page} setPage={setPage} totalPages={totalPages} total={total} from={from} perPage={perPage} />
 
       {/* Check-in/Check-out Modal */}
       <VehicleCheckModal 

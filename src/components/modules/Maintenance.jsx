@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 import { historyService } from '@/lib/historyService';
+import usePagination from '@/hooks/usePagination';
+import PaginationBar from '@/components/ui/PaginationBar';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import AddMaintenanceModal from '@/components/modals/AddMaintenanceModal';
@@ -178,12 +180,13 @@ const Maintenance = () => {
     });
   };
 
-  const filteredRecords = records.filter(record => 
+  const filteredRecords = records.filter(record =>
     (record.vehicles?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
     (record.vehicles?.brand?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
     (record.vehicles?.license_plate?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
     (record.description?.toLowerCase().includes(searchTerm.toLowerCase()) || '')
   );
+  const { paginated: paginatedRecords, page, setPage, totalPages, total, from, perPage } = usePagination(filteredRecords, 10);
 
   // Metrics
   const activeCount = records.filter(r => r.status === 'in_progress' || r.status === 'reported').length;
@@ -288,7 +291,7 @@ const Maintenance = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredRecords.map((record, index) => {
+                {paginatedRecords.map((record, index) => {
                    const StatusIcon = getStatusIcon(record.status);
                    return (
                     <motion.tr
@@ -347,6 +350,7 @@ const Maintenance = () => {
               </tbody>
             </table>
            )}
+          <PaginationBar page={page} setPage={setPage} totalPages={totalPages} total={total} from={from} perPage={perPage} />
         </div>
       </div>
 

@@ -4,6 +4,8 @@ import { Search, Plus, TrendingUp, CheckCircle, Pencil, Trash2, Loader2, UserPlu
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
+import usePagination from '@/hooks/usePagination';
+import PaginationBar from '@/components/ui/PaginationBar';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -162,8 +164,9 @@ const Leads = () => {
   ];
 
   const hasActiveFilters = statusFilter || sourceFilter || searchTerm;
-
   const clearFilters = () => { setStatusFilter(null); setSourceFilter(''); setSearchTerm(''); };
+
+  const { paginated, page, setPage, totalPages, total, from, perPage } = usePagination(filtered, 10);
 
   return (
     <div className="p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto">
@@ -254,7 +257,7 @@ const Leads = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filtered.map((lead, index) => (
+                {paginated.map((lead, index) => (
                   <motion.tr key={lead.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: index * 0.04 }}
                     className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4">
@@ -302,6 +305,7 @@ const Leads = () => {
               </tbody>
             </table>
           )}
+          <PaginationBar page={page} setPage={setPage} totalPages={totalPages} total={total} from={from} perPage={perPage} />
         </div>
       </div>
 

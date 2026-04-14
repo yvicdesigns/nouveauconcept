@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 import { historyService } from '@/lib/historyService';
+import usePagination from '@/hooks/usePagination';
+import PaginationBar from '@/components/ui/PaginationBar';
 import AddReservationModal from '@/components/modals/AddReservationModal';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -127,10 +129,11 @@ const Reservations = () => {
     fetchReservations(); // Refresh full list to ensure relationships are populated correctly
   };
 
-  const filteredReservations = reservations.filter(r => 
+  const filteredReservations = reservations.filter(r =>
     (r.contacts?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (r.vehicles?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const { paginated: paginatedReservations, page, setPage, totalPages, total, from, perPage } = usePagination(filteredReservations, 10);
 
   return (
     <div className="p-6 lg:p-10 space-y-8 max-w-[1600px] mx-auto bg-gray-50 min-h-screen">
@@ -195,7 +198,7 @@ const Reservations = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredReservations.map((res, index) => (
+                {paginatedReservations.map((res, index) => (
                   <motion.tr 
                     key={res.id} 
                     initial={{ opacity: 0, y: 10 }}
@@ -254,6 +257,7 @@ const Reservations = () => {
             </table>
           </div>
         )}
+        <PaginationBar page={page} setPage={setPage} totalPages={totalPages} total={total} from={from} perPage={perPage} />
       </div>
 
       {/* Modal */}

@@ -4,6 +4,8 @@ import { Search, Plus, FileText, Download, Trash2, Loader2, FolderOpen, Upload, 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
+import usePagination from '@/hooks/usePagination';
+import PaginationBar from '@/components/ui/PaginationBar';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
@@ -173,6 +175,7 @@ const Documents = () => {
 
   const totalSize = documents.reduce((sum, d) => sum + (d.file_size || 0), 0);
   const hasActiveFilters = searchTerm || categoryFilter;
+  const { paginated, page, setPage, totalPages, total, from, perPage } = usePagination(filtered, 10);
 
   const stats = CATEGORY_OPTIONS.slice(0, 4).map(cat => ({
     label: cat,
@@ -269,7 +272,7 @@ const Documents = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filtered.map((doc, index) => {
+                {paginated.map((doc, index) => {
                   const FileIcon = getFileIcon(doc.file_type);
                   return (
                     <motion.tr key={doc.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: index * 0.03 }}
@@ -314,6 +317,7 @@ const Documents = () => {
               </tbody>
             </table>
           )}
+          <PaginationBar page={page} setPage={setPage} totalPages={totalPages} total={total} from={from} perPage={perPage} />
         </div>
       </div>
 

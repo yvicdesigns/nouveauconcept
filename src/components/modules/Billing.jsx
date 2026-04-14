@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Plus, Download, Eye, Trash2, Edit, Receipt, Loader2 } from 'lucide-react';
+import { Search, Plus, Download, Eye, Trash2, Edit, Receipt, Loader2, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
@@ -127,6 +127,72 @@ const Billing = () => {
     }
   };
 
+  const downloadPDF = async (invoice) => {
+    try {
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas'),
+      ]);
+      // Render invoice in a hidden off-screen div
+      const container = document.createElement('div');
+      container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#fff;padding:32px;font-family:sans-serif;';
+      container.innerHTML = buildInvoiceHTML(invoice);
+      document.body.appendChild(container);
+      const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      document.body.removeChild(container);
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const imgH  = pageW * (canvas.height / canvas.width);
+      pdf.addImage(imgData, 'PNG', 0, 0, pageW, imgH);
+      pdf.save(`Facture-${invoice.invoice_number}.pdf`);
+    } catch {
+      toast({ title: 'Erreur', description: 'Impossible de générer le PDF.', variant: 'destructive' });
+    }
+  };
+
+  const buildInvoiceHTML = (inv) => `
+    <div style="color:#1e293b;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #e2e8f0;padding-bottom:24px;margin-bottom:24px;">
+        <div>
+          <h1 style="font-size:22px;font-weight:800;margin:0;">NOUVEAU CONCEPT</h1>
+          <p style="color:#64748b;margin:4px 0 12px;">Location de Voitures de Luxe</p>
+          <p style="font-size:13px;color:#475569;line-height:1.6;margin:0;">Abidjan, Côte d'Ivoire<br/>contact@nouveauconcept.ci<br/>+225 07 00 00 00</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:36px;font-weight:200;color:#cbd5e1;margin:0 0 12px;">FACTURE</p>
+          <p style="font-size:13px;margin:2px 0;"><strong>N° :</strong> ${inv.invoice_number}</p>
+          <p style="font-size:13px;margin:2px 0;"><strong>Émission :</strong> ${inv.issue_date ? new Date(inv.issue_date).toLocaleDateString('fr-FR') : '—'}</p>
+          <p style="font-size:13px;margin:2px 0;"><strong>Échéance :</strong> ${inv.due_date ? new Date(inv.due_date).toLocaleDateString('fr-FR') : '—'}</p>
+          <span style="display:inline-block;margin-top:8px;padding:3px 12px;border-radius:999px;font-size:11px;font-weight:700;background:${inv.status==='Payé'?'#dcfce7':'#f1f5f9'};color:${inv.status==='Payé'?'#15803d':'#475569'};">${inv.status}</span>
+        </div>
+      </div>
+      <div style="margin-bottom:24px;"><p style="font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:700;margin:0 0 6px;">Facturer à</p><p style="font-size:17px;font-weight:700;margin:0;">${inv.client_name}</p></div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+        <thead><tr style="border-bottom:2px solid #e2e8f0;">
+          <th style="text-align:left;padding:8px 0;font-size:12px;font-weight:700;">Description</th>
+          <th style="text-align:right;padding:8px 0;font-size:12px;font-weight:700;">P.U.</th>
+          <th style="text-align:right;padding:8px 0;font-size:12px;font-weight:700;">Jours</th>
+          <th style="text-align:right;padding:8px 0;font-size:12px;font-weight:700;">Total</th>
+        </tr></thead>
+        <tbody><tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:12px 0;font-size:13px;"><strong>Location Véhicule</strong><br/><span style="color:#64748b;">${inv.vehicle_details||''}</span></td>
+          <td style="padding:12px 0;text-align:right;font-size:13px;">${Number(inv.daily_rate||0).toLocaleString('fr-FR')} FCFA</td>
+          <td style="padding:12px 0;text-align:right;font-size:13px;">${inv.days_count||0}</td>
+          <td style="padding:12px 0;text-align:right;font-size:13px;font-weight:700;">${Number(inv.subtotal||0).toLocaleString('fr-FR')} FCFA</td>
+        </tr></tbody>
+      </table>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:24px;">
+        <div style="width:220px;">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><span style="color:#64748b;">Sous-total :</span><span>${Number(inv.subtotal||0).toLocaleString('fr-FR')} FCFA</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><span style="color:#64748b;">TVA (20%) :</span><span>${Number(inv.tax_amount||0).toLocaleString('fr-FR')} FCFA</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;border-top:2px solid #e2e8f0;padding-top:8px;margin-top:8px;"><span>Total :</span><span style="color:#2563eb;">${Number(inv.total_amount||0).toLocaleString('fr-FR')} FCFA</span></div>
+        </div>
+      </div>
+      ${inv.notes ? `<div style="background:#f8fafc;border-radius:8px;padding:12px;font-size:12px;color:#475569;"><strong>Notes :</strong> ${inv.notes}</div>` : ''}
+      <p style="text-align:center;font-size:11px;color:#94a3b8;margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;">Merci de votre confiance — Conditions : paiement dû à la date d'échéance.</p>
+    </div>`;
+
   const handleInvoiceSaved = (savedInvoice) => {
     setInvoices(prev => {
       const exists = prev.find(inv => inv.id === savedInvoice.id);
@@ -242,6 +308,9 @@ const Billing = () => {
                       <div className="flex justify-center gap-2">
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:bg-blue-50" onClick={() => handleView(invoice)} title="Voir">
                           <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600 hover:bg-green-50" onClick={() => downloadPDF(invoice)} title="Télécharger PDF">
+                          <FileDown className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:bg-slate-100" onClick={() => handleEdit(invoice)} title="Modifier">
                           <Edit className="h-4 w-4" />

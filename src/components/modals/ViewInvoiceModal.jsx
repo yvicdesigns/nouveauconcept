@@ -1,15 +1,49 @@
-import React, { useRef } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Printer, Download, FileText, X } from 'lucide-react';
+import { Printer, Download, FileText, X, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 const ViewInvoiceModal = ({ open, onOpenChange, invoice }) => {
+  const [isExporting, setIsExporting] = useState(false);
   if (!invoice) return null;
 
-  const printInvoice = () => {
-    window.print();
+  const printInvoice = () => window.print();
+
+  const downloadPDF = async () => {
+    setIsExporting(true);
+    try {
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas'),
+      ]);
+      const element = document.getElementById('invoice-content');
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const ratio  = canvas.height / canvas.width;
+      const imgH   = pageW * ratio;
+      let posY = 0;
+      if (imgH <= pageH) {
+        pdf.addImage(imgData, 'PNG', 0, 0, pageW, imgH);
+      } else {
+        let remaining = canvas.height;
+        while (remaining > 0) {
+          pdf.addImage(imgData, 'PNG', 0, posY, pageW, imgH);
+          remaining -= canvas.height * (pageH / imgH);
+          posY -= pageH;
+          if (remaining > 0) pdf.addPage();
+        }
+      }
+      pdf.save(`Facture-${invoice.invoice_number}.pdf`);
+    } catch {
+      alert('Erreur lors de la génération du PDF.');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -24,6 +58,12 @@ const ViewInvoiceModal = ({ open, onOpenChange, invoice }) => {
             <Button variant="outline" size="sm" onClick={printInvoice}>
               <Printer className="h-4 w-4 mr-2" />
               Imprimer
+            </Button>
+            <Button size="sm" onClick={downloadPDF} disabled={isExporting}
+              className="bg-blue-600 hover:bg-blue-700 text-white min-w-[130px]">
+              {isExporting
+                ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Export…</>
+                : <><Download className="h-4 w-4 mr-2" />Télécharger PDF</>}
             </Button>
             <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
               <X className="h-4 w-4" />

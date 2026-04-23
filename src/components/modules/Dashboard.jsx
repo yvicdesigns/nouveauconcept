@@ -30,169 +30,94 @@ const Dashboard = () => {
     try {
       setIsLoading(true);
       const now = new Date();
-      const startOfCurrentMonth = startOfMonth(now).toISOString();
-      const endOfCurrentMonth = endOfMonth(now).toISOString();
+      const monthStart = startOfMonth(now).toISOString();
+      const monthEnd   = endOfMonth(now).toISOString();
 
-      // 1. Fetch Fleet Size & Status
-      const { data: vehicles, error: vehiclesError } = await supabase
-        .from('vehicles')
-        .select('id, status, brand, model, license_plate');
-      
-      if (vehiclesError) throw vehiclesError;
+      const [
+        { data: vehicles,    error: eVeh },
+        { data: reservations,error: eRes },
+        { data: maintenance, error: eMnt },
+        { data: allInvoices, error: eInv },
+        { data: overdueInv,  error: eOvd },
+      ] = await Promise.all([
+        supabase.from('vehicles').select('id, status, brand, model, license_plate'),
+        supabase.from('reservations').select('id, start_date, end_date, status').neq('status', 'Annulée'),
+        supabase.from('maintenance_records').select('id, priority, status, vehicle_id, description, vehicles(brand, model, license_plate)').neq('status', 'completed'),
+        supabase.from('invoices').select('id, total_amount, issue_date').eq('status', 'Payé'),
+        supabase.from('invoices').select('id, invoice_number, total_amount, due_date, client_name').eq('status', 'En retard').limit(5),
+      ]);
 
-      // 2. Fetch Reservations for Revenue & Occupancy
-      // We grab reservations and include vehicle data to calculate fallback price if missing
-      const { data: reservations, error: reservationsError } = await supabase
-        .from('reservations')
-        .select('id, total_price, start_date, end_date, status, created_at, vehicles(daily_rate)')
-        .neq('status', 'cancelled');
+      if (eVeh || eRes || eMnt || eInv || eOvd) throw eVeh || eRes || eMnt || eInv || eOvd;
 
-      if (reservationsError) throw reservationsError;
-
-      // 3. Fetch Maintenance Records (Active)
-      const { data: maintenance, error: maintenanceError } = await supabase
-        .from('maintenance_records')
-        .select('id, priority, status, vehicle_id, description, vehicles(brand, model, license_plate)')
-        .neq('status', 'completed')
-        .neq('status', 'cancelled');
-
-      if (maintenanceError) throw maintenanceError;
-
-      // 4. Fetch Overdue Invoices
-      const { data: invoices, error: invoicesError } = await supabase
-        .from('invoices')
-        .select('id, invoice_number, total_amount, due_date, client_name, status')
-        .eq('status', 'unpaid') // Assuming 'unpaid' is the status for pending
-        .lt('due_date', now.toISOString())
-        .limit(5);
-        
-      if (invoicesError) throw invoicesError;
-
-      // --- Calculations ---
-
-      // Fleet Stats
+      // Taux d'occupation : réservations En cours ou Confirmée actives maintenant
       const totalVehicles = vehicles.length;
-      
-      // Active Rentals (Right Now)
-      const activeRentals = reservations.filter(r => 
-        isWithinInterval(now, { 
-          start: parseISO(r.start_date), 
-          end: parseISO(r.end_date) 
-        }) && r.status === 'confirmed'
+      const activeRentals = reservations.filter(r =>
+        ['En cours', 'Confirmée'].includes(r.status) &&
+        isWithinInterval(now, { start: parseISO(r.start_date), end: parseISO(r.end_date) })
       ).length;
+      const occupancyRate = totalVehicles > 0 ? Math.round((activeRentals / totalVehicles) * 100) : 0;
 
-      const occupancyRate = totalVehicles > 0 
-        ? Math.round((activeRentals / totalVehicles) * 100) 
-        : 0;
-
-      // Monthly Revenue (Current Month)
-      // Sum total_price of reservations starting in this month
-      // Includes robust fallback if total_price is missing in DB
-      const currentMonthRevenue = reservations
-        .filter(r => r.start_date >= startOfCurrentMonth && r.start_date <= endOfCurrentMonth)
-        .reduce((sum, r) => {
-          let price = Number(r.total_price);
-          // Fallback: If price is missing, calculate from daily rate * days
-          if (!price && r.vehicles?.daily_rate) {
-            const start = new Date(r.start_date);
-            const end = new Date(r.end_date);
-            // Calculate difference in days, default to 1 minimum
-            const diffTime = Math.abs(end - start);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-            const days = diffDays > 0 ? diffDays : 1;
-            price = Number(r.vehicles.daily_rate) * days;
-          }
-          return sum + (price || 0);
-        }, 0);
-
-      // Maintenance Count
-      const activeMaintenanceCount = maintenance.length;
+      // Revenu mensuel : factures Payées ce mois
+      const currentMonthRevenue = allInvoices
+        .filter(i => i.issue_date >= monthStart && i.issue_date <= monthEnd)
+        .reduce((sum, i) => sum + (Number(i.total_amount) || 0), 0);
 
       setStats({
         fleetSize: totalVehicles,
         occupancyRate,
         monthlyRevenue: currentMonthRevenue,
-        maintenanceCount: activeMaintenanceCount
+        maintenanceCount: maintenance.length,
       });
 
-      // Vehicle Status Distribution
-      const statusCounts = vehicles.reduce((acc, vehicle) => {
-        const status = vehicle.status?.toLowerCase() || 'available';
-        acc[status] = (acc[status] || 0) + 1;
+      // Statuts véhicules
+      const statusMapping = {
+        'available':   { label: 'Disponible', color: '#2563eb' },
+        'rented':      { label: 'Loué',       color: '#16a34a' },
+        'maintenance': { label: 'Maint.',     color: '#dc2626' },
+        'reserved':    { label: 'Réservé',    color: '#ca8a04' },
+        'disponible':  { label: 'Disponible', color: '#2563eb' },
+      };
+      const statusCounts = vehicles.reduce((acc, v) => {
+        const key = v.status?.toLowerCase() || 'available';
+        acc[key] = (acc[key] || 0) + 1;
         return acc;
       }, {});
-
-      const statusMapping = {
-        'available': { label: 'Dispo', color: '#2563eb' }, // blue
-        'rented': { label: 'Loué', color: '#16a34a' }, // green
-        'maintenance': { label: 'Maint.', color: '#dc2626' }, // red
-        'reserved': { label: 'Réservé', color: '#ca8a04' }, // yellow
-        // Fallback mapping for exact DB strings if case differs
-        'disponible': { label: 'Dispo', color: '#2563eb' },
-        'loué': { label: 'Loué', color: '#16a34a' },
-      };
-
-      const chartData = Object.keys(statusCounts).map(key => ({
+      setVehicleStatusData(Object.keys(statusCounts).map(key => ({
         label: statusMapping[key]?.label || key,
         value: statusCounts[key],
-        color: statusMapping[key]?.color || '#94a3b8' // slate default
-      }));
+        color: statusMapping[key]?.color || '#94a3b8',
+      })));
 
-      setVehicleStatusData(chartData);
-
-      // Revenue Chart Data (Last 6 Months)
-      const revenueHistory = [];
-      for (let i = 5; i >= 0; i--) {
-        const date = subMonths(now, i);
-        const monthStart = startOfMonth(date).toISOString();
-        const monthEnd = endOfMonth(date).toISOString();
-        const monthLabel = format(date, 'MMM', { locale: fr }); // Jan, Fév...
-
-        // Use same robust logic for history
-        const monthTotal = reservations
-          .filter(r => r.start_date >= monthStart && r.start_date <= monthEnd)
-          .reduce((sum, r) => {
-            let price = Number(r.total_price);
-            if (!price && r.vehicles?.daily_rate) {
-              const start = new Date(r.start_date);
-              const end = new Date(r.end_date);
-              const diffDays = Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24)); 
-              price = Number(r.vehicles.daily_rate) * (diffDays > 0 ? diffDays : 1);
-            }
-            return sum + (price || 0);
-          }, 0);
-
-        revenueHistory.push({ month: monthLabel, value: monthTotal });
-      }
+      // Graphique revenus 6 mois (factures Payées)
+      const revenueHistory = Array.from({ length: 6 }, (_, i) => {
+        const date  = subMonths(now, 5 - i);
+        const start = startOfMonth(date).toISOString();
+        const end   = endOfMonth(date).toISOString();
+        const total = allInvoices
+          .filter(inv => inv.issue_date >= start && inv.issue_date <= end)
+          .reduce((sum, inv) => sum + (Number(inv.total_amount) || 0), 0);
+        return { month: format(date, 'MMM', { locale: fr }), value: total };
+      });
       setRevenueData(revenueHistory);
 
-      // Alerts
+      // Alertes
       const newAlerts = [];
-      
-      // Urgent/High Maintenance Alerts
       maintenance
         .filter(m => m.priority === 'urgent' || m.priority === 'high')
-        .forEach(m => {
-          newAlerts.push({
-            type: 'maintenance',
-            title: 'Maintenance Requise',
-            message: `Le véhicule ${m.vehicles?.brand} ${m.vehicles?.model} (${m.vehicles?.license_plate}) nécessite une attention immédiate.`
-          });
-        });
-
-      // Overdue Invoices Alerts
-      invoices.forEach(inv => {
-        newAlerts.push({
-          type: 'invoice',
-          title: 'Facture En Retard',
-          message: `Facture ${inv.invoice_number} de ${inv.client_name} (${Number(inv.total_amount).toLocaleString()} €) est en retard.`
-        });
-      });
-
-      setAlerts(newAlerts.slice(0, 4)); // Limit to 4 alerts
+        .forEach(m => newAlerts.push({
+          type: 'maintenance',
+          title: 'Maintenance requise',
+          message: `${m.vehicles?.brand || ''} ${m.vehicles?.model || ''} (${m.vehicles?.license_plate || ''}) nécessite une intervention.`,
+        }));
+      overdueInv.forEach(inv => newAlerts.push({
+        type: 'invoice',
+        title: 'Facture en retard',
+        message: `Facture ${inv.invoice_number} — ${inv.client_name} — ${Number(inv.total_amount).toLocaleString()} FCFA`,
+      }));
+      setAlerts(newAlerts.slice(0, 4));
 
     } catch (error) {
-      console.error("Error loading dashboard data:", error);
+      console.error('Dashboard error:', error);
     } finally {
       setIsLoading(false);
     }

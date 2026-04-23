@@ -4,8 +4,27 @@ import { BarChart3, TrendingUp, Calendar, Users, Car, Loader2, RefreshCw, Target
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
-import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
+import { format, subMonths, startOfMonth, endOfMonth, subQuarters, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subYears } from 'date-fns';
 import { fr } from 'date-fns/locale';
+
+const PERIODS = [
+  { label: 'Ce mois',       value: 'month' },
+  { label: 'Mois dernier',  value: 'last_month' },
+  { label: 'Ce trimestre',  value: 'quarter' },
+  { label: 'Cette année',   value: 'year' },
+  { label: 'Tout',          value: 'all' },
+];
+
+const getPeriodRange = (period) => {
+  const now = new Date();
+  switch (period) {
+    case 'month':      return { start: startOfMonth(now),            end: endOfMonth(now) };
+    case 'last_month': return { start: startOfMonth(subMonths(now,1)), end: endOfMonth(subMonths(now,1)) };
+    case 'quarter':    return { start: startOfQuarter(now),           end: endOfQuarter(now) };
+    case 'year':       return { start: startOfYear(now),              end: endOfYear(now) };
+    default:           return null;
+  }
+};
 
 const fmtFCFA = (v) => {
   if (!v) return '0 FCFA';
@@ -31,6 +50,7 @@ const BarRow = ({ label, value, max, color, count }) => {
 const Reports = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
+  const [period, setPeriod] = useState('month');
   const [data, setData] = useState({
     invoices: [], reservations: [], vehicles: [],
     leads: [], opportunities: [],
@@ -62,14 +82,42 @@ const Reports = () => {
     }
   };
 
+  // ── Filtre période ────────────────────────────────────────────────────────
+  const range = getPeriodRange(period);
+  const inPeriod = (dateStr) => {
+    if (!range || !dateStr) return true;
+    const d = new Date(dateStr);
+    return d >= range.start && d <= range.end;
+  };
+  const filteredInvoices      = data.invoices.filter(i => inPeriod(i.issue_date));
+  const filteredReservations  = data.reservations.filter(r => inPeriod(r.start_date));
+  const filteredLeads         = data.leads.filter(l => inPeriod(l.created_at));
+  const filteredOpportunities = data.opportunities.filter(o => inPeriod(o.created_at));
+
   // ── KPIs ──────────────────────────────────────────────────────────────────
-  const revenuEncaisse  = data.invoices.filter(i => i.status === 'Payé').reduce((s, i) => s + (Number(i.total_amount) || 0), 0);
-  const revenuTotal     = data.invoices.reduce((s, i) => s + (Number(i.total_amount) || 0), 0);
+  const revenuEncaisse  = filteredInvoices.filter(i => i.status === 'Payé').reduce((s, i) => s + (Number(i.total_amount) || 0), 0);
+  const revenuTotal     = filteredInvoices.reduce((s, i) => s + (Number(i.total_amount) || 0), 0);
   const tauxRecouvrement = revenuTotal > 0 ? Math.round((revenuEncaisse / revenuTotal) * 100) : 0;
-  const convertis       = data.leads.filter(l => l.status === 'Converti').length;
-  const totalLeads      = data.leads.filter(l => l.status !== 'Perdu').length;
+  const convertis       = filteredLeads.filter(l => l.status === 'Converti').length;
+  const totalLeads      = filteredLeads.filter(l => l.status !== 'Perdu').length;
   const tauxConversion  = totalLeads > 0 ? Math.round((convertis / totalLeads) * 100) : 0;
-  const pipelineValue   = data.opportunities.filter(o => o.stage !== 'Perdu').reduce((s, o) => s + (Number(o.value) || 0), 0);
+  const pipelineValue   = filteredOpportunities.filter(o => o.stage !== 'Perdu').reduce((s, o) => s + (Number(o.value) || 0), 0);
+
+  // ── Réservations (filtrées) ───────────────────────────────────────────────
+  const resStatuts = ['En attente', 'Confirmée', 'En cours', 'Terminée', 'Annulée'];
+  const resColors  = ['bg-yellow-400', 'bg-green-400', 'bg-blue-400', 'bg-slate-400', 'bg-red-400'];
+  const resCounts  = resStatuts.map(s => ({ label: s, count: filteredReservations.filter(r => r.status === s).length }));
+  const maxRes     = Math.max(...resCounts.map(r => r.count), 1);
+
+  const leadStatuts = ['Nouveau', 'Contacté', 'Qualifié', 'Converti', 'Perdu'];
+  const leadColors  = ['bg-blue-400', 'bg-yellow-400', 'bg-green-400', 'bg-purple-400', 'bg-red-400'];
+  const leadCounts  = leadStatuts.map(s => ({ label: s, count: filteredLeads.filter(l => l.status === s).length }));
+  const maxLead     = Math.max(...leadCounts.map(l => l.count), 1);
+
+  const oppStages = ['Prospection', 'Qualification', 'Proposition', 'Négociation', 'Conclu', 'Perdu'];
+  const oppColors = ['bg-slate-400', 'bg-blue-400', 'bg-purple-400', 'bg-yellow-400', 'bg-green-400', 'bg-red-400'];
+  const oppCounts = oppStages.map(s => ({ label: s, count: filteredOpportunities.filter(o => o.stage === s).length }));
+  const maxOpp    = Math.max(...oppCounts.map(o => o.count), 1);
 
   // ── Revenus 6 derniers mois ───────────────────────────────────────────────
   const derniersMois = Array.from({ length: 6 }, (_, i) => {
@@ -87,23 +135,6 @@ const Reports = () => {
   });
   const maxRevenu = Math.max(...derniersMois.map(m => m.total), 1);
 
-  // ── Réservations par statut ───────────────────────────────────────────────
-  const resStatuts = ['En attente', 'Confirmée', 'En cours', 'Terminée', 'Annulée'];
-  const resColors  = ['bg-yellow-400', 'bg-green-400', 'bg-blue-400', 'bg-slate-400', 'bg-red-400'];
-  const resCounts  = resStatuts.map(s => ({ label: s, count: data.reservations.filter(r => r.status === s).length }));
-  const maxRes     = Math.max(...resCounts.map(r => r.count), 1);
-
-  // ── Leads par statut ──────────────────────────────────────────────────────
-  const leadStatuts = ['Nouveau', 'Contacté', 'Qualifié', 'Converti', 'Perdu'];
-  const leadColors  = ['bg-blue-400', 'bg-yellow-400', 'bg-green-400', 'bg-purple-400', 'bg-red-400'];
-  const leadCounts  = leadStatuts.map(s => ({ label: s, count: data.leads.filter(l => l.status === s).length }));
-  const maxLead     = Math.max(...leadCounts.map(l => l.count), 1);
-
-  // ── Opportunités par étape ────────────────────────────────────────────────
-  const oppStages = ['Prospection', 'Qualification', 'Proposition', 'Négociation', 'Conclu', 'Perdu'];
-  const oppColors = ['bg-slate-400', 'bg-blue-400', 'bg-purple-400', 'bg-yellow-400', 'bg-green-400', 'bg-red-400'];
-  const oppCounts = oppStages.map(s => ({ label: s, count: data.opportunities.filter(o => o.stage === s).length }));
-  const maxOpp    = Math.max(...oppCounts.map(o => o.count), 1);
 
   const kpis = [
     { label: 'Revenus encaissés',   value: fmtFCFA(revenuEncaisse),       sub: `${tauxRecouvrement}% recouvré`,       icon: TrendingUp, color: 'text-green-600',  bg: 'bg-green-50' },
@@ -127,9 +158,20 @@ const Reports = () => {
           <h1 className="text-3xl font-bold text-slate-900">Rapports & Analytiques</h1>
           <p className="text-slate-600 mt-1">Vue d'ensemble des performances du CRM</p>
         </div>
-        <Button onClick={fetchAll} variant="outline" className="gap-2">
-          <RefreshCw className="h-4 w-4" /> Actualiser
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex bg-slate-100 rounded-lg p-1 gap-1">
+            {PERIODS.map(p => (
+              <button key={p.value} onClick={() => setPeriod(p.value)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                  period === p.value ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <Button onClick={fetchAll} variant="outline" size="sm" className="gap-2">
+            <RefreshCw className="h-4 w-4" /> Actualiser
+          </Button>
+        </div>
       </div>
 
       {/* KPIs */}
@@ -235,7 +277,7 @@ const Reports = () => {
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {['Payé', 'Envoyé', 'En retard', 'Brouillon'].map((s) => {
-            const inv = data.invoices.filter(i => i.status === s);
+            const inv = filteredInvoices.filter(i => i.status === s);
             const total = inv.reduce((sum, i) => sum + (Number(i.total_amount) || 0), 0);
             const colors = { 'Payé': 'text-green-600 bg-green-50', 'Envoyé': 'text-blue-600 bg-blue-50', 'En retard': 'text-red-600 bg-red-50', 'Brouillon': 'text-slate-600 bg-slate-50' };
             return (

@@ -183,9 +183,11 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
     setIsLoading(true);
 
     try {
-      if (!formData.client_id || !formData.vehicle_id || !formData.start_date || !formData.end_date || !formData.start_time) {
-        throw new Error("Veuillez remplir tous les champs obligatoires.");
-      }
+      if (!formData.client_id)   throw new Error("Veuillez sélectionner un client.");
+      if (!formData.vehicle_id)  throw new Error("Veuillez sélectionner un véhicule.");
+      if (!formData.start_date)  throw new Error("Veuillez sélectionner une date de début sur le calendrier.");
+      if (!formData.end_date)    throw new Error("Veuillez sélectionner une date de fin sur le calendrier (cliquez sur une 2ᵉ date).");
+      if (!formData.start_time)  throw new Error("Veuillez indiquer l'heure de départ.");
 
       // Combine date and time for the start_date timestamp
       const fullStartDate = new Date(`${formData.start_date}T${formData.start_time}`);
@@ -467,6 +469,22 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
               <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-green-100 border border-green-200"></div> Disponible</div>
               <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-red-100 border border-red-200"></div> Réservé</div>
               <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-blue-600"></div> Sélection</div>
+            </div>
+
+            {/* Date range summary */}
+            <div className={`rounded-lg px-4 py-3 text-sm border ${formData.start_date && formData.end_date ? 'bg-blue-50 border-blue-200 text-blue-800' : 'bg-amber-50 border-amber-200 text-amber-700'}`}>
+              {!formData.vehicle_id ? (
+                <p className="text-center">Sélectionnez d'abord un véhicule.</p>
+              ) : !formData.start_date ? (
+                <p className="text-center font-medium">👆 Cliquez sur une date de départ</p>
+              ) : !formData.end_date ? (
+                <p className="text-center font-medium">👆 Cliquez sur une date de retour</p>
+              ) : (
+                <div className="flex justify-between">
+                  <span>🚀 Départ : <strong>{format(new Date(formData.start_date), 'dd MMM yyyy', { locale: fr })}</strong></span>
+                  <span>🏁 Retour : <strong>{format(new Date(formData.end_date), 'dd MMM yyyy', { locale: fr })}</strong></span>
+                </div>
+              )}
             </div>
           </div>
 

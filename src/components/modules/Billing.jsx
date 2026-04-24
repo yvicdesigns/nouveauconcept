@@ -10,6 +10,7 @@ import { supabase } from '@/lib/customSupabaseClient';
 import { historyService } from '@/lib/historyService';
 import AddInvoiceModal from '@/components/modals/AddInvoiceModal';
 import ViewInvoiceModal from '@/components/modals/ViewInvoiceModal';
+import ContactDetailSheet from '@/components/modals/ContactDetailSheet';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
@@ -36,6 +37,7 @@ const Billing = () => {
   const [invoiceToView, setInvoiceToView] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState(null);
+  const [contactSheet, setContactSheet] = useState({ open: false, name: null });
 
   useEffect(() => {
     fetchInvoices();
@@ -295,7 +297,12 @@ const Billing = () => {
                   >
                     <td className="px-6 py-4 font-medium text-slate-900">{invoice.invoice_number}</td>
                     <td className="px-6 py-4">
-                      <div className="font-medium text-slate-900">{invoice.client_name}</div>
+                      <button
+                        onClick={() => setContactSheet({ open: true, name: invoice.client_name })}
+                        className="font-medium text-slate-900 hover:text-blue-600 hover:underline transition-colors text-left cursor-pointer"
+                      >
+                        {invoice.client_name}
+                      </button>
                       <div className="text-xs text-slate-500 truncate max-w-[200px]" title={invoice.vehicle_details}>{invoice.vehicle_details}</div>
                     </td>
                     <td className="px-6 py-4 text-slate-600">{format(new Date(invoice.issue_date), 'dd MMM yyyy', { locale: fr })}</td>
@@ -330,6 +337,12 @@ const Billing = () => {
           <PaginationBar page={page} setPage={setPage} totalPages={totalPages} total={total} from={from} perPage={perPage} />
         </div>
       </div>
+
+      <ContactDetailSheet
+        open={contactSheet.open}
+        onOpenChange={(o) => { if (!o) setContactSheet({ open: false, name: null }); }}
+        contactName={contactSheet.name}
+      />
 
       <AddInvoiceModal 
         open={isAddModalOpen}

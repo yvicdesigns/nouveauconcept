@@ -9,6 +9,7 @@ import usePagination from '@/hooks/usePagination';
 import PaginationBar from '@/components/ui/PaginationBar';
 import { SkeletonRows } from '@/components/ui/SkeletonTable';
 import AddReservationModal from '@/components/modals/AddReservationModal';
+import ContactDetailSheet from '@/components/modals/ContactDetailSheet';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
@@ -32,6 +33,7 @@ const Reservations = () => {
   const [reservationToEdit, setReservationToEdit] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [reservationToDelete, setReservationToDelete] = useState(null);
+  const [selectedContactId, setSelectedContactId] = useState(null);
 
   useEffect(() => {
     fetchReservations();
@@ -205,8 +207,13 @@ const Reservations = () => {
                     transition={{ delay: index * 0.05 }}
                     className="hover:bg-gray-50/80 transition-colors"
                   >
-                    <td className="px-6 py-4 font-semibold text-gray-900">
-                      {res.contacts?.name || 'Client inconnu'}
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => res.contact_id && setSelectedContactId(res.contact_id)}
+                        className={`font-semibold text-gray-900 text-left hover:text-blue-600 hover:underline transition-colors ${res.contact_id ? 'cursor-pointer' : 'cursor-default'}`}
+                      >
+                        {res.contacts?.name || 'Client inconnu'}
+                      </button>
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-900">{res.vehicles?.name || 'Véhicule inconnu'}</div>
@@ -258,6 +265,12 @@ const Reservations = () => {
         )}
         <PaginationBar page={page} setPage={setPage} totalPages={totalPages} total={total} from={from} perPage={perPage} />
       </div>
+
+      <ContactDetailSheet
+        open={!!selectedContactId}
+        onOpenChange={(o) => { if (!o) setSelectedContactId(null); }}
+        contactId={selectedContactId}
+      />
 
       {/* Modal */}
       <AddReservationModal 

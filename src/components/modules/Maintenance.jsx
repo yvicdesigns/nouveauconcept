@@ -11,6 +11,7 @@ import { SkeletonRows } from '@/components/ui/SkeletonTable';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import AddMaintenanceModal from '@/components/modals/AddMaintenanceModal';
+import VehicleDetailSheet from '@/components/modals/VehicleDetailSheet';
 import ViewMaintenanceModal from '@/components/modals/ViewMaintenanceModal';
 import {
   AlertDialog,
@@ -36,6 +37,7 @@ const Maintenance = () => {
   const [recordToView, setRecordToView] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [recordToDelete, setRecordToDelete] = useState(null);
+  const [selectedVehicleId, setSelectedVehicleId] = useState(null);
 
   useEffect(() => {
     fetchRecords();
@@ -301,9 +303,12 @@ const Maintenance = () => {
                       className="hover:bg-slate-50/80 transition-colors"
                     >
                       <td className="px-6 py-4">
-                        <div className="font-medium text-slate-900">
+                        <button
+                          onClick={() => record.vehicle_id && setSelectedVehicleId(record.vehicle_id)}
+                          className={`font-medium text-slate-900 text-left hover:text-green-600 hover:underline transition-colors ${record.vehicle_id ? 'cursor-pointer' : 'cursor-default'}`}
+                        >
                           {record.vehicles ? `${record.vehicles.brand} ${record.vehicles.model}` : 'Inconnu'}
-                        </div>
+                        </button>
                         <div className="text-xs text-slate-500 font-mono mt-0.5">
                           {record.vehicles?.license_plate}
                         </div>
@@ -352,6 +357,12 @@ const Maintenance = () => {
           <PaginationBar page={page} setPage={setPage} totalPages={totalPages} total={total} from={from} perPage={perPage} />
         </div>
       </div>
+
+      <VehicleDetailSheet
+        open={!!selectedVehicleId}
+        onOpenChange={(o) => { if (!o) setSelectedVehicleId(null); }}
+        vehicleId={selectedVehicleId}
+      />
 
       <AddMaintenanceModal 
         open={isAddModalOpen}

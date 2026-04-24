@@ -10,6 +10,7 @@ import PaginationBar from '@/components/ui/PaginationBar';
 import { SkeletonRows } from '@/components/ui/SkeletonTable';
 import AddReservationModal from '@/components/modals/AddReservationModal';
 import ContactDetailSheet from '@/components/modals/ContactDetailSheet';
+import VehicleDetailSheet from '@/components/modals/VehicleDetailSheet';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
@@ -34,6 +35,7 @@ const Reservations = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [reservationToDelete, setReservationToDelete] = useState(null);
   const [selectedContactId, setSelectedContactId] = useState(null);
+  const [selectedVehicleId, setSelectedVehicleId] = useState(null);
 
   useEffect(() => {
     fetchReservations();
@@ -216,7 +218,12 @@ const Reservations = () => {
                       </button>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">{res.vehicles?.name || 'Véhicule inconnu'}</div>
+                      <button
+                        onClick={() => res.vehicle_id && setSelectedVehicleId(res.vehicle_id)}
+                        className={`font-medium text-gray-900 text-left hover:text-green-600 hover:underline transition-colors ${res.vehicle_id ? 'cursor-pointer' : 'cursor-default'}`}
+                      >
+                        {res.vehicles?.name || 'Véhicule inconnu'}
+                      </button>
                       <div className="text-xs text-gray-500">{res.vehicles?.brand} {res.vehicles?.model}</div>
                     </td>
                     <td className="px-6 py-4">
@@ -270,6 +277,12 @@ const Reservations = () => {
         open={!!selectedContactId}
         onOpenChange={(o) => { if (!o) setSelectedContactId(null); }}
         contactId={selectedContactId}
+      />
+
+      <VehicleDetailSheet
+        open={!!selectedVehicleId}
+        onOpenChange={(o) => { if (!o) setSelectedVehicleId(null); }}
+        vehicleId={selectedVehicleId}
       />
 
       {/* Modal */}

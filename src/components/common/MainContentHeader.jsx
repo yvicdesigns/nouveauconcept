@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import GlobalSearch from '@/components/common/GlobalSearch';
+import NotificationBell from '@/components/common/NotificationBell';
 
 const MainContentHeader = ({ title }) => {
   const navigate = useNavigate();
@@ -23,7 +24,8 @@ const MainContentHeader = ({ title }) => {
         </Button>
       )}
       <h1 className="text-xl font-bold text-gray-800 flex-shrink-0">{title}</h1>
-      <div className="flex-1 flex justify-end">
+      <div className="flex-1 flex items-center justify-end gap-2">
+        <NotificationBell />
         <GlobalSearch />
       </div>
     </div>

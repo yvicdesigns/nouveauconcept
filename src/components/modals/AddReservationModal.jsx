@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, CheckCircle, Calendar, Car, User, Clock, AlertCircle, Calculator, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, CheckCircle, Calendar, Car, User, Clock, AlertCircle, Calculator, ChevronLeft, ChevronRight, MapPin, CreditCard, Banknote } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -22,11 +22,15 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
     client_id: '',
     vehicle_id: '',
     start_date: '',
-    start_time: '09:00', // Default time
+    start_time: '09:00',
     end_date: '',
+    end_time: '18:00',
     total_price: 0,
     status: 'En attente',
+    payment_mode: 'immediate',
     driver_name: '',
+    departure_location: '',
+    return_location: '',
     notes: ''
   };
 
@@ -42,9 +46,13 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
           start_date: reservationToEdit.start_date ? format(new Date(reservationToEdit.start_date), 'yyyy-MM-dd') : '',
           start_time: reservationToEdit.start_date ? format(new Date(reservationToEdit.start_date), 'HH:mm') : '09:00',
           end_date: reservationToEdit.end_date ? format(new Date(reservationToEdit.end_date), 'yyyy-MM-dd') : '',
+          end_time: reservationToEdit.end_date ? format(new Date(reservationToEdit.end_date), 'HH:mm') : '18:00',
           total_price: reservationToEdit.total_price,
           status: reservationToEdit.status,
+          payment_mode: reservationToEdit.payment_mode || 'immediate',
           driver_name: reservationToEdit.driver_name || '',
+          departure_location: reservationToEdit.departure_location || '',
+          return_location: reservationToEdit.return_location || '',
           notes: reservationToEdit.notes || ''
         });
         // Trigger fetch of existing reservations for this vehicle to populate calendar correctly
@@ -191,10 +199,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
 
       // Combine date and time for the start_date timestamp
       const fullStartDate = new Date(`${formData.start_date}T${formData.start_time}`);
-      
-      // For end date, we default to the date itself (which is 00:00 usually) or we could mirror start time.
-      // For now, keeping it simple as just the date as per typical daily rental logic.
-      const fullEndDate = new Date(formData.end_date);
+      const fullEndDate   = new Date(`${formData.end_date}T${formData.end_time}`);
 
       const reservationPayload = {
         client_id: formData.client_id,
@@ -203,7 +208,10 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
         end_date: fullEndDate.toISOString(),
         status: formData.status,
         total_price: formData.total_price,
+        payment_mode: formData.payment_mode,
         driver_name: formData.driver_name || null,
+        departure_location: formData.departure_location || null,
+        return_location: formData.return_location || null,
         notes: formData.notes
       };
 
@@ -339,19 +347,96 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
               </select>
             </div>
 
-            {/* Time Input */}
-             <div className="space-y-2">
+            {/* Departure & Return Time */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                  <Clock className="h-4 w-4" /> Heure de départ
+                </label>
+                <input
+                  type="time"
+                  name="start_time"
+                  value={formData.start_time}
+                  onChange={handleChange}
+                  required
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                  <Clock className="h-4 w-4" /> Heure de retour
+                </label>
+                <input
+                  type="time"
+                  name="end_time"
+                  value={formData.end_time}
+                  onChange={handleChange}
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
+                />
+              </div>
+            </div>
+
+            {/* Locations */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-green-600" /> Lieu de départ
+                </label>
+                <input
+                  type="text"
+                  name="departure_location"
+                  value={formData.departure_location}
+                  onChange={handleChange}
+                  placeholder="ex: Bras-à-vite, Aéroport…"
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-red-500" /> Lieu de retour
+                </label>
+                <input
+                  type="text"
+                  name="return_location"
+                  value={formData.return_location}
+                  onChange={handleChange}
+                  placeholder="ex: Agence, Saint-Denis…"
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Payment Mode */}
+            <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <Clock className="h-4 w-4" /> Heure de départ
+                <CreditCard className="h-4 w-4" /> Mode de paiement
               </label>
-              <input
-                type="time"
-                name="start_time"
-                value={formData.start_time}
-                onChange={handleChange}
-                required
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
-              />
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, payment_mode: 'immediate' }))}
+                  className={`flex items-center gap-2 p-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                    formData.payment_mode === 'immediate'
+                      ? 'border-green-500 bg-green-50 text-green-700'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                  }`}
+                >
+                  <Banknote className="h-4 w-4 flex-shrink-0" />
+                  <span>Payé à l'avance</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, payment_mode: 'end' }))}
+                  className={`flex items-center gap-2 p-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                    formData.payment_mode === 'end'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                  }`}
+                >
+                  <Clock className="h-4 w-4 flex-shrink-0" />
+                  <span>Fin de location</span>
+                </button>
+              </div>
             </div>
 
             {/* Status & Price */}
@@ -432,29 +517,33 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                   ))}
                   
                   {getDaysInMonth().map((date, i) => {
-                    const isBlocked = isDateBlocked(date);
+                    const isBlocked  = isDateBlocked(date);
                     const isSelected = isDateSelected(date);
-                    const isPast = date < startOfDay(new Date());
-                    
-                    let btnClass = "h-9 w-full rounded-md flex items-center justify-center text-sm transition-all ";
-                    
+                    const isPast     = date < startOfDay(new Date());
+                    const isToday    = isSameDay(date, new Date());
+
+                    let btnClass = "h-9 w-full rounded-md flex items-center justify-center text-sm transition-all relative ";
+
                     if (isBlocked) {
-                      btnClass += "bg-red-100 text-red-400 cursor-not-allowed opacity-70"; // Booked = Red
+                      btnClass += "bg-red-100 text-red-400 cursor-not-allowed opacity-70";
                     } else if (isSelected) {
                       btnClass += "bg-blue-600 text-white font-bold shadow-md scale-105";
+                    } else if (isToday) {
+                      btnClass += "ring-2 ring-blue-400 text-blue-700 font-bold cursor-pointer bg-blue-50";
                     } else if (isPast) {
-                       btnClass += "text-slate-300 cursor-not-allowed";
+                      btnClass += "text-slate-400 cursor-pointer bg-slate-50 hover:bg-amber-50 hover:text-amber-700";
                     } else {
-                      btnClass += "hover:bg-blue-50 text-slate-700 hover:text-blue-600 cursor-pointer bg-green-50 text-green-700"; // Available = Greenish
+                      btnClass += "bg-green-50 text-green-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer";
                     }
 
                     return (
                       <div key={i} className="p-0.5">
                         <button
                           type="button"
-                          disabled={isBlocked || isPast}
+                          disabled={isBlocked}
                           onClick={() => handleDateClick(date)}
                           className={btnClass}
+                          title={isPast ? 'Date passée — saisie rétroactive possible' : undefined}
                         >
                           {format(date, 'd')}
                         </button>

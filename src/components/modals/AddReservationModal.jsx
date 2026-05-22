@@ -128,12 +128,16 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
       const rows = [...prev.vehicleRows];
       rows[index] = { ...rows[index], [field]: value };
 
-      // Auto-calculate price when vehicle is selected and dates exist
-      if (field === 'vehicle_id' && value && prev.start_date && prev.end_date) {
+      // Auto-calculate price when vehicle is selected
+      if (field === 'vehicle_id' && value) {
         const v = vehicles.find(v => v.id === value);
         if (v && v.daily_rate) {
-          const days = differenceInDays(parseISO(prev.end_date), parseISO(prev.start_date)) || 1;
-          rows[index].price = days * v.daily_rate;
+          if (prev.start_date && prev.end_date) {
+            const days = differenceInDays(parseISO(prev.end_date), parseISO(prev.start_date)) || 1;
+            rows[index].price = days * v.daily_rate;
+          } else {
+            rows[index].price = v.daily_rate; // tarif 1 jour par défaut
+          }
         }
       }
       return { ...prev, vehicleRows: rows };

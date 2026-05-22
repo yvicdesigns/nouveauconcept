@@ -7,7 +7,7 @@ import { supabase } from '@/lib/customSupabaseClient';
 import { historyService } from '@/lib/historyService';
 import { format, addDays, parseISO, differenceInDays } from 'date-fns';
 
-const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = null }) => {
+const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = null, prefillReservationId = null }) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [reservations, setReservations] = useState([]);
@@ -90,6 +90,37 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
     } finally {
       setIsReservationsLoading(false);
     }
+  };
+
+  // Auto-prefill when reservations load and prefillReservationId is set
+  useEffect(() => {
+    if (prefillReservationId && reservations.length > 0 && !invoiceToEdit) {
+      applyReservationData(prefillReservationId);
+    }
+  }, [reservations, prefillReservationId]);
+
+  const applyReservationData = (resId) => {
+    const reservation = reservations.find(r => r.id === resId);
+    if (!reservation) return;
+    const startDate = parseISO(reservation.start_date);
+    const endDate = parseISO(reservation.end_date);
+    const days = differenceInDays(endDate, startDate) || 1;
+    const dailyRate = reservation.vehicles?.daily_rate || 0;
+    const subtotal = days * dailyRate;
+    const tax = subtotal * 0.20;
+    setFormData(prev => ({
+      ...prev,
+      reservation_id: resId,
+      client_name: reservation.contacts?.name || 'Client inconnu',
+      vehicle_details: `${reservation.vehicles?.brand} ${reservation.vehicles?.model} (${reservation.vehicles?.license_plate})`,
+      start_date: format(startDate, 'yyyy-MM-dd'),
+      end_date: format(endDate, 'yyyy-MM-dd'),
+      daily_rate: dailyRate,
+      days_count: days,
+      subtotal,
+      tax_amount: tax,
+      total_amount: subtotal + tax,
+    }));
   };
 
   const handleReservationSelect = (e) => {

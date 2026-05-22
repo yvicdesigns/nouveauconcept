@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { List, Calendar as CalendarIcon, Plus, Search, Filter, Edit, Trash2, Loader2 } from 'lucide-react';
+import { List, Calendar as CalendarIcon, Plus, Search, Filter, Edit, Trash2, Loader2, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
@@ -9,6 +9,7 @@ import usePagination from '@/hooks/usePagination';
 import PaginationBar from '@/components/ui/PaginationBar';
 import { SkeletonRows } from '@/components/ui/SkeletonTable';
 import AddReservationModal from '@/components/modals/AddReservationModal';
+import AddInvoiceModal from '@/components/modals/AddInvoiceModal';
 import ContactDetailSheet from '@/components/modals/ContactDetailSheet';
 import VehicleDetailSheet from '@/components/modals/VehicleDetailSheet';
 import { format } from 'date-fns';
@@ -36,6 +37,13 @@ const Reservations = () => {
   const [reservationToDelete, setReservationToDelete] = useState(null);
   const [selectedContactId, setSelectedContactId] = useState(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState(null);
+  const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
+  const [prefillReservationId, setPrefillReservationId] = useState(null);
+
+  const handleCreateInvoice = (res) => {
+    setPrefillReservationId(res.id);
+    setInvoiceModalOpen(true);
+  };
 
   useEffect(() => {
     fetchReservations();
@@ -246,16 +254,27 @@ const Reservations = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
-                        <Button 
-                          size="icon" 
-                          variant="ghost" 
+                        {res.status === 'Terminée' && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            onClick={() => handleCreateInvoice(res)}
+                            title="Créer la facture"
+                          >
+                            <Receipt className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          size="icon"
+                          variant="ghost"
                           className="h-8 w-8 text-gray-500 hover:text-blue-600 hover:bg-blue-50"
                           onClick={() => handleEdit(res)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          size="icon" 
+                        <Button
+                          size="icon"
                           variant="ghost"
                           className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50"
                           onClick={() => handleDeleteClick(res)}
@@ -283,6 +302,13 @@ const Reservations = () => {
         open={!!selectedVehicleId}
         onOpenChange={(o) => { if (!o) setSelectedVehicleId(null); }}
         vehicleId={selectedVehicleId}
+      />
+
+      <AddInvoiceModal
+        open={invoiceModalOpen}
+        onOpenChange={(o) => { setInvoiceModalOpen(o); if (!o) setPrefillReservationId(null); }}
+        onInvoiceSaved={() => setInvoiceModalOpen(false)}
+        prefillReservationId={prefillReservationId}
       />
 
       {/* Modal */}

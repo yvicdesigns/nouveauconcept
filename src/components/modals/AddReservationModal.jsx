@@ -31,7 +31,8 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
     driver_name: '',
     departure_location: '',
     return_location: '',
-    notes: ''
+    notes: '',
+    cancellation_penalty: 0
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -53,7 +54,8 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
           driver_name: reservationToEdit.driver_name || '',
           departure_location: reservationToEdit.departure_location || '',
           return_location: reservationToEdit.return_location || '',
-          notes: reservationToEdit.notes || ''
+          notes: reservationToEdit.notes || '',
+          cancellation_penalty: reservationToEdit.cancellation_penalty || 0
         });
         // Trigger fetch of existing reservations for this vehicle to populate calendar correctly
         fetchVehicleReservations(reservationToEdit.vehicle_id);
@@ -212,7 +214,8 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
         driver_name: formData.driver_name || null,
         departure_location: formData.departure_location || null,
         return_location: formData.return_location || null,
-        notes: formData.notes
+        notes: formData.notes,
+        cancellation_penalty: formData.status === 'Annulée' ? (Number(formData.cancellation_penalty) || 0) : 0
       };
 
       let resultData;
@@ -470,6 +473,25 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                 <p className="text-xs text-slate-400 italic">Modifiable — calculé automatiquement, ajustable selon la négociation</p>
               </div>
             </div>
+
+            {/* Cancellation Penalty — visible only when Annulée */}
+            {formData.status === 'Annulée' && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg space-y-2">
+                <label className="text-sm font-semibold text-red-700 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" /> Pénalité retenue (FCFA)
+                </label>
+                <input
+                  type="number"
+                  name="cancellation_penalty"
+                  value={formData.cancellation_penalty}
+                  onChange={handleChange}
+                  min={0}
+                  className="w-full p-2.5 border border-red-300 rounded-md focus:ring-2 focus:ring-red-400 font-bold text-red-900 bg-white"
+                  placeholder="0"
+                />
+                <p className="text-xs text-red-500">Montant conservé par l'entreprise suite à l'annulation. Le reste sera remboursé au client.</p>
+              </div>
+            )}
 
             {/* Notes */}
             <div className="space-y-2">

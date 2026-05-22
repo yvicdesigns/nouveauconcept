@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Car, Calendar, Banknote, AlertTriangle, Loader2, TrendingUp, Clock, Receipt } from 'lucide-react';
+import { Car, Calendar, Banknote, AlertTriangle, Loader2, TrendingUp, Clock, Receipt, XCircle } from 'lucide-react';
 import StatCard from '@/components/dashboard/StatCard';
 import RevenueChart from '@/components/dashboard/RevenueChart';
 import VehicleStatus from '@/components/dashboard/VehicleStatus';
@@ -21,7 +21,7 @@ const Dashboard = () => {
   const [revenueData, setRevenueData] = useState([]);
   const [vehicleStatusData, setVehicleStatusData] = useState([]);
   const [alerts, setAlerts] = useState([]);
-  const [revenueBreakdown, setRevenueBreakdown] = useState({ paid: 0, pending: 0, overdue: 0 });
+  const [revenueBreakdown, setRevenueBreakdown] = useState({ confirmed: 0, pending: 0, penalties: 0 });
   const [unbilledReservations, setUnbilledReservations] = useState([]);
 
   useEffect(() => {
@@ -36,26 +36,27 @@ const Dashboard = () => {
       const monthEnd   = endOfMonth(now).toISOString();
 
       const [
-        { data: vehicles,       error: eVeh },
-        { data: reservations,   error: eRes },
-        { data: maintenance,    error: eMnt },
-        { data: allInvoices,    error: eInv },
-        { data: overdueInv,     error: eOvd },
-        { data: pendingInv },
+        { data: vehicles,     error: eVeh },
+        { data: reservations, error: eRes },
+        { data: maintenance,  error: eMnt },
+        { data: allResCA },
+        { data: cancelledRes },
         { data: resTerminees },
         { data: invoicedResIds },
       ] = await Promise.all([
         supabase.from('vehicles').select('id, status, brand, model, license_plate'),
         supabase.from('reservations').select('id, start_date, end_date, status').neq('status', 'Annulée'),
         supabase.from('maintenance_records').select('id, priority, status, vehicle_id, description, vehicles(brand, model, license_plate)').neq('status', 'completed'),
-        supabase.from('invoices').select('id, total_amount, issue_date').eq('status', 'Payé'),
-        supabase.from('invoices').select('id, invoice_number, total_amount, due_date, client_name').eq('status', 'En retard').limit(5),
-        supabase.from('invoices').select('id, total_amount').in('status', ['Envoyé', 'Brouillon']),
+        // CA réel : toutes les réservations confirmées/actives/terminées
+        supabase.from('reservations').select('id, total_price, start_date, status').in('status', ['Confirmée', 'En cours', 'Terminée']),
+        // Annulées avec pénalité
+        supabase.from('reservations').select('id, cancellation_penalty').eq('status', 'Annulée'),
+        // Terminées sans facture
         supabase.from('reservations').select('id, total_price, contacts(name), vehicles(name)').eq('status', 'Terminée'),
         supabase.from('invoices').select('reservation_id').not('reservation_id', 'is', null),
       ]);
 
-      if (eVeh || eRes || eMnt || eInv || eOvd) throw eVeh || eRes || eMnt || eInv || eOvd;
+      if (eVeh || eRes || eMnt) throw eVeh || eRes || eMnt;
 
       // Taux d'occupation : réservations En cours ou Confirmée actives maintenant
       const totalVehicles = vehicles.length;
@@ -65,16 +66,18 @@ const Dashboard = () => {
       ).length;
       const occupancyRate = totalVehicles > 0 ? Math.round((activeRentals / totalVehicles) * 100) : 0;
 
-      // Revenu mensuel : factures Payées ce mois
-      const currentMonthRevenue = allInvoices
-        .filter(i => i.issue_date >= monthStart && i.issue_date <= monthEnd)
-        .reduce((sum, i) => sum + (Number(i.total_amount) || 0), 0);
+      // Revenu mensuel : réservations confirmées/actives/terminées ce mois
+      const confirmedRes = allResCA || [];
+      const currentMonthRevenue = confirmedRes
+        .filter(r => r.start_date >= monthStart && r.start_date <= monthEnd)
+        .reduce((sum, r) => sum + (Number(r.total_price) || 0), 0);
 
       // Revenue breakdown
-      const paidTotal    = allInvoices.reduce((s, i) => s + (Number(i.total_amount) || 0), 0);
-      const pendingTotal = (pendingInv || []).reduce((s, i) => s + (Number(i.total_amount) || 0), 0);
-      const overdueTotal = (overdueInv || []).reduce((s, i) => s + (Number(i.total_amount) || 0), 0);
-      setRevenueBreakdown({ paid: paidTotal, pending: pendingTotal, overdue: overdueTotal });
+      const confirmedTotal  = confirmedRes.reduce((s, r) => s + (Number(r.total_price) || 0), 0);
+      const pendingRes      = reservations.filter(r => r.status === 'En attente');
+      const pendingTotal    = pendingRes.reduce((s, r) => s + (Number(r.total_price) || 0), 0);
+      const penaltiesTotal  = (cancelledRes || []).reduce((s, r) => s + (Number(r.cancellation_penalty) || 0), 0);
+      setRevenueBreakdown({ confirmed: confirmedTotal, pending: pendingTotal, penalties: penaltiesTotal });
 
       // Réservations Terminées sans facture
       const invoicedIds = new Set((invoicedResIds || []).map(r => r.reservation_id));
@@ -107,14 +110,14 @@ const Dashboard = () => {
         color: statusMapping[key]?.color || '#94a3b8',
       })));
 
-      // Graphique revenus 6 mois (factures Payées)
+      // Graphique revenus 6 mois (réservations confirmées/actives/terminées)
       const revenueHistory = Array.from({ length: 6 }, (_, i) => {
         const date  = subMonths(now, 5 - i);
         const start = startOfMonth(date).toISOString();
         const end   = endOfMonth(date).toISOString();
-        const total = allInvoices
-          .filter(inv => inv.issue_date >= start && inv.issue_date <= end)
-          .reduce((sum, inv) => sum + (Number(inv.total_amount) || 0), 0);
+        const total = confirmedRes
+          .filter(r => r.start_date >= start && r.start_date <= end)
+          .reduce((sum, r) => sum + (Number(r.total_price) || 0), 0);
         return { month: format(date, 'MMM', { locale: fr }), value: total };
       });
       setRevenueData(revenueHistory);
@@ -128,11 +131,6 @@ const Dashboard = () => {
           title: 'Maintenance requise',
           message: `${m.vehicles?.brand || ''} ${m.vehicles?.model || ''} (${m.vehicles?.license_plate || ''}) nécessite une intervention.`,
         }));
-      overdueInv.forEach(inv => newAlerts.push({
-        type: 'invoice',
-        title: 'Facture en retard',
-        message: `Facture ${inv.invoice_number} — ${inv.client_name} — ${Number(inv.total_amount).toLocaleString()} FCFA`,
-      }));
       setAlerts(newAlerts.slice(0, 4));
 
     } catch (error) {
@@ -233,25 +231,25 @@ const Dashboard = () => {
           <div className="flex items-center gap-4 p-4 bg-green-50 rounded-xl border border-green-100">
             <div className="p-2.5 bg-green-100 rounded-lg"><Receipt className="h-5 w-5 text-green-600" /></div>
             <div>
-              <p className="text-xs font-medium text-green-700 uppercase tracking-wide">Encaissé</p>
-              <p className="text-xl font-bold text-green-800">{revenueBreakdown.paid.toLocaleString()} FCFA</p>
-              <p className="text-xs text-green-600">Factures payées</p>
+              <p className="text-xs font-medium text-green-700 uppercase tracking-wide">CA Réservations</p>
+              <p className="text-xl font-bold text-green-800">{revenueBreakdown.confirmed.toLocaleString()} FCFA</p>
+              <p className="text-xs text-green-600">Confirmées · En cours · Terminées</p>
             </div>
           </div>
           <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
             <div className="p-2.5 bg-blue-100 rounded-lg"><Clock className="h-5 w-5 text-blue-600" /></div>
             <div>
-              <p className="text-xs font-medium text-blue-700 uppercase tracking-wide">À encaisser</p>
+              <p className="text-xs font-medium text-blue-700 uppercase tracking-wide">En attente</p>
               <p className="text-xl font-bold text-blue-800">{revenueBreakdown.pending.toLocaleString()} FCFA</p>
-              <p className="text-xs text-blue-600">Factures envoyées / brouillons</p>
+              <p className="text-xs text-blue-600">Réservations non encore confirmées</p>
             </div>
           </div>
-          <div className="flex items-center gap-4 p-4 bg-red-50 rounded-xl border border-red-100">
-            <div className="p-2.5 bg-red-100 rounded-lg"><AlertTriangle className="h-5 w-5 text-red-600" /></div>
+          <div className="flex items-center gap-4 p-4 bg-orange-50 rounded-xl border border-orange-100">
+            <div className="p-2.5 bg-orange-100 rounded-lg"><XCircle className="h-5 w-5 text-orange-600" /></div>
             <div>
-              <p className="text-xs font-medium text-red-700 uppercase tracking-wide">En retard</p>
-              <p className="text-xl font-bold text-red-800">{revenueBreakdown.overdue.toLocaleString()} FCFA</p>
-              <p className="text-xs text-red-600">Paiements en attente</p>
+              <p className="text-xs font-medium text-orange-700 uppercase tracking-wide">Pénalités retenues</p>
+              <p className="text-xl font-bold text-orange-800">{revenueBreakdown.penalties.toLocaleString()} FCFA</p>
+              <p className="text-xs text-orange-600">Sur annulations</p>
             </div>
           </div>
         </div>

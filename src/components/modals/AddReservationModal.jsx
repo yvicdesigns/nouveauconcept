@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 import { historyService } from '@/lib/historyService';
-import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isWithinInterval, parseISO, startOfDay, endOfDay, differenceInDays } from 'date-fns';
+import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isWithinInterval, parseISO, startOfDay, endOfDay, differenceInDays, getDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 const newRow = () => ({ key: Date.now() + Math.random(), vehicle_id: '', price: 0 });
@@ -153,6 +153,8 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
 
   // ── Calendar helpers ────────────────────────────────────────────────────
   const getDaysInMonth = () => eachDayOfInterval({ start: startOfMonth(currentMonth), end: endOfMonth(currentMonth) });
+  // Offset for Monday-first calendar: Mon=0, Tue=1, ..., Sun=6
+  const getMonthOffset = () => (getDay(startOfMonth(currentMonth)) + 6) % 7;
 
   const isDateBlocked = (date) =>
     vehicleReservations.some(res => {
@@ -551,6 +553,11 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                   {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(day => (
                     <div key={day} className="text-xs font-medium text-slate-400 py-2">{day}</div>
                   ))}
+                  {/* Empty cells before day 1 */}
+                  {Array.from({ length: getMonthOffset() }).map((_, i) => (
+                    <div key={`empty-${i}`} className="p-0.5"><div className="h-9" /></div>
+                  ))}
+
                   {getDaysInMonth().map((date, i) => {
                     const isBlocked  = isDateBlocked(date);
                     const isSelected = isDateSelected(date);

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#2563eb"/>
+  <rect x="40" y="40" width="432" height="432" rx="60" fill="#1d4ed8"/>
+  <!-- Car icon simplified -->
+  <path d="M128 280 L160 200 Q168 180 188 180 L324 180 Q344 180 352 200 L384 280 L400 290 L400 340 Q400 356 384 356 L360 356 L360 336 Q360 320 344 320 L168 320 Q152 320 152 336 L152 356 L128 356 Q112 356 112 340 L112 290 Z" fill="white" opacity="0.95"/>
+  <circle cx="192" cy="348" r="28" fill="#93c5fd"/>
+  <circle cx="192" cy="348" r="16" fill="#1d4ed8"/>
+  <circle cx="320" cy="348" r="28" fill="#93c5fd"/>
+  <circle cx="320" cy="348" r="16" fill="#1d4ed8"/>
+  <rect x="176" y="200" width="160" height="68" rx="8" fill="#93c5fd" opacity="0.5"/>
+  <!-- NC text -->
+  <text x="256" y="460" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="800" fill="white" text-anchor="middle" opacity="0.9">NC</text>
+</svg>

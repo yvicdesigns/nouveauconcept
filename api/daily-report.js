@@ -57,7 +57,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_ANON_KEY);
+    // Service role key bypasses RLS — required for server-side queries
+    const supabase = createClient(
+      process.env.VITE_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_KEY || process.env.VITE_SUPABASE_ANON_KEY
+    );
     const resend   = new Resend(process.env.RESEND_API_KEY);
 
     const { start, end, dateStr, monthStr } = todayBoundsReunion();

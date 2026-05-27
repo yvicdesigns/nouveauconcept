@@ -286,7 +286,7 @@ export default async function handler(req, res) {
     // ── Envoi Resend ───────────────────────────────────────────────────────
     const { data: sendData, error: sendError } = await resend.emails.send({
       from: process.env.RESEND_FROM || 'Nouveau Concept CRM <rapport@nouveauconcept.fr>',
-      to: ['kea.gassay@spicorp-invest.com'],
+      to: (process.env.RESEND_TO || 'kea.gassay@spicorp-invest.com').split(','),
       subject: `📊 Rapport du ${dateFormatted} — CA jour : ${fcfa(caToday)}`,
       html,
     });

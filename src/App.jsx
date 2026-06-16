@@ -23,6 +23,7 @@ import History from '@/components/modules/History';
 import Maintenance from '@/components/modules/Maintenance';
 import Routes from '@/components/modules/Routes';
 import Drivers from '@/components/modules/Drivers';
+import Tutorial from '@/components/modules/Tutorial';
 import { Toaster } from '@/components/ui/toaster';
 import { Loader2 } from 'lucide-react';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
@@ -78,6 +79,7 @@ function App() {
     '/reports': 'Rapports',
     '/routes': 'Tarifs par Destination',
     '/drivers': 'Chauffeurs',
+    '/tutorial': 'Guide d\'utilisation',
   };
 
   const getActiveModuleTitle = () => {
@@ -211,6 +213,7 @@ function App() {
           <Route path="reports" element={<ErrorBoundary><Reports /></ErrorBoundary>} />
           <Route path="routes" element={<ErrorBoundary><Routes /></ErrorBoundary>} />
           <Route path="drivers" element={<ErrorBoundary><Drivers /></ErrorBoundary>} />
+          <Route path="tutorial" element={<ErrorBoundary><Tutorial /></ErrorBoundary>} />
         </Route>
         <Route path="*" element={<Dashboard />} />
       </Routes>

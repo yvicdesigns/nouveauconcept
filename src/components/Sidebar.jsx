@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, CalendarDays, Car, CreditCard, Headphones as HeadphonesIcon, UserCog, Settings as SettingsIcon, LogOut, X, History, Wrench, KeyRound, MapPin, UserCheck } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, Car, CreditCard, Headphones as HeadphonesIcon, UserCog, Settings as SettingsIcon, LogOut, X, History, Wrench, KeyRound, MapPin, UserCheck, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import ChangePasswordModal from '@/components/modals/ChangePasswordModal';
@@ -22,6 +22,7 @@ const Sidebar = ({ isOpen, setIsOpen, user, onLogout }) => { // Removed activeMo
     { id: 'support', label: 'Support', icon: HeadphonesIcon, path: '/support' },
     { id: 'users', label: 'Utilisateurs', icon: UserCog, path: '/users' },
     { id: 'settings', label: 'Paramètres', icon: SettingsIcon, path: '/settings' },
+    { id: 'tutorial', label: 'Guide d\'utilisation', icon: BookOpen, path: '/tutorial' },
   ];
 
   const getInitials = (name) => {

@@ -190,7 +190,7 @@ const Billing = () => {
       <div style="display:flex;justify-content:flex-end;margin-bottom:24px;">
         <div style="width:220px;">
           <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><span style="color:#64748b;">Sous-total :</span><span>${Number(inv.subtotal||0).toLocaleString('fr-FR')} FCFA</span></div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><span style="color:#64748b;">TVA (20%) :</span><span>${Number(inv.tax_amount||0).toLocaleString('fr-FR')} FCFA</span></div>
+          ${(inv.commission_amount > 0) ? `<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><span style="color:#64748b;">Commission ${inv.commission_type ? `(${inv.commission_type})` : 'apporteur'}${inv.commission_rate > 0 ? ` — ${inv.commission_rate}%` : ''} :</span><span>${Number(inv.commission_amount||0).toLocaleString('fr-FR')} FCFA</span></div>` : ''}
           <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;border-top:2px solid #e2e8f0;padding-top:8px;margin-top:8px;"><span>Total :</span><span style="color:#2563eb;">${Number(inv.total_amount||0).toLocaleString('fr-FR')} FCFA</span></div>
         </div>
       </div>

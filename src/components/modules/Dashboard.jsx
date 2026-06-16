@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Car, Calendar, Banknote, AlertTriangle, Loader2, TrendingUp, Clock, Receipt, XCircle } from 'lucide-react';
+import { Car, Calendar, Banknote, AlertTriangle, Loader2, TrendingUp, Clock, Receipt, XCircle, Trophy, Users } from 'lucide-react';
 import StatCard from '@/components/dashboard/StatCard';
 import RevenueChart from '@/components/dashboard/RevenueChart';
 import VehicleStatus from '@/components/dashboard/VehicleStatus';
 import AlertsSection from '@/components/dashboard/AlertsSection';
 import { supabase } from '@/lib/customSupabaseClient';
-import { format, startOfMonth, endOfMonth, subMonths, parseISO, isWithinInterval } from 'date-fns';
+import { format, startOfMonth, endOfMonth, subMonths, parseISO, isWithinInterval, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 const Dashboard = () => {
@@ -23,6 +23,7 @@ const Dashboard = () => {
   const [alerts, setAlerts] = useState([]);
   const [revenueBreakdown, setRevenueBreakdown] = useState({ confirmed: 0, pending: 0, penalties: 0 });
   const [unbilledReservations, setUnbilledReservations] = useState([]);
+  const [topClients, setTopClients] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -44,11 +45,11 @@ const Dashboard = () => {
         { data: resTerminees },
         { data: invoicedResIds },
       ] = await Promise.all([
-        supabase.from('vehicles').select('id, status, brand, model, license_plate'),
+        supabase.from('vehicles').select('id, status, brand, model, license_plate, insurance_expiry_date, technical_check_expiry_date, patente_expiry_date'),
         supabase.from('reservations').select('id, start_date, end_date, status').neq('status', 'Annulée'),
         supabase.from('maintenance_records').select('id, priority, status, vehicle_id, description, vehicles(brand, model, license_plate)').neq('status', 'completed'),
         // CA réel : toutes les réservations confirmées/actives/terminées
-        supabase.from('reservations').select('id, total_price, start_date, status').in('status', ['Confirmée', 'En cours', 'Terminée']),
+        supabase.from('reservations').select('id, total_price, start_date, status, contact_id, contacts(name)').in('status', ['Confirmée', 'En cours', 'Terminée']),
         // Annulées avec pénalité
         supabase.from('reservations').select('id, cancellation_penalty').eq('status', 'Annulée'),
         // Terminées sans facture
@@ -78,6 +79,17 @@ const Dashboard = () => {
       const pendingTotal    = pendingRes.reduce((s, r) => s + (Number(r.total_price) || 0), 0);
       const penaltiesTotal  = (cancelledRes || []).reduce((s, r) => s + (Number(r.cancellation_penalty) || 0), 0);
       setRevenueBreakdown({ confirmed: confirmedTotal, pending: pendingTotal, penalties: penaltiesTotal });
+
+      // Top 3 clients (total dépensé tous statuts confondus)
+      const clientMap = {};
+      confirmedRes.forEach(r => {
+        const name = r.contacts?.name || 'Client inconnu';
+        if (!clientMap[name]) clientMap[name] = { name, total: 0, count: 0 };
+        clientMap[name].total += Number(r.total_price) || 0;
+        clientMap[name].count += 1;
+      });
+      const sorted = Object.values(clientMap).sort((a, b) => b.total - a.total);
+      setTopClients(sorted.slice(0, 3));
 
       // Réservations Terminées sans facture
       const invoicedIds = new Set((invoicedResIds || []).map(r => r.reservation_id));
@@ -123,15 +135,47 @@ const Dashboard = () => {
       setRevenueData(revenueHistory);
 
       // Alertes
-      const newAlerts = [];
+      const expiredAlerts = [];
+      const expiryAlerts = [];
+      const maintenanceAlerts = [];
+
+      // Expirations documents (assurance, CT, patente)
+      const checkExpiry = (vehicle, dateStr, docName) => {
+        if (!dateStr) return;
+        const expDate = parseISO(dateStr);
+        const daysLeft = differenceInDays(expDate, now);
+        const label = `${vehicle.brand || ''} ${vehicle.model || ''} (${vehicle.license_plate || ''})`;
+        if (daysLeft < 0) {
+          expiredAlerts.push({
+            type: 'expired',
+            title: `${docName} expirée`,
+            message: `${label} — expirée depuis ${Math.abs(daysLeft)} jour${Math.abs(daysLeft) > 1 ? 's' : ''}.`,
+          });
+        } else if (daysLeft <= 30) {
+          expiryAlerts.push({
+            type: 'expiry',
+            title: `${docName} — expiration proche`,
+            message: `${label} — expire dans ${daysLeft} jour${daysLeft !== 1 ? 's' : ''}.`,
+          });
+        }
+      };
+
+      vehicles.forEach(v => {
+        checkExpiry(v, v.insurance_expiry_date, 'Assurance');
+        checkExpiry(v, v.technical_check_expiry_date, 'Contrôle technique');
+        checkExpiry(v, v.patente_expiry_date, 'Patente');
+      });
+
+      // Maintenances urgentes
       maintenance
         .filter(m => m.priority === 'urgent' || m.priority === 'high')
-        .forEach(m => newAlerts.push({
+        .forEach(m => maintenanceAlerts.push({
           type: 'maintenance',
           title: 'Maintenance requise',
           message: `${m.vehicles?.brand || ''} ${m.vehicles?.model || ''} (${m.vehicles?.license_plate || ''}) nécessite une intervention.`,
         }));
-      setAlerts(newAlerts.slice(0, 4));
+
+      setAlerts([...expiredAlerts, ...expiryAlerts, ...maintenanceAlerts].slice(0, 8));
 
     } catch (error) {
       console.error('Dashboard error:', error);
@@ -278,6 +322,40 @@ const Dashboard = () => {
                 </button>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Top 3 Clients */}
+      {topClients.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-yellow-500" /> Top Clients
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {topClients.map((client, i) => {
+              const medals = ['🥇', '🥈', '🥉'];
+              const colors = [
+                'bg-yellow-50 border-yellow-200',
+                'bg-slate-50 border-slate-200',
+                'bg-orange-50 border-orange-200',
+              ];
+              const textColors = ['text-yellow-700', 'text-slate-600', 'text-orange-700'];
+              return (
+                <div key={i} className={`flex items-center gap-4 p-4 rounded-xl border ${colors[i]}`}>
+                  <span className="text-2xl">{medals[i]}</span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-gray-900 truncate">{client.name}</p>
+                    <p className={`text-xs font-semibold ${textColors[i]}`}>
+                      {client.total.toLocaleString()} FCFA
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {client.count} réservation{client.count > 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

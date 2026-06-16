@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Plus, Mail, Phone, MapPin, Edit, Trash2, Building, Loader2 } from 'lucide-react';
+import { Search, Plus, Mail, Phone, MapPin, Edit, Trash2, Building, Loader2, AlertCircle, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
@@ -220,6 +220,33 @@ const Contacts = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Satisfaction & Remarque */}
+                {(contact.satisfaction || contact.action_requise || contact.remarque_type) && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {contact.satisfaction && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-100">
+                        <MessageSquare className="h-3 w-3" />
+                        {contact.satisfaction}
+                      </span>
+                    )}
+                    {contact.remarque_type && (
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${
+                        contact.remarque_type === 'Réclamation' ? 'bg-red-50 text-red-700 border-red-100' :
+                        contact.remarque_type === 'Félicitation' ? 'bg-green-50 text-green-700 border-green-100' :
+                        'bg-slate-50 text-slate-600 border-slate-200'
+                      }`}>
+                        {contact.remarque_type}
+                      </span>
+                    )}
+                    {contact.action_requise && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200">
+                        <AlertCircle className="h-3 w-3" />
+                        Action requise
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 <div className="pt-4 border-t border-slate-100">
                   <div className="flex justify-between items-center">

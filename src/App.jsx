@@ -19,8 +19,10 @@ import Support from '@/components/modules/Support';
 import Users from '@/components/modules/Users';
 import Reports from '@/components/modules/Reports';
 import Settings from '@/components/modules/Settings';
-import History from '@/components/modules/History'; 
+import History from '@/components/modules/History';
 import Maintenance from '@/components/modules/Maintenance';
+import Routes from '@/components/modules/Routes';
+import Drivers from '@/components/modules/Drivers';
 import { Toaster } from '@/components/ui/toaster';
 import { Loader2 } from 'lucide-react';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
@@ -74,6 +76,8 @@ function App() {
     '/tasks': 'Tâches',
     '/documents': 'Documents',
     '/reports': 'Rapports',
+    '/routes': 'Tarifs par Destination',
+    '/drivers': 'Chauffeurs',
   };
 
   const getActiveModuleTitle = () => {
@@ -205,6 +209,8 @@ function App() {
           <Route path="tasks" element={<ErrorBoundary><Tasks /></ErrorBoundary>} />
           <Route path="documents" element={<ErrorBoundary><Documents /></ErrorBoundary>} />
           <Route path="reports" element={<ErrorBoundary><Reports /></ErrorBoundary>} />
+          <Route path="routes" element={<ErrorBoundary><Routes /></ErrorBoundary>} />
+          <Route path="drivers" element={<ErrorBoundary><Drivers /></ErrorBoundary>} />
         </Route>
         <Route path="*" element={<Dashboard />} />
       </Routes>

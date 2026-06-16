@@ -19,9 +19,13 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
     address: '',
     city: '',
     postal_code: '',
-    country: 'Congo', // Updated default to Congo
+    country: 'Congo',
     notes: '',
-    status: 'Active'
+    status: 'Active',
+    satisfaction: '',
+    remarque_type: '',
+    remarque: '',
+    action_requise: false,
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -40,7 +44,11 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
           postal_code: contactToEdit.postal_code || '',
           country: contactToEdit.country || 'Congo',
           notes: contactToEdit.notes || '',
-          status: contactToEdit.status || 'Active'
+          status: contactToEdit.status || 'Active',
+          satisfaction: contactToEdit.satisfaction || '',
+          remarque_type: contactToEdit.remarque_type || '',
+          remarque: contactToEdit.remarque || '',
+          action_requise: contactToEdit.action_requise || false,
         });
       } else {
         setFormData(initialFormState);
@@ -335,6 +343,68 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
               className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
               placeholder="Observations ou informations importantes..."
             />
+          </div>
+
+          {/* Remarques & Satisfaction */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-slate-900 border-b pb-2">Remarques & Satisfaction</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">Satisfaction</label>
+                <select
+                  name="satisfaction"
+                  value={formData.satisfaction}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+                >
+                  <option value="">— Non évalué —</option>
+                  <option value="Très satisfait">😄 Très satisfait</option>
+                  <option value="Satisfait">🙂 Satisfait</option>
+                  <option value="Neutre">😐 Neutre</option>
+                  <option value="Insatisfait">😕 Insatisfait</option>
+                  <option value="Très insatisfait">😠 Très insatisfait</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">Type de remarque</label>
+                <select
+                  name="remarque_type"
+                  value={formData.remarque_type}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+                >
+                  <option value="">— Aucun —</option>
+                  <option value="Félicitation">✅ Félicitation</option>
+                  <option value="Réclamation">⚠️ Réclamation</option>
+                  <option value="Suggestion">💡 Suggestion</option>
+                  <option value="Autre">📝 Autre</option>
+                </select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Détails de la remarque</label>
+              <textarea
+                name="remarque"
+                value={formData.remarque}
+                onChange={handleChange}
+                rows={3}
+                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
+                placeholder="Décrivez le retour du client..."
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="action_requise"
+                name="action_requise"
+                checked={formData.action_requise}
+                onChange={(e) => setFormData(prev => ({ ...prev, action_requise: e.target.checked }))}
+                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="action_requise" className="text-sm font-medium text-slate-700">
+                Action requise <span className="text-xs text-slate-500">(à traiter en priorité)</span>
+              </label>
+            </div>
           </div>
 
           <div className="flex justify-end gap-4 pt-4 border-t">

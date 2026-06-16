@@ -11,6 +11,7 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [reservations, setReservations] = useState([]);
+  const [drivers, setDrivers] = useState([]);
   const [isReservationsLoading, setIsReservationsLoading] = useState(false);
 
   const initialFormState = {
@@ -24,6 +25,10 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
     days_count: 0,
     subtotal: 0,
     tax_amount: 0,
+    commission_rate: 0,
+    commission_amount: 0,
+    commission_type: "Apporteur d'affaires",
+    driver_id: '',
     total_amount: 0,
     status: 'Brouillon',
     issue_date: format(new Date(), 'yyyy-MM-dd'),
@@ -36,11 +41,15 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
   useEffect(() => {
     if (open) {
       fetchReservations();
+      fetchDrivers();
       if (invoiceToEdit) {
         setFormData({
           ...invoiceToEdit,
-          reservation_id: invoiceToEdit.reservation_id || '', // Handle null UUID from DB
-          // Ensure dates are formatted correctly for input[type="date"]
+          reservation_id: invoiceToEdit.reservation_id || '',
+          driver_id: invoiceToEdit.driver_id || '',
+          commission_rate: invoiceToEdit.commission_rate || 0,
+          commission_amount: invoiceToEdit.commission_amount || 0,
+          commission_type: invoiceToEdit.commission_type || "Apporteur d'affaires",
           start_date: invoiceToEdit.start_date ? format(new Date(invoiceToEdit.start_date), 'yyyy-MM-dd') : '',
           end_date: invoiceToEdit.end_date ? format(new Date(invoiceToEdit.end_date), 'yyyy-MM-dd') : '',
           issue_date: invoiceToEdit.issue_date ? format(new Date(invoiceToEdit.issue_date), 'yyyy-MM-dd') : '',
@@ -92,6 +101,11 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
     }
   };
 
+  const fetchDrivers = async () => {
+    const { data } = await supabase.from('drivers').select('id, name').eq('status', 'active').order('name');
+    setDrivers(data || []);
+  };
+
   // Auto-prefill when reservations load and prefillReservationId is set
   useEffect(() => {
     if (prefillReservationId && reservations.length > 0 && !invoiceToEdit) {
@@ -107,20 +121,24 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
     const days = differenceInDays(endDate, startDate) || 1;
     const dailyRate = reservation.vehicles?.daily_rate || 0;
     const subtotal = days * dailyRate;
-    const tax = subtotal * 0.20;
-    setFormData(prev => ({
-      ...prev,
-      reservation_id: resId,
-      client_name: reservation.contacts?.name || 'Client inconnu',
-      vehicle_details: `${reservation.vehicles?.brand} ${reservation.vehicles?.model} (${reservation.vehicles?.license_plate})`,
-      start_date: format(startDate, 'yyyy-MM-dd'),
-      end_date: format(endDate, 'yyyy-MM-dd'),
-      daily_rate: dailyRate,
-      days_count: days,
-      subtotal,
-      tax_amount: tax,
-      total_amount: subtotal + tax,
-    }));
+    setFormData(prev => {
+      const commRate = Number(prev.commission_rate) || 0;
+      const commAmt = Math.round(subtotal * commRate / 100);
+      return {
+        ...prev,
+        reservation_id: resId,
+        client_name: reservation.contacts?.name || 'Client inconnu',
+        vehicle_details: `${reservation.vehicles?.brand} ${reservation.vehicles?.model} (${reservation.vehicles?.license_plate})`,
+        start_date: format(startDate, 'yyyy-MM-dd'),
+        end_date: format(endDate, 'yyyy-MM-dd'),
+        daily_rate: dailyRate,
+        days_count: days,
+        subtotal,
+        tax_amount: 0,
+        commission_amount: commAmt,
+        total_amount: subtotal + commAmt,
+      };
+    });
   };
 
   const handleReservationSelect = (e) => {
@@ -140,22 +158,25 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
       // Calculate financials
       const dailyRate = reservation.vehicles?.daily_rate || 0;
       const subtotal = days * dailyRate;
-      const tax = subtotal * 0.20;
-      const total = subtotal + tax;
 
-      setFormData(prev => ({
-        ...prev,
-        reservation_id: resId,
-        client_name: reservation.contacts?.name || 'Client inconnu',
-        vehicle_details: `${reservation.vehicles?.brand} ${reservation.vehicles?.model} (${reservation.vehicles?.license_plate})`,
-        start_date: format(startDate, 'yyyy-MM-dd'),
-        end_date: format(endDate, 'yyyy-MM-dd'),
-        daily_rate: dailyRate,
-        days_count: days,
-        subtotal: subtotal,
-        tax_amount: tax,
-        total_amount: total
-      }));
+      setFormData(prev => {
+        const commRate = Number(prev.commission_rate) || 0;
+        const commAmt = Math.round(subtotal * commRate / 100);
+        return {
+          ...prev,
+          reservation_id: resId,
+          client_name: reservation.contacts?.name || 'Client inconnu',
+          vehicle_details: `${reservation.vehicles?.brand} ${reservation.vehicles?.model} (${reservation.vehicles?.license_plate})`,
+          start_date: format(startDate, 'yyyy-MM-dd'),
+          end_date: format(endDate, 'yyyy-MM-dd'),
+          daily_rate: dailyRate,
+          days_count: days,
+          subtotal,
+          tax_amount: 0,
+          commission_amount: commAmt,
+          total_amount: subtotal + commAmt,
+        };
+      });
     }
   };
 
@@ -164,21 +185,20 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Recalculate if rates or days are manually changed
+  // Recalculate when rates, days or commission_rate change
   useEffect(() => {
     if (formData.daily_rate && formData.days_count) {
       const subtotal = formData.days_count * formData.daily_rate;
-      const tax = subtotal * 0.20;
-      const total = subtotal + tax;
-      
+      const commAmt = Math.round(subtotal * (Number(formData.commission_rate) || 0) / 100);
       setFormData(prev => ({
         ...prev,
         subtotal,
-        tax_amount: tax,
-        total_amount: total
+        tax_amount: 0,
+        commission_amount: commAmt,
+        total_amount: subtotal + commAmt,
       }));
     }
-  }, [formData.daily_rate, formData.days_count]); // Watch these dependencies
+  }, [formData.daily_rate, formData.days_count, formData.commission_rate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -356,6 +376,20 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
                 className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Chauffeur assigné</label>
+              <select
+                name="driver_id"
+                value={formData.driver_id}
+                onChange={handleChange}
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="">— Aucun chauffeur —</option>
+                {drivers.map(d => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Dates & Status */}
@@ -421,16 +455,42 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
               </div>
             </div>
 
-            <div className="border-t border-slate-200 pt-4 mt-4 space-y-2">
+            <div className="border-t border-slate-200 pt-4 mt-4 space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-slate-600">Sous-total</span>
                 <span className="font-medium">{Number(formData.subtotal).toLocaleString()} FCFA</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-600">TVA (20%)</span>
-                <span className="font-medium">{Number(formData.tax_amount).toLocaleString()} FCFA</span>
+              <div className="flex items-center justify-between gap-4 text-sm">
+                <div className="flex items-center gap-3 flex-1">
+                  <span className="text-slate-600 whitespace-nowrap">Commission apporteur</span>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="number"
+                      name="commission_rate"
+                      value={formData.commission_rate}
+                      onChange={handleChange}
+                      min="0"
+                      max="100"
+                      step="0.5"
+                      className="w-16 p-1 border border-slate-200 rounded text-center text-sm"
+                    />
+                    <span className="text-slate-500">%</span>
+                  </div>
+                  <select
+                    name="commission_type"
+                    value={formData.commission_type}
+                    onChange={handleChange}
+                    className="flex-1 p-1 border border-slate-200 rounded text-xs bg-white"
+                  >
+                    <option value="Apporteur d'affaires">Apporteur d'affaires</option>
+                    <option value="Gestionnaire">Gestionnaire</option>
+                    <option value="Partenaire">Partenaire</option>
+                    <option value="Autre">Autre</option>
+                  </select>
+                </div>
+                <span className="font-medium whitespace-nowrap">{Number(formData.commission_amount).toLocaleString()} FCFA</span>
               </div>
-              <div className="flex justify-between text-lg font-bold text-slate-900 pt-2">
+              <div className="flex justify-between text-lg font-bold text-slate-900 pt-2 border-t border-slate-200">
                 <span>Total</span>
                 <span className="text-blue-600">{Number(formData.total_amount).toLocaleString()} FCFA</span>
               </div>

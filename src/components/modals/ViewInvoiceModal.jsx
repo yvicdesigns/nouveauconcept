@@ -145,10 +145,15 @@ const ViewInvoiceModal = ({ open, onOpenChange, invoice }) => {
                 <span className="text-slate-600">Sous-total:</span>
                 <span className="font-medium text-slate-900">{Number(invoice.subtotal).toLocaleString()} FCFA</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-600">TVA (20%):</span>
-                <span className="font-medium text-slate-900">{Number(invoice.tax_amount).toLocaleString()} FCFA</span>
-              </div>
+              {(invoice.commission_amount > 0 || invoice.commission_rate > 0) && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-600">
+                    Commission {invoice.commission_type ? `(${invoice.commission_type})` : 'apporteur'}
+                    {invoice.commission_rate > 0 && ` — ${invoice.commission_rate}%`}:
+                  </span>
+                  <span className="font-medium text-slate-900">{Number(invoice.commission_amount || 0).toLocaleString()} FCFA</span>
+                </div>
+              )}
               <div className="flex justify-between items-center pt-4 border-t border-slate-200 mt-4">
                 <span className="text-base font-bold text-slate-900">Total:</span>
                 <span className="text-xl font-bold text-blue-600">{Number(invoice.total_amount).toLocaleString()} FCFA</span>

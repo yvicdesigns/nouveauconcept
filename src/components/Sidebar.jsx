@@ -11,6 +11,7 @@ const Sidebar = ({ isOpen, setIsOpen, user, onLogout }) => { // Removed activeMo
 
   const menuItems = [
     { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard, path: '/dashboard' },
+    { id: 'tutorial', label: 'Guide d\'utilisation', icon: BookOpen, path: '/tutorial' },
     { id: 'contacts', label: 'Contacts', icon: Users, path: '/contacts' },
     { id: 'reservations', label: 'Réservations', icon: CalendarDays, path: '/reservations' },
     { id: 'vehicles', label: 'Véhicules', icon: Car, path: '/vehicles' },
@@ -22,7 +23,6 @@ const Sidebar = ({ isOpen, setIsOpen, user, onLogout }) => { // Removed activeMo
     { id: 'support', label: 'Support', icon: HeadphonesIcon, path: '/support' },
     { id: 'users', label: 'Utilisateurs', icon: UserCog, path: '/users' },
     { id: 'settings', label: 'Paramètres', icon: SettingsIcon, path: '/settings' },
-    { id: 'tutorial', label: 'Guide d\'utilisation', icon: BookOpen, path: '/tutorial' },
   ];
 
   const getInitials = (name) => {

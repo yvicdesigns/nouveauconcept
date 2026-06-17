@@ -215,6 +215,25 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
       const fullStartDate = new Date(`${formData.start_date}T${formData.start_time}`);
       const fullEndDate   = new Date(`${formData.end_date}T${formData.end_time}`);
 
+      // Vérification anti double-réservation côté serveur
+      for (const row of filledRows) {
+        const { data: conflicts } = await supabase
+          .from('reservations')
+          .select('id, contacts(name), start_date, end_date')
+          .eq('vehicle_id', row.vehicle_id)
+          .not('status', 'in', '("Annulée","Terminée")')
+          .lt('start_date', fullEndDate.toISOString())
+          .gt('end_date', fullStartDate.toISOString());
+
+        const realConflicts = (conflicts || []).filter(c => !reservationToEdit || c.id !== reservationToEdit.id);
+        if (realConflicts.length > 0) {
+          const veh = vehicles.find(v => v.id === row.vehicle_id);
+          const label = veh ? `${veh.brand} ${veh.model} (${veh.license_plate})` : 'ce véhicule';
+          const who = realConflicts[0]?.contacts?.name || 'un autre client';
+          throw new Error(`Conflit détecté : ${label} est déjà réservé par ${who} sur ces dates.`);
+        }
+      }
+
       const commonPayload = {
         client_id:            formData.client_id,
         start_date:           fullStartDate.toISOString(),

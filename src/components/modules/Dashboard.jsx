@@ -5,6 +5,7 @@ import StatCard from '@/components/dashboard/StatCard';
 import RevenueChart from '@/components/dashboard/RevenueChart';
 import VehicleStatus from '@/components/dashboard/VehicleStatus';
 import AlertsSection from '@/components/dashboard/AlertsSection';
+import FleetOverview from '@/components/dashboard/FleetOverview';
 import { supabase } from '@/lib/customSupabaseClient';
 import { format, startOfMonth, endOfMonth, subMonths, parseISO, isWithinInterval, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -25,6 +26,8 @@ const Dashboard = () => {
   const [unbilledReservations, setUnbilledReservations] = useState([]);
   const [topClients, setTopClients] = useState([]);
   const [clientsToFollow, setClientsToFollow] = useState([]);
+  const [overdueRentals, setOverdueRentals] = useState([]);
+  const [fleetStatus, setFleetStatus] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -46,6 +49,7 @@ const Dashboard = () => {
         { data: resTerminees },
         { data: invoicedResIds },
         { data: lastRentals },
+        { data: activeRentalsData },
       ] = await Promise.all([
         supabase.from('vehicles').select('id, status, brand, model, license_plate, insurance_expiry_date, technical_check_expiry_date, patente_expiry_date'),
         supabase.from('reservations').select('id, start_date, end_date, status').neq('status', 'Annulée'),
@@ -59,6 +63,8 @@ const Dashboard = () => {
         supabase.from('invoices').select('reservation_id').not('reservation_id', 'is', null),
         // Dernières locations par contact (pour relance)
         supabase.from('reservations').select('contact_id, end_date, contacts(id, name, phone)').eq('status', 'Terminée').order('end_date', { ascending: false }),
+        // Locations en cours avec info véhicule + client
+        supabase.from('reservations').select('id, start_date, end_date, vehicle_id, contact_id, vehicles(brand, model, license_plate), contacts(name)').eq('status', 'En cours'),
       ]);
 
       if (eVeh || eRes || eMnt) throw eVeh || eRes || eMnt;
@@ -195,7 +201,39 @@ const Dashboard = () => {
           message: `${m.vehicles?.brand || ''} ${m.vehicles?.model || ''} (${m.vehicles?.license_plate || ''}) nécessite une intervention.`,
         }));
 
-      setAlerts([...expiredAlerts, ...expiryAlerts, ...maintenanceAlerts].slice(0, 8));
+      // Locations en retard (En cours dont end_date < maintenant)
+      const overdue = (activeRentalsData || []).filter(r => r.end_date && parseISO(r.end_date) < now);
+      setOverdueRentals(overdue);
+
+      // Alertes retard — priorité maximale (avant tout)
+      const overdueAlerts = overdue.map(r => ({
+        type: 'overdue',
+        title: 'Location en retard',
+        message: `${r.vehicles?.brand || ''} ${r.vehicles?.model || ''} (${r.vehicles?.license_plate || ''}) — ${r.contacts?.name || 'client inconnu'} — retard de ${differenceInDays(now, parseISO(r.end_date))} jour${differenceInDays(now, parseISO(r.end_date)) > 1 ? 's' : ''}.`,
+      }));
+
+      setAlerts([...overdueAlerts, ...expiredAlerts, ...expiryAlerts, ...maintenanceAlerts].slice(0, 10));
+
+      // Vue flotte temps réel
+      const activeIds = new Set((activeRentalsData || []).map(r => r.vehicle_id));
+      const confirmedIds = new Set(
+        reservations.filter(r => r.status === 'Confirmée' && parseISO(r.start_date) > now).map(r => r.vehicle_id)
+      );
+      const maintenanceIds = new Set(maintenance.map(m => m.vehicle_id));
+      const overdueIds = new Set(overdue.map(r => r.vehicle_id));
+      const activeRentalMap = {};
+      (activeRentalsData || []).forEach(r => { activeRentalMap[r.vehicle_id] = r; });
+
+      const fleet = vehicles.map(v => {
+        let state;
+        if (overdueIds.has(v.id))       state = 'overdue';
+        else if (activeIds.has(v.id))   state = 'rented';
+        else if (confirmedIds.has(v.id)) state = 'reserved';
+        else if (maintenanceIds.has(v.id)) state = 'maintenance';
+        else                             state = 'available';
+        return { ...v, state, rental: activeRentalMap[v.id] || null };
+      });
+      setFleetStatus(fleet);
 
     } catch (error) {
       console.error('Dashboard error:', error);
@@ -421,6 +459,9 @@ const Dashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Vue flotte temps réel */}
+      <FleetOverview fleet={fleetStatus} />
 
       {/* Alerts Section */}
       <AlertsSection alerts={alerts} />

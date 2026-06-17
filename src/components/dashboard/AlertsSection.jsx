@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { AlertTriangle, FileText, CheckCircle, ShieldX, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, FileText, CheckCircle, ShieldX, ShieldAlert, Clock } from 'lucide-react';
 
 const AlertsSection = ({ alerts = [] }) => {
   return (
@@ -24,6 +24,7 @@ const AlertsSection = ({ alerts = [] }) => {
             <div
               key={index}
               className={`flex items-start gap-4 p-5 rounded-xl hover:shadow-sm transition-shadow border ${
+                alert.type === 'overdue'     ? 'bg-red-100 border-red-400' :
                 alert.type === 'expired'     ? 'bg-red-50 border-red-200' :
                 alert.type === 'maintenance' ? 'bg-red-50 border-red-100' :
                 alert.type === 'expiry'      ? 'bg-amber-50 border-amber-200' :
@@ -32,13 +33,16 @@ const AlertsSection = ({ alerts = [] }) => {
               }`}
             >
               <div className={`p-2 rounded-lg shadow-sm border ${
+                alert.type === 'overdue'     ? 'bg-red-600 border-red-600' :
                 alert.type === 'expired'     ? 'bg-white border-red-200' :
                 alert.type === 'maintenance' ? 'bg-white border-red-100' :
                 alert.type === 'expiry'      ? 'bg-white border-amber-200' :
                 alert.type === 'invoice'     ? 'bg-white border-yellow-100' :
                 'bg-white border-blue-100'
               }`}>
-                {alert.type === 'expired' ? (
+                {alert.type === 'overdue' ? (
+                  <Clock className="h-5 w-5 text-white" />
+                ) : alert.type === 'expired' ? (
                   <ShieldX className="h-5 w-5 text-red-600" />
                 ) : alert.type === 'maintenance' ? (
                   <AlertTriangle className="h-5 w-5 text-red-600" />
@@ -52,15 +56,17 @@ const AlertsSection = ({ alerts = [] }) => {
               </div>
               <div>
                 <h3 className={`text-sm font-bold ${
+                  alert.type === 'overdue'     ? 'text-red-900' :
                   alert.type === 'expired'     ? 'text-red-900' :
                   alert.type === 'maintenance' ? 'text-red-900' :
                   alert.type === 'expiry'      ? 'text-amber-900' :
                   alert.type === 'invoice'     ? 'text-yellow-900' :
                   'text-blue-900'
                 }`}>
-                  {alert.title}
+                  {alert.type === 'overdue' && <span className="mr-1">🚨</span>}{alert.title}
                 </h3>
                 <p className={`text-sm mt-1 leading-relaxed ${
+                  alert.type === 'overdue'     ? 'text-red-800' :
                   alert.type === 'expired'     ? 'text-red-700' :
                   alert.type === 'maintenance' ? 'text-red-700' :
                   alert.type === 'expiry'      ? 'text-amber-700' :

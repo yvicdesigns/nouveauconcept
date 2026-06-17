@@ -216,11 +216,11 @@ const SectionCard = ({ section, index }) => {
   );
 };
 
-const Tutorial = () => {
+const Tutorial = ({ embedded = false }) => {
   const [allOpen, setAllOpen] = useState(false);
 
   return (
-    <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-8">
+    <div className={embedded ? 'space-y-6' : 'p-6 lg:p-8 max-w-4xl mx-auto space-y-8'}>
       {/* Hero */}
       <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white">
         <div className="flex items-center gap-3 mb-4">

@@ -1,22 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Building, 
-  CreditCard, 
-  Bell, 
-  Shield, 
-  UserPlus, 
-  Trash2, 
-  User, 
-  Upload, 
-  Info, 
+import {
+  Building,
+  CreditCard,
+  Bell,
+  Shield,
+  UserPlus,
+  Trash2,
+  User,
+  Upload,
+  Info,
   Download,
   Mail,
   MessageSquare,
   Wrench,
   Loader2,
-  Check
+  Check,
+  BookOpen
 } from 'lucide-react';
+import Tutorial from '@/components/modules/Tutorial';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from "@/components/ui/use-toast";
@@ -216,6 +218,7 @@ const Settings = () => {
     { id: 'billing', label: 'Facturation & Location', icon: CreditCard },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Sécurité & Équipe', icon: Shield },
+    { id: 'guide', label: 'Guide d\'utilisation', icon: BookOpen },
   ];
 
   const users = [
@@ -622,6 +625,9 @@ const Settings = () => {
           </motion.div>
         );
       
+      case 'guide':
+        return <Tutorial embedded />;
+
       default:
         return null;
     }

@@ -176,19 +176,20 @@ const Contacts = () => {
             </Button>
           ) : (
             <>
-              <Button
-                variant="outline"
-                onClick={() => setShowRelance(true)}
-                className="border-blue-200 text-blue-700 hover:bg-blue-50 relative"
-              >
-                <PhoneCall className="h-4 w-4 mr-2" />
-                Clients à relancer
+              <div className="relative">
+                <Button
+                  onClick={() => setShowRelance(true)}
+                  className="bg-green-600 hover:bg-green-700 text-white gap-2"
+                >
+                  <PhoneCall className="h-4 w-4" />
+                  Clients à relancer
+                </Button>
                 {clientsToFollow.length > 0 && (
-                  <span className="ml-2 bg-blue-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+                  <span className="absolute -top-2 -right-2 min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1 shadow-md ring-2 ring-white animate-pulse">
                     {clientsToFollow.length}
                   </span>
                 )}
-              </Button>
+              </div>
               <Button onClick={handleAddContact} className="bg-blue-600 hover:bg-blue-700 text-white">
                 <Plus className="h-4 w-4 mr-2" />
                 Ajouter un contact

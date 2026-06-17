@@ -16,6 +16,7 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
   const initialFormState = {
     vehicle_id: '',
     type: 'breakdown',
+    part_name: '',
     description: '',
     status: 'reported',
     priority: 'medium',
@@ -39,6 +40,7 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
           completion_date: recordToEdit.completion_date || '',
           vehicle_id: recordToEdit.vehicle_id || '',
           oil_change_mileage: recordToEdit.oil_change_mileage || '',
+          part_name: recordToEdit.part_name || '',
         });
       } else {
         setFormData(initialFormState);
@@ -233,6 +235,46 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
                   <option value="urgent">Urgente</option>
                 </select>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Pièce concernée <span className="text-slate-400 font-normal">(optionnel)</span></label>
+              <select
+                name="part_name"
+                value={formData.part_name}
+                onChange={handleChange}
+                className="w-full p-2.5 border border-slate-200 rounded-md bg-white"
+              >
+                <option value="">— Générale / Non spécifiée</option>
+                <optgroup label="Carrosserie">
+                  <option value="bumper_front">Pare-chocs avant</option>
+                  <option value="bumper_rear">Pare-chocs arrière</option>
+                  <option value="hood">Capot</option>
+                  <option value="trunk">Coffre</option>
+                  <option value="door_fl">Portière avant gauche</option>
+                  <option value="door_fr">Portière avant droite</option>
+                  <option value="door_rl">Portière arrière gauche</option>
+                  <option value="door_rr">Portière arrière droite</option>
+                  <option value="windshield">Pare-brise avant</option>
+                  <option value="rear_window">Lunette arrière</option>
+                  <option value="cabin">Habitacle / Toit</option>
+                </optgroup>
+                <optgroup label="Roues & Freins">
+                  <option value="wheel_fl">Roue avant gauche</option>
+                  <option value="wheel_fr">Roue avant droite</option>
+                  <option value="wheel_rl">Roue arrière gauche</option>
+                  <option value="wheel_rr">Roue arrière droite</option>
+                </optgroup>
+                <optgroup label="Mécanique">
+                  <option value="engine">Moteur</option>
+                  <option value="transmission">Transmission</option>
+                  <option value="brakes">Freins</option>
+                  <option value="suspension">Suspension</option>
+                  <option value="exhaust">Pot d'échappement</option>
+                  <option value="battery">Batterie</option>
+                  <option value="ac">Climatisation</option>
+                </optgroup>
+              </select>
             </div>
 
             <div className="space-y-2">

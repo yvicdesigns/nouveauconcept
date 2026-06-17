@@ -170,6 +170,7 @@ const CarViewer3D = ({ vehicleId = null }) => {
         .from('maintenance_records')
         .select('*')
         .eq('vehicle_id', vehicleId)
+        .neq('status', 'completed')
         .order('reported_date', { ascending: false });
       setRecords(data || []);
       setIsLoading(false);
@@ -181,10 +182,8 @@ const CarViewer3D = ({ vehicleId = null }) => {
     setSelected(prev => prev === partId ? null : partId);
   };
 
-  // Pièces avec des enregistrements de maintenance (pour colorer en rouge)
-  const issueIds = records.length > 0
-    ? Object.keys(PARTS)  // pour la démo, toutes les pièces avec des records s'affichent
-    : [];
+  // Pièces qui ont des interventions actives → colorées en rouge sur la 3D
+  const issueIds = [...new Set(records.filter(r => r.part_name).map(r => r.part_name))];
 
   const partLabel = selected ? PARTS[selected]?.label : null;
 
@@ -294,18 +293,24 @@ const CarViewer3D = ({ vehicleId = null }) => {
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
                 </div>
-              ) : records.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <CheckCircle className="h-10 w-10 text-green-400 mb-2" />
-                  <p className="font-semibold text-slate-700 text-sm">Aucune intervention</p>
-                  <p className="text-xs text-slate-400 mt-1">Rien de signalé pour ce véhicule</p>
-                </div>
-              ) : (
+              ) : (() => {
+                const filtered = selected
+                  ? records.filter(r => r.part_name === selected)
+                  : records;
+                return filtered.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <CheckCircle className="h-10 w-10 text-green-400 mb-2" />
+                    <p className="font-semibold text-slate-700 text-sm">Aucune intervention active</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {selected ? 'Rien de signalé pour cette pièce' : 'Ce véhicule est en bon état'}
+                    </p>
+                  </div>
+                ) : (
                 <div className="space-y-3">
                   <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">
-                    {records.length} intervention{records.length > 1 ? 's' : ''} — ce véhicule
+                    {filtered.length} intervention{filtered.length > 1 ? 's' : ''}{selected ? ' — cette pièce' : ' — total véhicule'}
                   </p>
-                  {records.map((r, i) => (
+                  {filtered.map((r, i) => (
                     <div key={i} className={`p-3 rounded-xl border text-sm ${
                       r.priority === 'urgent' || r.priority === 'high'
                         ? 'bg-red-50 border-red-200'
@@ -334,7 +339,8 @@ const CarViewer3D = ({ vehicleId = null }) => {
                     </div>
                   ))}
                 </div>
-              )}
+                );
+              })()}
             </div>
           </div>
         )}

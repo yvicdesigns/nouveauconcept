@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Méthode non autorisée' });
   }
 
-  const { email, password, full_name, role, phone, department, notes } = req.body;
+  const { email, password, full_name, role, phone, department, notes, custom_permissions } = req.body;
 
   if (!email || !password || !full_name) {
     return res.status(400).json({ error: 'Email, mot de passe et nom complet sont requis.' });
@@ -49,6 +49,7 @@ export default async function handler(req, res) {
         phone: phone || null,
         department: department || null,
         notes: notes || null,
+        custom_permissions: custom_permissions || null,
       }, { onConflict: 'id' })
       .select()
       .single();

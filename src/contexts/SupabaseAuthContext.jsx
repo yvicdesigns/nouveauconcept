@@ -98,7 +98,10 @@ export const AuthProvider = ({ children }) => {
   }, [toast]);
 
   const role = userProfile?.role || 'viewer';
-  const permissions = getPermissions(role);
+  const basePermissions = getPermissions(role);
+  const permissions = userProfile?.custom_permissions
+    ? { modules: userProfile.custom_permissions, canWrite: basePermissions.canWrite }
+    : basePermissions;
 
   const value = useMemo(() => ({
     user,

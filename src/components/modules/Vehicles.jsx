@@ -33,6 +33,38 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
+import CarDiagram2D from '@/components/vehicles/CarDiagram2D';
+
+const VehicleDetailTabs = ({ vehicle }) => {
+  const [tab, setTab] = useState('diagram');
+  return (
+    <div>
+      <div className="flex gap-1 border-b border-slate-200 mb-4">
+        {[
+          { id: 'diagram',  label: '🚗 État du véhicule' },
+          { id: 'history',  label: '📋 Historique' },
+        ].map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+              tab === t.id ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+            }`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {tab === 'diagram' && (
+        <div className="max-h-[70vh] overflow-y-auto pr-1">
+          <CarDiagram2D />
+        </div>
+      )}
+      {tab === 'history' && (
+        <div className="max-h-[70vh] overflow-y-auto">
+          <HistoryTab vehicleId={vehicle.id} />
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Vehicles = () => {
   const { toast } = useToast();
@@ -590,13 +622,11 @@ const Vehicles = () => {
                           Voir l'historique rapide
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
+                      <DialogContent className="max-w-4xl">
                         <DialogHeader>
-                          <DialogTitle>Historique du véhicule: {vehicle.name}</DialogTitle>
+                          <DialogTitle>{vehicle.brand} {vehicle.model} — {vehicle.license_plate}</DialogTitle>
                         </DialogHeader>
-                        <div className="mt-4 max-h-[60vh] overflow-y-auto">
-                          <HistoryTab vehicleId={vehicle.id} />
-                        </div>
+                        <VehicleDetailTabs vehicle={vehicle} />
                       </DialogContent>
                     </Dialog>
                   </div>

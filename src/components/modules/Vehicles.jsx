@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Plus, Gauge, Fuel, Settings2, Calendar, History as HistoryIcon, Pencil, Trash2, Loader2, AlertCircle, MoreHorizontal, Key } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,8 +33,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
-import React, { lazy, Suspense } from 'react';
-const CarViewer3D = lazy(() => import('@/components/vehicles/CarViewer3D'));
+const CarViewer3D = React.lazy(() => import('@/components/vehicles/CarViewer3D'));
 
 const VehicleDetailTabs = ({ vehicle }) => {
   const [tab, setTab] = useState('diagram');

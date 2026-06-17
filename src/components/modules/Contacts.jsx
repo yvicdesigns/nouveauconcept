@@ -10,6 +10,7 @@ import usePagination from '@/hooks/usePagination';
 import PaginationBar from '@/components/ui/PaginationBar';
 import { SkeletonCards } from '@/components/ui/SkeletonTable';
 import AddContactModal from '@/components/modals/AddContactModal';
+import ViewContactModal from '@/components/modals/ViewContactModal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +36,8 @@ const Contacts = () => {
   const [showRelance, setShowRelance] = useState(false);
   const [clientsToFollow, setClientsToFollow] = useState([]);
   const [reservationCounts, setReservationCounts] = useState({});
+  const [viewContact, setViewContact] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   useEffect(() => {
     fetchContacts();
@@ -290,7 +293,8 @@ const Contacts = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.05 }}
-                className="bg-white border border-slate-200 rounded-xl p-6 hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+                className="bg-white border border-slate-200 rounded-xl p-6 hover:shadow-md hover:border-blue-200 transition-all duration-300 flex flex-col justify-between cursor-pointer"
+                onClick={() => { setViewContact(contact); setIsViewModalOpen(true); }}
               >
                 <div>
                   <div className="flex items-start justify-between mb-4">
@@ -367,22 +371,22 @@ const Contacts = () => {
                 )}
 
                 <div className="pt-4 border-t border-slate-100">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center" onClick={e => e.stopPropagation()}>
                     <p className="text-xs text-slate-500">
                       Locations: <span className="font-semibold text-slate-900">{reservationCounts[contact.id] || 0}</span>
                     </p>
                     <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="h-8 px-3"
                         onClick={() => handleEdit(contact)}
                       >
                         <Edit className="h-3.5 w-3.5 mr-1.5" />
                         Modifier
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-100"
                         onClick={() => handleDeleteClick(contact)}
@@ -428,6 +432,15 @@ const Contacts = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal consultation client */}
+      <ViewContactModal
+        contact={viewContact}
+        open={isViewModalOpen}
+        onOpenChange={setIsViewModalOpen}
+        onEdit={(c) => { setContactToEdit(c); setIsAddModalOpen(true); }}
+        onSaved={() => { fetchContacts(); setIsViewModalOpen(false); }}
+      />
     </div>
   );
 };

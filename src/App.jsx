@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { supabase } from '@/lib/customSupabaseClient';
-import { Routes, Route, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { canAccessModule } from '@/lib/permissions';
 
 import Login from '@/components/Login';
 import Sidebar from '@/components/Sidebar';
@@ -27,6 +29,22 @@ import Tutorial from '@/components/modules/Tutorial';
 import { Toaster } from '@/components/ui/toaster';
 import { Loader2 } from 'lucide-react';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+
+// Composant de garde pour les routes protégées
+const ProtectedRoute = ({ moduleId, children }) => {
+  const { role } = useAuth();
+  if (!canAccessModule(role, moduleId)) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+        <div className="text-5xl mb-4">🔒</div>
+        <h2 className="text-xl font-bold text-slate-800 mb-2">Accès refusé</h2>
+        <p className="text-slate-500">Votre rôle <span className="font-medium text-slate-700">({role})</span> n'a pas accès à ce module.</p>
+        <p className="text-slate-400 text-sm mt-1">Contactez un administrateur si nécessaire.</p>
+      </div>
+    );
+  }
+  return children;
+};
 
 // Layout component to include header and render module content
 const AppLayout = ({ userSession, onLogout, sidebarOpen, setSidebarOpen, activeModuleTitle }) => {
@@ -197,22 +215,22 @@ function App() {
         >
           <Route index element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
           <Route path="dashboard" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
-          <Route path="contacts" element={<ErrorBoundary><Contacts /></ErrorBoundary>} />
-          <Route path="reservations" element={<ErrorBoundary><Reservations /></ErrorBoundary>} />
-          <Route path="vehicles" element={<ErrorBoundary><Vehicles /></ErrorBoundary>} />
-          <Route path="maintenance" element={<ErrorBoundary><Maintenance /></ErrorBoundary>} />
-          <Route path="billing" element={<ErrorBoundary><Billing /></ErrorBoundary>} />
-          <Route path="history" element={<ErrorBoundary><History /></ErrorBoundary>} />
-          <Route path="support" element={<ErrorBoundary><Support /></ErrorBoundary>} />
-          <Route path="users" element={<ErrorBoundary><Users /></ErrorBoundary>} />
-          <Route path="settings" element={<ErrorBoundary><Settings /></ErrorBoundary>} />
+          <Route path="contacts" element={<ProtectedRoute moduleId="contacts"><ErrorBoundary><Contacts /></ErrorBoundary></ProtectedRoute>} />
+          <Route path="reservations" element={<ProtectedRoute moduleId="reservations"><ErrorBoundary><Reservations /></ErrorBoundary></ProtectedRoute>} />
+          <Route path="vehicles" element={<ProtectedRoute moduleId="vehicles"><ErrorBoundary><Vehicles /></ErrorBoundary></ProtectedRoute>} />
+          <Route path="maintenance" element={<ProtectedRoute moduleId="maintenance"><ErrorBoundary><Maintenance /></ErrorBoundary></ProtectedRoute>} />
+          <Route path="billing" element={<ProtectedRoute moduleId="billing"><ErrorBoundary><Billing /></ErrorBoundary></ProtectedRoute>} />
+          <Route path="history" element={<ProtectedRoute moduleId="history"><ErrorBoundary><History /></ErrorBoundary></ProtectedRoute>} />
+          <Route path="support" element={<ProtectedRoute moduleId="support"><ErrorBoundary><Support /></ErrorBoundary></ProtectedRoute>} />
+          <Route path="users" element={<ProtectedRoute moduleId="users"><ErrorBoundary><Users /></ErrorBoundary></ProtectedRoute>} />
+          <Route path="settings" element={<ProtectedRoute moduleId="settings"><ErrorBoundary><Settings /></ErrorBoundary></ProtectedRoute>} />
           <Route path="leads" element={<ErrorBoundary><Leads /></ErrorBoundary>} />
           <Route path="opportunities" element={<ErrorBoundary><Opportunities /></ErrorBoundary>} />
           <Route path="tasks" element={<ErrorBoundary><Tasks /></ErrorBoundary>} />
           <Route path="documents" element={<ErrorBoundary><Documents /></ErrorBoundary>} />
           <Route path="reports" element={<ErrorBoundary><Reports /></ErrorBoundary>} />
-          <Route path="routes" element={<ErrorBoundary><DestinationsModule /></ErrorBoundary>} />
-          <Route path="drivers" element={<ErrorBoundary><Drivers /></ErrorBoundary>} />
+          <Route path="routes" element={<ProtectedRoute moduleId="routes"><ErrorBoundary><DestinationsModule /></ErrorBoundary></ProtectedRoute>} />
+          <Route path="drivers" element={<ProtectedRoute moduleId="drivers"><ErrorBoundary><Drivers /></ErrorBoundary></ProtectedRoute>} />
           <Route path="tutorial" element={<ErrorBoundary><Tutorial /></ErrorBoundary>} />
         </Route>
         <Route path="*" element={<Dashboard />} />

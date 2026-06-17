@@ -1,28 +1,32 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, CalendarDays, Car, CreditCard, Headphones as HeadphonesIcon, UserCog, Settings as SettingsIcon, LogOut, X, History, Wrench, KeyRound, MapPin, UserCheck } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, Car, CreditCard, Headphones as HeadphonesIcon, UserCog, Settings as SettingsIcon, LogOut, X, History, Wrench, MapPin, UserCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import ChangePasswordModal from '@/components/modals/ChangePasswordModal';
-import { Link, useLocation } from 'react-router-dom'; // Import Link and useLocation
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 
-const Sidebar = ({ isOpen, setIsOpen, user, onLogout }) => { // Removed activeModule, setActiveModule
+const ALL_MENU_ITEMS = [
+  { id: 'dashboard',    label: 'Tableau de bord', icon: LayoutDashboard, path: '/dashboard' },
+  { id: 'contacts',     label: 'Contacts',         icon: Users,           path: '/contacts' },
+  { id: 'reservations', label: 'Réservations',     icon: CalendarDays,    path: '/reservations' },
+  { id: 'vehicles',     label: 'Véhicules',        icon: Car,             path: '/vehicles' },
+  { id: 'maintenance',  label: 'Maintenance',      icon: Wrench,          path: '/maintenance' },
+  { id: 'billing',      label: 'Facturation',      icon: CreditCard,      path: '/billing' },
+  { id: 'drivers',      label: 'Chauffeurs',       icon: UserCheck,       path: '/drivers' },
+  { id: 'routes',       label: 'Destinations',     icon: MapPin,          path: '/routes' },
+  { id: 'history',      label: 'Historique',       icon: History,         path: '/history' },
+  { id: 'support',      label: 'Support',          icon: HeadphonesIcon,  path: '/support' },
+  { id: 'users',        label: 'Utilisateurs',     icon: UserCog,         path: '/users' },
+  { id: 'settings',     label: 'Paramètres',       icon: SettingsIcon,    path: '/settings' },
+];
+
+const Sidebar = ({ isOpen, setIsOpen, user, onLogout }) => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const location = useLocation(); // Get current location to highlight active link
+  const location = useLocation();
+  const { permissions } = useAuth();
 
-  const menuItems = [
-    { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard, path: '/dashboard' },
-    { id: 'contacts', label: 'Contacts', icon: Users, path: '/contacts' },
-    { id: 'reservations', label: 'Réservations', icon: CalendarDays, path: '/reservations' },
-    { id: 'vehicles', label: 'Véhicules', icon: Car, path: '/vehicles' },
-    { id: 'maintenance', label: 'Maintenance', icon: Wrench, path: '/maintenance' },
-    { id: 'billing', label: 'Facturation', icon: CreditCard, path: '/billing' },
-    { id: 'drivers', label: 'Chauffeurs', icon: UserCheck, path: '/drivers' },
-    { id: 'routes', label: 'Destinations', icon: MapPin, path: '/routes' },
-    { id: 'history', label: 'Historique', icon: History, path: '/history' },
-    { id: 'support', label: 'Support', icon: HeadphonesIcon, path: '/support' },
-    { id: 'users', label: 'Utilisateurs', icon: UserCog, path: '/users' },
-    { id: 'settings', label: 'Paramètres', icon: SettingsIcon, path: '/settings' },
-  ];
+  const menuItems = ALL_MENU_ITEMS.filter(item => permissions.modules.includes(item.id));
 
   const getInitials = (name) => {
     if (!name) return 'U';

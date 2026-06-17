@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Car, Calendar, Banknote, AlertTriangle, Loader2, TrendingUp, Clock, Receipt, XCircle, Trophy, Users } from 'lucide-react';
+import { Car, Calendar, Banknote, AlertTriangle, Loader2, TrendingUp, Clock, Receipt, XCircle, Trophy, Users, PhoneCall } from 'lucide-react';
 import StatCard from '@/components/dashboard/StatCard';
 import RevenueChart from '@/components/dashboard/RevenueChart';
 import VehicleStatus from '@/components/dashboard/VehicleStatus';
@@ -24,6 +24,7 @@ const Dashboard = () => {
   const [revenueBreakdown, setRevenueBreakdown] = useState({ confirmed: 0, pending: 0, penalties: 0 });
   const [unbilledReservations, setUnbilledReservations] = useState([]);
   const [topClients, setTopClients] = useState([]);
+  const [clientsToFollow, setClientsToFollow] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -44,6 +45,7 @@ const Dashboard = () => {
         { data: cancelledRes },
         { data: resTerminees },
         { data: invoicedResIds },
+        { data: lastRentals },
       ] = await Promise.all([
         supabase.from('vehicles').select('id, status, brand, model, license_plate, insurance_expiry_date, technical_check_expiry_date, patente_expiry_date'),
         supabase.from('reservations').select('id, start_date, end_date, status').neq('status', 'Annulée'),
@@ -55,6 +57,8 @@ const Dashboard = () => {
         // Terminées sans facture
         supabase.from('reservations').select('id, total_price, contacts(name), vehicles(name)').eq('status', 'Terminée'),
         supabase.from('invoices').select('reservation_id').not('reservation_id', 'is', null),
+        // Dernières locations par contact (pour relance)
+        supabase.from('reservations').select('contact_id, end_date, contacts(id, name, phone)').eq('status', 'Terminée').order('end_date', { ascending: false }),
       ]);
 
       if (eVeh || eRes || eMnt) throw eVeh || eRes || eMnt;
@@ -90,6 +94,22 @@ const Dashboard = () => {
       });
       const sorted = Object.values(clientMap).sort((a, b) => b.total - a.total);
       setTopClients(sorted.slice(0, 3));
+
+      // Clients à relancer (dernière location terminée > 14 jours)
+      const lastRentalMap = {};
+      (lastRentals || []).forEach(r => {
+        const cid = r.contact_id;
+        if (!cid) return;
+        if (!lastRentalMap[cid] || r.end_date > lastRentalMap[cid].end_date) {
+          lastRentalMap[cid] = { ...r.contacts, end_date: r.end_date };
+        }
+      });
+      const toFollow = Object.values(lastRentalMap)
+        .map(c => ({ ...c, daysAgo: differenceInDays(now, parseISO(c.end_date)) }))
+        .filter(c => c.daysAgo >= 14)
+        .sort((a, b) => a.daysAgo - b.daysAgo)
+        .slice(0, 6);
+      setClientsToFollow(toFollow);
 
       // Réservations Terminées sans facture
       const invoicedIds = new Set((invoicedResIds || []).map(r => r.reservation_id));
@@ -356,6 +376,48 @@ const Dashboard = () => {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Clients à relancer */}
+      {clientsToFollow.length > 0 && (
+        <div className="bg-white rounded-xl border border-blue-200 shadow-sm p-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
+            <PhoneCall className="h-5 w-5 text-blue-500" /> Clients à relancer
+            <span className="ml-2 bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">{clientsToFollow.length}</span>
+          </h2>
+          <p className="text-sm text-gray-500 mb-4">Dernière location terminée il y a plus de 14 jours — pensez à les recontacter.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {clientsToFollow.map((client, i) => (
+              <div key={i} className={`flex items-center justify-between p-4 rounded-xl border ${
+                client.daysAgo >= 42 ? 'bg-red-50 border-red-200' :
+                client.daysAgo >= 28 ? 'bg-orange-50 border-orange-200' :
+                'bg-blue-50 border-blue-100'
+              }`}>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-gray-900 truncate">{client.name || 'Client inconnu'}</p>
+                  {client.phone && (
+                    <p className="text-xs text-gray-500 mt-0.5">{client.phone}</p>
+                  )}
+                  <p className={`text-xs font-semibold mt-1 ${
+                    client.daysAgo >= 42 ? 'text-red-600' :
+                    client.daysAgo >= 28 ? 'text-orange-600' :
+                    'text-blue-600'
+                  }`}>
+                    {client.daysAgo >= 42
+                      ? `Inactif depuis ${Math.round(client.daysAgo / 7)} semaines`
+                      : `Il y a ${client.daysAgo} jour${client.daysAgo > 1 ? 's' : ''}`}
+                  </p>
+                </div>
+                <button
+                  onClick={() => navigate('/contacts')}
+                  className="ml-3 shrink-0 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  Voir →
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}

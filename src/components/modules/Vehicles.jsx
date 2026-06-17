@@ -33,7 +33,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
-import CarViewer3D from '@/components/vehicles/CarViewer3D';
+import React, { lazy, Suspense } from 'react';
+const CarViewer3D = lazy(() => import('@/components/vehicles/CarViewer3D'));
 
 const VehicleDetailTabs = ({ vehicle }) => {
   const [tab, setTab] = useState('diagram');
@@ -53,9 +54,9 @@ const VehicleDetailTabs = ({ vehicle }) => {
         ))}
       </div>
       {tab === 'diagram' && (
-        <div>
+        <Suspense fallback={<div className="flex items-center justify-center h-64 text-slate-400"><Loader2 className="h-8 w-8 animate-spin mr-2" /> Chargement du modèle 3D...</div>}>
           <CarViewer3D vehicleId={vehicle.id} />
-        </div>
+        </Suspense>
       )}
       {tab === 'history' && (
         <div className="max-h-[70vh] overflow-y-auto">

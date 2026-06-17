@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Plus, Gauge, Fuel, Settings2, Calendar, History as HistoryIcon, Pencil, Trash2, Loader2, AlertCircle, MoreHorizontal, Key } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,7 +33,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
-const CarViewer3D = React.lazy(() => import('@/components/vehicles/CarViewer3D'));
 
 const VehicleDetailTabs = ({ vehicle }) => {
   const [tab, setTab] = useState('diagram');
@@ -53,9 +52,10 @@ const VehicleDetailTabs = ({ vehicle }) => {
         ))}
       </div>
       {tab === 'diagram' && (
-        <Suspense fallback={<div className="flex items-center justify-center h-64 text-slate-400"><Loader2 className="h-8 w-8 animate-spin mr-2" /> Chargement du modèle 3D...</div>}>
-          <CarViewer3D vehicleId={vehicle.id} />
-        </Suspense>
+        <div className="flex flex-col items-center justify-center h-64 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">
+          <p className="font-medium text-slate-500">Visualisation 3D — bientôt disponible</p>
+          <p className="text-sm mt-1 text-slate-400">En cours d'intégration</p>
+        </div>
       )}
       {tab === 'history' && (
         <div className="max-h-[70vh] overflow-y-auto">

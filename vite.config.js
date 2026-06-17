@@ -340,9 +340,6 @@ export default defineConfig({
 			'@': path.resolve(__dirname, './src'),
 		},
 	},
-	optimizeDeps: {
-		include: ['three', '@react-three/fiber', '@react-three/drei'],
-	},
 	build: {
 		rollupOptions: {
 			external: [
@@ -350,13 +347,7 @@ export default defineConfig({
 				'@babel/traverse',
 				'@babel/generator',
 				'@babel/types'
-			],
-			output: {
-				manualChunks: {
-					'three-vendor': ['three', '@react-three/fiber', '@react-three/drei'],
-					'pdf-vendor':   ['jspdf', 'html2canvas'],
-				}
-			}
+			]
 		}
 	}
 });

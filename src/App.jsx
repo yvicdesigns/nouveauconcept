@@ -21,7 +21,7 @@ import Reports from '@/components/modules/Reports';
 import Settings from '@/components/modules/Settings';
 import History from '@/components/modules/History';
 import Maintenance from '@/components/modules/Maintenance';
-import Routes from '@/components/modules/Routes';
+import DestinationsModule from '@/components/modules/Routes';
 import Drivers from '@/components/modules/Drivers';
 import Tutorial from '@/components/modules/Tutorial';
 import { Toaster } from '@/components/ui/toaster';
@@ -211,7 +211,7 @@ function App() {
           <Route path="tasks" element={<ErrorBoundary><Tasks /></ErrorBoundary>} />
           <Route path="documents" element={<ErrorBoundary><Documents /></ErrorBoundary>} />
           <Route path="reports" element={<ErrorBoundary><Reports /></ErrorBoundary>} />
-          <Route path="routes" element={<ErrorBoundary><Routes /></ErrorBoundary>} />
+          <Route path="routes" element={<ErrorBoundary><DestinationsModule /></ErrorBoundary>} />
           <Route path="drivers" element={<ErrorBoundary><Drivers /></ErrorBoundary>} />
           <Route path="tutorial" element={<ErrorBoundary><Tutorial /></ErrorBoundary>} />
         </Route>

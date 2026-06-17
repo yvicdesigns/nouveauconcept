@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, CalendarDays, Car, CreditCard, Headphones as HeadphonesIcon, UserCog, Settings as SettingsIcon, LogOut, X, History, Wrench, MapPin, UserCheck } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, Car, CreditCard, Headphones as HeadphonesIcon, UserCog, Settings as SettingsIcon, LogOut, X, History, Wrench, KeyRound, MapPin, UserCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import ChangePasswordModal from '@/components/modals/ChangePasswordModal';

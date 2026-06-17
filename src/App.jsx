@@ -105,6 +105,20 @@ function App() {
     return moduleTitles[path] || 'Nouveau Concept CRM';
   };
 
+  const fetchAndSetPermissions = async (userId) => {
+    if (!userId) return;
+    const { data } = await supabase.from('users').select('role, custom_permissions').eq('id', userId).single();
+    if (data) {
+      const base = getPermissions(data.role || 'admin');
+      setUserPermissions(data.custom_permissions
+        ? { modules: data.custom_permissions, canWrite: base.canWrite }
+        : base
+      );
+    } else {
+      // Pas de profil trouvé → admin par défaut (propriétaire du CRM)
+      setUserPermissions(getPermissions('admin'));
+    }
+  };
 
   // Check for existing session on load
   useEffect(() => {
@@ -126,21 +140,24 @@ function App() {
 
         // 2. Verify with Supabase Auth to ensure token is still valid
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error) throw error;
-        
+
         if (!session) {
           // If Supabase says no session, clear everything
-          if (storedSession) { 
+          if (storedSession) {
              await handleLogout();
           } else {
              setIsAuthenticated(false);
           }
-        } else if (!storedSession) {
-          // Sync state if Supabase has session but local storage doesn't
-           setUserSession(session.user);
-           localStorage.setItem('crm_session', JSON.stringify(session.user));
-           setIsAuthenticated(true);
+        } else {
+          // Session valide — charger les permissions
+          if (!storedSession) {
+            setUserSession(session.user);
+            localStorage.setItem('crm_session', JSON.stringify(session.user));
+            setIsAuthenticated(true);
+          }
+          await fetchAndSetPermissions(session.user.id);
         }
       } catch (error) {
         console.error("Auth check error:", error);
@@ -152,18 +169,6 @@ function App() {
 
     checkSession();
   }, []);
-
-  const fetchAndSetPermissions = async (userId) => {
-    if (!userId) return;
-    const { data } = await supabase.from('users').select('role, custom_permissions').eq('id', userId).single();
-    if (data) {
-      const base = getPermissions(data.role || 'viewer');
-      setUserPermissions(data.custom_permissions
-        ? { modules: data.custom_permissions, canWrite: base.canWrite }
-        : base
-      );
-    }
-  };
 
   const handleLoginSuccess = (sessionData) => {
     localStorage.setItem('crm_session', JSON.stringify(sessionData));

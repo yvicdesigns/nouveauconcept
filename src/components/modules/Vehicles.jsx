@@ -33,7 +33,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
-import CarDiagram2D from '@/components/vehicles/CarDiagram2D';
+import CarViewer3D from '@/components/vehicles/CarViewer3D';
 
 const VehicleDetailTabs = ({ vehicle }) => {
   const [tab, setTab] = useState('diagram');
@@ -53,8 +53,8 @@ const VehicleDetailTabs = ({ vehicle }) => {
         ))}
       </div>
       {tab === 'diagram' && (
-        <div className="max-h-[70vh] overflow-y-auto pr-1">
-          <CarDiagram2D />
+        <div>
+          <CarViewer3D vehicleId={vehicle.id} />
         </div>
       )}
       {tab === 'history' && (

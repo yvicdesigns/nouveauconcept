@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import ChangePasswordModal from '@/components/modals/ChangePasswordModal';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/SupabaseAuthContext';
 
 const ALL_MENU_ITEMS = [
   { id: 'dashboard',    label: 'Tableau de bord', icon: LayoutDashboard, path: '/dashboard' },
@@ -21,12 +20,11 @@ const ALL_MENU_ITEMS = [
   { id: 'settings',     label: 'Paramètres',       icon: SettingsIcon,    path: '/settings' },
 ];
 
-const Sidebar = ({ isOpen, setIsOpen, user, onLogout }) => {
+const Sidebar = ({ isOpen, setIsOpen, user, onLogout, permissions }) => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const location = useLocation();
-  const { permissions } = useAuth();
 
-  const menuItems = ALL_MENU_ITEMS.filter(item => permissions.modules.includes(item.id));
+  const menuItems = ALL_MENU_ITEMS.filter(item => permissions?.modules?.includes(item.id));
 
   const getInitials = (name) => {
     if (!name) return 'U';

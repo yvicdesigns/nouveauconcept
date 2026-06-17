@@ -288,7 +288,7 @@ export default defineConfig({
 			registerType: 'autoUpdate',
 			includeAssets: ['icon.svg', 'apple-touch-icon.png', 'icons/*.png'],
 			manifest: {
-				name: 'Nouveau Concept CRM',
+				name: 'NC — CRM',
 				short_name: 'NC CRM',
 				description: 'Gestion de flotte et de réservations — Nouveau Concept',
 				theme_color: '#2563eb',

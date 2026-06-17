@@ -66,15 +66,19 @@ const Users = () => {
     }
   };
 
-  const getRoleColor = (role) => {
-    switch (role) {
-      case 'admin': return 'bg-purple-100 text-purple-700';
-      case 'manager': return 'bg-blue-100 text-blue-700';
-      case 'staff': return 'bg-green-100 text-green-700';
-      case 'viewer': return 'bg-slate-100 text-slate-700';
-      default: return 'bg-slate-100 text-slate-700';
-    }
+  const ROLE_CONFIG = {
+    admin:      { label: '👑 Administrateur',        color: 'bg-purple-100 text-purple-700' },
+    manager:    { label: '👔 Manager',               color: 'bg-blue-100 text-blue-700' },
+    agent:      { label: '🚗 Agent de location',     color: 'bg-green-100 text-green-700' },
+    fleet:      { label: '🛠️ Responsable de flotte', color: 'bg-orange-100 text-orange-700' },
+    accountant: { label: '💰 Comptable',             color: 'bg-yellow-100 text-yellow-700' },
+    readonly:   { label: '👁️ Consultation',          color: 'bg-slate-100 text-slate-600' },
+    staff:      { label: 'Staff',                   color: 'bg-green-100 text-green-700' },
+    viewer:     { label: 'Observateur',             color: 'bg-slate-100 text-slate-600' },
   };
+
+  const getRoleColor = (role) => ROLE_CONFIG[role]?.color || 'bg-slate-100 text-slate-700';
+  const getRoleLabel = (role) => ROLE_CONFIG[role]?.label || role;
 
   const handleAddUser = () => {
     setUserToEdit(null);
@@ -105,12 +109,13 @@ const Users = () => {
     if (!userToDelete) return;
 
     try {
-      const { error } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', userToDelete.id);
-
-      if (error) throw error;
+      const res = await fetch('/api/delete-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: userToDelete.id }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Erreur serveur.");
 
       await historyService.logEvent({
         type: 'user_deleted',

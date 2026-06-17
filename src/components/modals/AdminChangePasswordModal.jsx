@@ -38,33 +38,14 @@ const AdminChangePasswordModal = ({ isOpen, onClose, user }) => {
     setLoading(true);
 
     try {
-      // Call the Supabase Edge Function
-      const { data, error } = await supabase.functions.invoke('admin-update-password', {
-        body: { 
-          userId: user.id, 
-          newPassword: newPassword 
-        }
+      const res = await fetch('/api/update-user-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, password: newPassword }),
       });
 
-      if (error) {
-        // Network or invocation error
-        throw new Error(error.message || "Erreur de connexion au serveur.");
-      }
-
-      if (data && data.error) {
-         // Logic error from the function
-         if (data.error.includes("User not found in Auth system")) {
-             throw new Error("Cet utilisateur n'existe pas dans le système d'authentification (Auth) et n'a pas pu être synchronisé.");
-         }
-         if (data.error.includes("Database error loading user")) {
-            throw new Error("Erreur technique lors de l'accès à la base de données. Veuillez réessayer.");
-         }
-         if (data.error.includes("Invalid User ID")) {
-            throw new Error("L'ID de cet utilisateur est invalide (non-UUID). Impossible de changer le mot de passe.");
-         }
-         
-         throw new Error(data.error);
-      }
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Erreur serveur.");
 
       // Log the event
       await historyService.logEvent({

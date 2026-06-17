@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, CheckCircle, UserPlus, RefreshCw, Copy, AlertTriangle, Eye, EyeOff } from 'lucide-react';
+import { Loader2, UserPlus, RefreshCw, AlertTriangle, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 import { historyService } from '@/lib/historyService';
+
+const ROLES = [
+  { value: 'admin',      label: '👑 Administrateur',        desc: 'Accès complet — utilisateurs, paramètres, suppression' },
+  { value: 'manager',    label: '👔 Manager',               desc: 'Tout sauf gestion des utilisateurs' },
+  { value: 'agent',      label: '🚗 Agent de location',     desc: 'Contacts, réservations, facturation' },
+  { value: 'fleet',      label: '🛠️ Responsable de flotte', desc: 'Véhicules, maintenance, chauffeurs' },
+  { value: 'accountant', label: '💰 Comptable',             desc: 'Facturation et rapports uniquement' },
+  { value: 'readonly',   label: '👁️ Consultation',          desc: 'Lecture seule, aucune modification' },
+];
 
 const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) => {
   const { toast } = useToast();
@@ -14,7 +23,7 @@ const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) =>
   const initialFormState = {
     email: '',
     full_name: '',
-    role: 'staff',
+    role: 'agent',
     status: 'active',
     phone: '',
     department: '',
@@ -27,9 +36,7 @@ const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) =>
   useEffect(() => {
     if (open) {
       if (userToEdit) {
-        // Remove password from state when editing (we don't edit it here usually)
-        // eslint-disable-next-line no-unused-vars
-        const { password, ...rest } = initialFormState; 
+        const { password, ...rest } = initialFormState;
         setFormData({ ...rest, ...userToEdit });
       } else {
         setFormData(initialFormState);
@@ -39,13 +46,13 @@ const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) =>
   }, [open, userToEdit]);
 
   const generatePassword = () => {
-    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%";
     let password = "";
     for (let i = 0; i < 12; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     setFormData(prev => ({ ...prev, password }));
-    setShowPassword(true); // Show it so they can see what was generated
+    setShowPassword(true);
   };
 
   const handleChange = (e) => {
@@ -62,7 +69,6 @@ const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) =>
         throw new Error("L'email et le nom complet sont requis.");
       }
 
-      // Prepare data object
       const userData = {
         email: formData.email,
         full_name: formData.full_name,
@@ -74,9 +80,7 @@ const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) =>
       };
 
       if (userToEdit) {
-        // --- EDIT MODE ---
-        // For edits, we only update the database table directly.
-        
+        // EDIT — mise à jour directe dans la table
         const { data, error } = await supabase
           .from('users')
           .update(userData)
@@ -89,7 +93,7 @@ const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) =>
         await historyService.logEvent({
           type: 'user_updated',
           title: `Utilisateur mis à jour`,
-          description: `L'utilisateur ${data.full_name} (${data.role}) a été modifié.`,
+          description: `${data.full_name} (${data.role}) modifié.`,
           metadata: { user_id: data.id, role: data.role }
         });
 
@@ -98,49 +102,39 @@ const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) =>
           description: "Les modifications ont été enregistrées.",
           className: "bg-green-50 border-green-200 text-green-900",
         });
-        
+
         if (onUserSaved) onUserSaved(data);
 
       } else {
-        // --- CREATE MODE ---
-        
+        // CREATE — appel à l'API Vercel (service_role côté serveur)
         if (!formData.password || formData.password.length < 6) {
-           throw new Error("Le mot de passe est requis et doit contenir au moins 6 caractères.");
+          throw new Error("Le mot de passe est requis (6 caractères minimum).");
         }
 
-        const payload = {
-          ...userData,
-          password: formData.password
-        };
-
-        // Invoke the Edge Function 'admin-create-user'
-        const { data, error } = await supabase.functions.invoke('admin-create-user', {
-          body: payload
+        const res = await fetch('/api/create-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...userData, password: formData.password }),
         });
 
-        if (error) {
-           throw new Error(error.message || "Erreur lors de l'appel au serveur de création.");
-        }
-        
-        if (data && data.error) {
-            throw new Error(data.error);
-        }
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || "Erreur serveur lors de la création.");
 
-        const createdUser = data.user;
+        const createdUser = json.user;
 
         await historyService.logEvent({
           type: 'user_created',
           title: `Nouvel utilisateur créé`,
-          description: `Utilisateur ${createdUser.full_name} créé avec le rôle ${createdUser.role}.`,
+          description: `${createdUser.full_name} créé avec le rôle ${createdUser.role}.`,
           metadata: { user_id: createdUser.id, email: createdUser.email }
         });
 
         toast({
           title: "Utilisateur créé",
-          description: "Le compte a été créé dans le système d'authentification et la base de données.",
+          description: `${createdUser.full_name} peut maintenant se connecter.`,
           className: "bg-green-50 border-green-200 text-green-900",
         });
-        
+
         if (onUserSaved) onUserSaved(createdUser);
       }
 
@@ -148,15 +142,9 @@ const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) =>
 
     } catch (error) {
       console.error('Error saving user:', error);
-      
-      let errorMessage = error.message;
-      if (errorMessage.includes("already registered") || errorMessage.includes("unique constraint")) {
-        errorMessage = "Cet email est déjà utilisé par un autre utilisateur.";
-      }
-
       toast({
         title: "Échec de l'opération",
-        description: errorMessage,
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -165,6 +153,7 @@ const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) =>
   };
 
   const isEditing = !!userToEdit;
+  const selectedRole = ROLES.find(r => r.value === formData.role);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -177,15 +166,15 @@ const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) =>
             {isEditing ? "Modifier l'utilisateur" : "Nouvel utilisateur"}
           </DialogTitle>
           <DialogDescription>
-            {isEditing 
-              ? "Modifiez les informations et permissions de l'utilisateur."
-              : "Créez un nouveau compte utilisateur."}
+            {isEditing
+              ? "Modifiez les informations et le rôle de l'utilisateur."
+              : "Créez un compte — l'utilisateur pourra se connecter immédiatement."}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-          {/* Basic Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Nom + Email */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Nom complet</label>
               <input
@@ -198,7 +187,6 @@ const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) =>
                 placeholder="Jean Dupont"
               />
             </div>
-
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Email</label>
               <input
@@ -207,60 +195,80 @@ const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) =>
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
-                placeholder="jean.dupont@exemple.com"
+                disabled={isEditing}
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-400"
+                placeholder="jean@exemple.com"
               />
               {isEditing && (
-                 <p className="text-xs text-amber-600 flex items-center gap-1">
-                   <AlertTriangle className="h-3 w-3" />
-                   Modifier l'email ici ne change pas l'email de connexion.
-                 </p>
+                <p className="text-xs text-amber-600 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  L'email de connexion ne peut pas être modifié ici.
+                </p>
               )}
             </div>
           </div>
-          
-          {/* Manual Password Entry (Only for new users) */}
+
+          {/* Mot de passe (création uniquement) */}
           {!isEditing && (
             <div className="space-y-2">
-               <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                 Mot de passe
-                 <span className="text-xs font-normal text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-                   Requis
-                 </span>
-               </label>
-               <div className="flex gap-2">
-                 <div className="relative flex-1">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 pr-10"
-                      placeholder="Mot de passe..."
-                      required={!isEditing}
-                      minLength={6}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      tabIndex="-1"
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                 </div>
-                 <Button type="button" variant="outline" onClick={generatePassword} title="Générer un mot de passe fort">
-                   <RefreshCw className="h-4 w-4 mr-2" />
-                   Générer
-                 </Button>
-               </div>
-               <p className="text-xs text-slate-500">
-                  Minimum 6 caractères. L'utilisateur pourra le changer plus tard.
-               </p>
+              <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                Mot de passe
+                <span className="text-xs font-normal text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Requis</span>
+              </label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    minLength={6}
+                    className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 pr-10"
+                    placeholder="Minimum 6 caractères"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    tabIndex="-1"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                <Button type="button" variant="outline" onClick={generatePassword}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Générer
+                </Button>
+              </div>
+              <p className="text-xs text-slate-500">L'utilisateur pourra changer son mot de passe plus tard.</p>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Rôle */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-slate-700">Rôle & Accès</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {ROLES.map(role => (
+                <button
+                  key={role.value}
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, role: role.value }))}
+                  className={`text-left p-3 rounded-xl border-2 transition-all ${
+                    formData.role === role.value
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="font-medium text-sm text-slate-800">{role.label}</div>
+                  <div className="text-xs text-slate-500 mt-0.5">{role.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Téléphone + Département */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Téléphone</label>
               <input
@@ -269,10 +277,9 @@ const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) =>
                 value={formData.phone}
                 onChange={handleChange}
                 className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
-                placeholder="+33 6 12 34 56 78"
+                placeholder="+242 06 000 0000"
               />
             </div>
-
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Département</label>
               <input
@@ -281,80 +288,57 @@ const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) =>
                 value={formData.department}
                 onChange={handleChange}
                 className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
-                placeholder="Commercial, Support, etc."
+                placeholder="Commercial, Flotte, etc."
               />
             </div>
           </div>
 
-          {/* Role & Status */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Rôle</label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="w-full p-2.5 border border-slate-200 rounded-md bg-white"
-              >
-                <option value="admin">Administrateur</option>
-                <option value="manager">Manager</option>
-                <option value="staff">Staff</option>
-                <option value="viewer">Observateur</option>
-              </select>
-              <p className="text-xs text-slate-500">Détermine les permissions d'accès.</p>
+          {/* Statut */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700">Statut du compte</label>
+            <div className="flex gap-3">
+              {[{ value: 'active', label: 'Actif' }, { value: 'inactive', label: 'Inactif' }].map(s => (
+                <button
+                  key={s.value}
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, status: s.value }))}
+                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                    formData.status === s.value
+                      ? s.value === 'active'
+                        ? 'border-green-500 bg-green-50 text-green-700'
+                        : 'border-red-400 bg-red-50 text-red-700'
+                      : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                  }`}
+                >
+                  {s.value === 'active' ? '✅' : '🔒'} {s.label}
+                </button>
+              ))}
             </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Statut</label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="w-full p-2.5 border border-slate-200 rounded-md bg-white"
-              >
-                <option value="active">Actif</option>
-                <option value="inactive">Inactif</option>
-              </select>
-              <p className="text-xs text-slate-500">Un compte inactif ne peut pas se connecter.</p>
-            </div>
+            <p className="text-xs text-slate-500">Un compte inactif ne peut pas se connecter.</p>
           </div>
 
+          {/* Notes */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">Notes</label>
+            <label className="text-sm font-medium text-slate-700">Notes internes</label>
             <textarea
               name="notes"
               value={formData.notes}
               onChange={handleChange}
               rows={2}
               className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 resize-none"
-              placeholder="Remarques internes..."
+              placeholder="Remarques visibles uniquement par les admins..."
             />
           </div>
 
-          <div className="flex justify-end gap-4 pt-4 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isLoading}
-            >
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
               Annuler
             </Button>
-            <Button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white min-w-[150px]"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white min-w-[160px]" disabled={isLoading}>
               {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Enregistrement...
-                </>
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Enregistrement...</>
               ) : (
-                <>
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  {isEditing ? 'Mettre à jour' : 'Créer utilisateur'}
-                </>
+                <><CheckCircle className="mr-2 h-4 w-4" />{isEditing ? 'Mettre à jour' : 'Créer le compte'}</>
               )}
             </Button>
           </div>

@@ -333,7 +333,7 @@ const Maintenance = () => {
                         {format(new Date(record.reported_date), 'dd MMM yyyy', { locale: fr })}
                       </td>
                       <td className="px-6 py-4 text-right font-medium text-slate-700">
-                        {record.cost ? `${parseFloat(record.cost).toLocaleString('fr-FR')} €` : '-'}
+                        {record.cost ? `${parseFloat(record.cost).toLocaleString('fr-FR')} FCFA` : '-'}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex justify-center gap-2">

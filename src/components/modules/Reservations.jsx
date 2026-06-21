@@ -30,6 +30,7 @@ const Reservations = () => {
   const [reservations, setReservations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('Tous');
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [reservationToEdit, setReservationToEdit] = useState(null);
@@ -142,10 +143,13 @@ const Reservations = () => {
     fetchReservations(); // Refresh full list to ensure relationships are populated correctly
   };
 
-  const filteredReservations = reservations.filter(r =>
-    (r.contacts?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (r.vehicles?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredReservations = reservations.filter(r => {
+    const matchSearch =
+      (r.contacts?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (r.vehicles?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchStatus = statusFilter === 'Tous' || r.status === statusFilter;
+    return matchSearch && matchStatus;
+  });
   const { paginated: paginatedReservations, page, setPage, totalPages, total, from, perPage } = usePagination(filteredReservations, 10);
 
   return (
@@ -178,10 +182,20 @@ const Reservations = () => {
             className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <div className="flex gap-2">
-           <Button variant="outline" className="text-slate-600">
-             <Filter className="h-4 w-4 mr-2" /> Filtres
-           </Button>
+        <div className="flex flex-wrap gap-2">
+          {['Tous', 'En attente', 'Confirmée', 'En cours', 'Terminée', 'Annulée'].map(s => (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                statusFilter === s
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-blue-400 hover:text-blue-600'
+              }`}
+            >
+              {s}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -237,10 +251,10 @@ const Reservations = () => {
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-1 text-xs font-medium text-gray-600">
                         <span className="flex items-center gap-1">
-                          Du: <span className="text-gray-900">{format(new Date(res.start_date), 'dd MMM yyyy à HH:mm', { locale: fr })}</span>
+                          Du: <span className="text-gray-900">{res.start_date ? format(new Date(res.start_date), 'dd MMM yyyy à HH:mm', { locale: fr }) : '—'}</span>
                         </span>
                         <span className="flex items-center gap-1">
-                          Au: <span className="text-gray-900">{format(new Date(res.end_date), 'dd MMM yyyy', { locale: fr })}</span>
+                          Au: <span className="text-gray-900">{res.end_date ? format(new Date(res.end_date), 'dd MMM yyyy', { locale: fr }) : '—'}</span>
                         </span>
                       </div>
                     </td>

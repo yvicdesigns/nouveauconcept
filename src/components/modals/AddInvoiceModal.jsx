@@ -33,7 +33,15 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
     status: 'Brouillon',
     issue_date: format(new Date(), 'yyyy-MM-dd'),
     due_date: format(addDays(new Date(), 30), 'yyyy-MM-dd'),
-    notes: ''
+    notes: '',
+    client_phone: '',
+    client_cni: '',
+    caution: false,
+    caution_amount: 0,
+    remise: 0,
+    acompte: 0,
+    payment_method: 'Espèces',
+    payment_conditions: ''
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -50,6 +58,14 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
           commission_rate: invoiceToEdit.commission_rate || 0,
           commission_amount: invoiceToEdit.commission_amount || 0,
           commission_type: invoiceToEdit.commission_type || "Apporteur d'affaires",
+          client_phone: invoiceToEdit.client_phone || '',
+          client_cni: invoiceToEdit.client_cni || '',
+          caution: invoiceToEdit.caution || false,
+          caution_amount: invoiceToEdit.caution_amount || 0,
+          remise: invoiceToEdit.remise || 0,
+          acompte: invoiceToEdit.acompte || 0,
+          payment_method: invoiceToEdit.payment_method || 'Espèces',
+          payment_conditions: invoiceToEdit.payment_conditions || '',
           start_date: invoiceToEdit.start_date ? format(new Date(invoiceToEdit.start_date), 'yyyy-MM-dd') : '',
           end_date: invoiceToEdit.end_date ? format(new Date(invoiceToEdit.end_date), 'yyyy-MM-dd') : '',
           issue_date: invoiceToEdit.issue_date ? format(new Date(invoiceToEdit.issue_date), 'yyyy-MM-dd') : '',
@@ -181,8 +197,8 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   // Recalculate when rates, days or commission_rate change
@@ -377,6 +393,28 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
               />
             </div>
             <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Téléphone client</label>
+              <input
+                type="text"
+                name="client_phone"
+                value={formData.client_phone}
+                onChange={handleChange}
+                placeholder="+242 06..."
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">N° CNI client</label>
+              <input
+                type="text"
+                name="client_cni"
+                value={formData.client_cni}
+                onChange={handleChange}
+                placeholder="Numéro CNI..."
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Chauffeur assigné</label>
               <select
                 name="driver_id"
@@ -494,6 +532,84 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
                 <span>Total</span>
                 <span className="text-blue-600">{Number(formData.total_amount).toLocaleString()} FCFA</span>
               </div>
+              <div className="flex items-center justify-between gap-4 text-sm border-t border-slate-100 pt-2">
+                <span className="text-slate-600">Remise (FCFA)</span>
+                <input
+                  type="number"
+                  name="remise"
+                  value={formData.remise}
+                  onChange={handleChange}
+                  min="0"
+                  className="w-32 p-1 border border-slate-200 rounded text-right text-sm"
+                />
+              </div>
+              <div className="flex items-center justify-between gap-4 text-sm">
+                <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="caution"
+                    checked={formData.caution}
+                    onChange={handleChange}
+                    className="rounded"
+                  />
+                  Caution
+                </label>
+                {formData.caution && (
+                  <input
+                    type="number"
+                    name="caution_amount"
+                    value={formData.caution_amount}
+                    onChange={handleChange}
+                    min="0"
+                    placeholder="Montant FCFA"
+                    className="w-32 p-1 border border-slate-200 rounded text-right text-sm"
+                  />
+                )}
+              </div>
+              <div className="flex items-center justify-between gap-4 text-sm">
+                <span className="text-slate-600">Acompte versé (FCFA)</span>
+                <input
+                  type="number"
+                  name="acompte"
+                  value={formData.acompte}
+                  onChange={handleChange}
+                  min="0"
+                  className="w-32 p-1 border border-slate-200 rounded text-right text-sm"
+                />
+              </div>
+              <div className="flex justify-between text-base font-bold text-green-700 pt-2 border-t-2 border-slate-300">
+                <span>Reste à payer</span>
+                <span>{Math.max(0, Number(formData.total_amount) - Number(formData.remise) - Number(formData.acompte)).toLocaleString()} FCFA</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Paiement */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Mode de paiement</label>
+              <select
+                name="payment_method"
+                value={formData.payment_method}
+                onChange={handleChange}
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="Espèces">Espèces</option>
+                <option value="Mobile Money">Mobile Money</option>
+                <option value="Virement bancaire">Virement bancaire</option>
+                <option value="Chèque">Chèque</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Conditions de paiement</label>
+              <input
+                type="text"
+                name="payment_conditions"
+                value={formData.payment_conditions}
+                onChange={handleChange}
+                placeholder="Ex: Paiement à réception..."
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
+              />
             </div>
           </div>
 

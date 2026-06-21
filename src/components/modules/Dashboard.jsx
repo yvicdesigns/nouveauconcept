@@ -131,14 +131,17 @@ const Dashboard = () => {
 
       // Statuts véhicules
       const statusMapping = {
-        'available':   { label: 'Disponible', color: '#2563eb' },
-        'rented':      { label: 'Loué',       color: '#16a34a' },
-        'maintenance': { label: 'Maint.',     color: '#dc2626' },
-        'reserved':    { label: 'Réservé',    color: '#ca8a04' },
-        'disponible':  { label: 'Disponible', color: '#2563eb' },
+        'available':    { label: 'Disponible', color: '#2563eb' },
+        'rented':       { label: 'Loué',       color: '#16a34a' },
+        'maintenance':  { label: 'Maint.',     color: '#dc2626' },
+        'reserved':     { label: 'Réservé',    color: '#ca8a04' },
+        'disponible':   { label: 'Disponible', color: '#2563eb' },
+        'loué':         { label: 'Loué',       color: '#16a34a' },
+        'réservé':      { label: 'Réservé',    color: '#ca8a04' },
+        'prêté':        { label: 'Prêté',      color: '#7c3aed' },
       };
       const statusCounts = vehicles.reduce((acc, v) => {
-        const key = v.status?.toLowerCase() || 'available';
+        const key = v.status?.toLowerCase() || 'disponible';
         acc[key] = (acc[key] || 0) + 1;
         return acc;
       }, {});
@@ -200,6 +203,19 @@ const Dashboard = () => {
           title: 'Maintenance requise',
           message: `${m.vehicles?.brand || ''} ${m.vehicles?.model || ''} (${m.vehicles?.license_plate || ''}) nécessite une intervention.`,
         }));
+
+      // Permis chauffeurs expirants
+      const { data: drivers } = await supabase.from('drivers').select('name, license_expiry_date').eq('status', 'active');
+      (drivers || []).forEach(d => {
+        if (!d.license_expiry_date) return;
+        const expDate = parseISO(d.license_expiry_date);
+        const daysLeft = differenceInDays(expDate, now);
+        if (daysLeft < 0) {
+          expiredAlerts.push({ type: 'expired', title: 'Permis expiré', message: `${d.name} — permis expiré depuis ${Math.abs(daysLeft)} jour${Math.abs(daysLeft) > 1 ? 's' : ''}.` });
+        } else if (daysLeft <= 30) {
+          expiryAlerts.push({ type: 'expiry', title: 'Permis — expiration proche', message: `${d.name} — permis expire dans ${daysLeft} jour${daysLeft !== 1 ? 's' : ''}.` });
+        }
+      });
 
       // Locations en retard (En cours dont end_date < maintenant)
       const overdue = (activeRentalsData || []).filter(r => r.end_date && parseISO(r.end_date) < now);

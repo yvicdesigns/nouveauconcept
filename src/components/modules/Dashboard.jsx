@@ -78,7 +78,7 @@ const Dashboard = () => {
       // CA depuis les factures (source de vérité)
       const invoicesList = allInvoices || [];
       const paidInvoices    = invoicesList.filter(i => i.status === 'Payé');
-      const pendingInvoices = invoicesList.filter(i => ['En attente', 'En retard'].includes(i.status));
+      const pendingInvoices = invoicesList.filter(i => ['Envoyé', 'Brouillon', 'En attente', 'En retard'].includes(i.status));
 
       const caEncaisse  = paidInvoices.reduce((s, i) => s + (Number(i.total_amount) || 0), 0);
       const caEnAttente = pendingInvoices.reduce((s, i) => s + (Number(i.total_amount) || 0), 0);

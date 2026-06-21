@@ -163,7 +163,7 @@ const Billing = () => {
         <div>
           <h1 style="font-size:22px;font-weight:800;margin:0;">NOUVEAU CONCEPT</h1>
           <p style="color:#64748b;margin:4px 0 12px;">Location de Voitures de Luxe</p>
-          <p style="font-size:13px;color:#475569;line-height:1.6;margin:0;">Abidjan, Côte d'Ivoire<br/>contact@nouveauconcept.ci<br/>+225 07 00 00 00</p>
+          <p style="font-size:13px;color:#475569;line-height:1.6;margin:0;">Brazzaville, Rép. du Congo<br/>contact@nouveauconcept.cg<br/>+242 06 XXX XX XX</p>
         </div>
         <div style="text-align:right;">
           <p style="font-size:36px;font-weight:200;color:#cbd5e1;margin:0 0 12px;">FACTURE</p>

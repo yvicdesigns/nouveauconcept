@@ -487,6 +487,7 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
                 >
                   <option value="Brouillon">Brouillon</option>
                   <option value="Envoyé">Envoyé</option>
+                  <option value="En retard">En retard</option>
                   <option value="Payé">Payé</option>
                   <option value="En retard">En retard</option>
                 </select>

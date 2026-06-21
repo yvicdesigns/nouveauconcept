@@ -108,6 +108,26 @@ export function printThermalReceipt(invoice) {
       <div>le ${fmtDateLong(invoice.issue_date)}</div>
       <div style="margin-top:8px;font-size:11px;font-weight:bold;">Merci de votre confiance.</div>
     </div>
+
+    ${sep(true)}
+
+    <div style="font-size:10px;margin-top:2px;">
+      <div style="text-align:center;font-weight:bold;margin-bottom:4px;letter-spacing:0.5px;">
+        CONDITIONS DE LOCATION
+      </div>
+      <div style="margin:2px 0;">• Réservation confirmée après paiement</div>
+      <div style="margin:2px 0;">• Frais annexes (péages, attente, carburant) à la charge du client</div>
+      <div style="margin:2px 0;">• Hors Brazzaville : +20 000 FCFA forfait chauffeur</div>
+      <div style="margin:2px 0;">• Paiement : espèces / virement / mobile money</div>
+      <div style="margin:2px 0;">• Annulation : 24h à l'avance obligatoire</div>
+      <div style="margin:2px 0;">• Tout dommage sera facturé au client</div>
+      <div style="margin:2px 0;">• Soumis à la législation congolaise</div>
+      <div style="margin-top:5px;text-align:center;font-style:italic;">
+        Toute réservation vaut acceptation<br>des présentes conditions.
+      </div>
+    </div>
+
+    ${sep(true)}
   `;
 
   const el = document.getElementById('thermal-receipt');

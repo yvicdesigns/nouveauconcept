@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Plus, Download, Eye, Trash2, Edit, Receipt, Loader2, FileDown, Printer } from 'lucide-react';
-import { printThermalReceipt } from '@/utils/printReceipt';
+import { Search, Plus, Download, Eye, Trash2, Edit, Receipt, Loader2, FileDown, Printer, BadgeCheck } from 'lucide-react';
+import { printThermalReceipt, printPaymentReceipt } from '@/utils/printReceipt';
 import usePagination from '@/hooks/usePagination';
 import PaginationBar from '@/components/ui/PaginationBar';
 import { SkeletonRows } from '@/components/ui/SkeletonTable';
@@ -319,9 +319,14 @@ const Billing = () => {
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:bg-blue-50" onClick={() => handleView(invoice)} title="Voir">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-purple-600 hover:bg-purple-50" onClick={() => printThermalReceipt(invoice)} title="Imprimer ticket thermique">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-purple-600 hover:bg-purple-50" onClick={() => printThermalReceipt(invoice)} title="Imprimer ticket facture">
                           <Printer className="h-4 w-4" />
                         </Button>
+                        {invoice.status === 'Payé' && (
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600 hover:bg-emerald-50" onClick={() => printPaymentReceipt(invoice)} title="Imprimer reçu de paiement">
+                            <BadgeCheck className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600 hover:bg-green-50" onClick={() => downloadPDF(invoice)} title="Télécharger PDF">
                           <FileDown className="h-4 w-4" />
                         </Button>

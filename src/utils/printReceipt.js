@@ -1,6 +1,8 @@
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
 function fmt(n) {
   return Number(n || 0).toLocaleString('fr-FR');
 }
@@ -25,6 +27,57 @@ function sep(thick = false) {
   const ch = thick ? '=' : '-';
   return `<div style="letter-spacing:-0.5px;margin:3px 0;">${ch.repeat(32)}</div>`;
 }
+
+// ─── Moteur d'impression commun ───────────────────────────────────────────────
+
+function _doPrint(html) {
+  const el = document.getElementById('thermal-receipt');
+  if (!el) return;
+
+  el.innerHTML = html;
+
+  // Mesure à la largeur exacte d'impression pour calculer la hauteur de page
+  const prev = el.style.cssText;
+  el.style.cssText = [
+    'display:block',
+    'position:fixed',
+    'visibility:hidden',
+    'top:0',
+    'left:0',
+    'width:64mm',
+    'font-family:Courier New,Courier,monospace',
+    'font-size:12px',
+    'line-height:1.5',
+    'padding:2mm',
+    'box-sizing:border-box',
+  ].join(';');
+
+  const heightPx = el.scrollHeight;
+  el.style.cssText = prev;
+
+  // 1px = 0.2646mm à 96dpi
+  const heightMm = Math.ceil(heightPx * 0.2646) + 10;
+
+  // @page doit être à la racine (pas dans @media print — Chrome l'ignore sinon)
+  let styleEl = document.getElementById('thermal-page-style');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'thermal-page-style';
+    document.head.appendChild(styleEl);
+  }
+  styleEl.textContent = `@page { size: 80mm ${heightMm}mm; margin: 0; }`;
+
+  window.print();
+
+  const cleanup = () => {
+    el.innerHTML = '';
+    styleEl.textContent = '';
+    window.removeEventListener('afterprint', cleanup);
+  };
+  window.addEventListener('afterprint', cleanup);
+}
+
+// ─── Ticket facture (détail complet + conditions) ─────────────────────────────
 
 export function printThermalReceipt(invoice) {
   if (!invoice) return;
@@ -98,7 +151,6 @@ export function printThermalReceipt(invoice) {
 
     ${row('Paiement', invoice.payment_method || 'Espèces')}
     ${invoice.payment_conditions ? `<div style="font-size:10px;">${invoice.payment_conditions}</div>` : ''}
-
     ${invoice.notes ? `${sep()}<div style="font-size:10px;"><b>Note :</b> ${invoice.notes}</div>` : ''}
 
     ${sep(true)}
@@ -130,48 +182,78 @@ export function printThermalReceipt(invoice) {
     ${sep(true)}
   `;
 
-  const el = document.getElementById('thermal-receipt');
-  if (!el) return;
+  _doPrint(html);
+}
 
-  el.innerHTML = html;
+// ─── Reçu de paiement (factures Payé uniquement) ──────────────────────────────
 
-  // Measure at print width to get exact page height
-  const prev = el.style.cssText;
-  el.style.cssText = [
-    'display:block',
-    'position:fixed',
-    'visibility:hidden',
-    'top:0',
-    'left:0',
-    'width:64mm',
-    'font-family:Courier New,Courier,monospace',
-    'font-size:12px',
-    'line-height:1.5',
-    'padding:2mm',
-    'box-sizing:border-box',
-  ].join(';');
+export function printPaymentReceipt(invoice) {
+  if (!invoice) return;
 
-  const heightPx = el.scrollHeight;
-  el.style.cssText = prev;
+  const totalPaid = Number(invoice.total_amount || 0)
+    - Number(invoice.remise || 0);
 
-  // 1px = 0.2646mm at 96dpi
-  const heightMm = Math.ceil(heightPx * 0.2646) + 10;
+  const html = `
+    <div style="text-align:center;margin-bottom:4px;">
+      <div style="font-size:15px;font-weight:bold;letter-spacing:1px;">NOUVEAU CONCEPT</div>
+      <div style="font-size:10px;">Location de Véhicules</div>
+      <div style="font-size:10px;">Brazzaville, Rép. du Congo</div>
+    </div>
 
-  // Inject @page at root level (NOT inside @media print — Chrome ignores it there)
-  let styleEl = document.getElementById('thermal-page-style');
-  if (!styleEl) {
-    styleEl = document.createElement('style');
-    styleEl.id = 'thermal-page-style';
-    document.head.appendChild(styleEl);
-  }
-  styleEl.textContent = `@page { size: 80mm ${heightMm}mm; margin: 0; }`;
+    ${sep(true)}
 
-  window.print();
+    <div style="text-align:center;margin:4px 0;">
+      <div style="font-size:14px;font-weight:bold;letter-spacing:1px;">REÇU DE PAIEMENT</div>
+      <div style="font-size:10px;margin-top:2px;">Réf. : ${invoice.invoice_number || '—'}</div>
+    </div>
 
-  const cleanup = () => {
-    el.innerHTML = '';
-    styleEl.textContent = '';
-    window.removeEventListener('afterprint', cleanup);
-  };
-  window.addEventListener('afterprint', cleanup);
+    ${sep()}
+
+    <div style="font-weight:bold;margin-bottom:2px;">CLIENT</div>
+    <div>${invoice.client_name || '—'}</div>
+    ${invoice.client_phone ? `<div style="font-size:10px;">Tél : ${invoice.client_phone}</div>` : ''}
+
+    ${sep()}
+
+    ${invoice.vehicle_details ? `<div style="font-size:10px;margin-bottom:3px;">${invoice.vehicle_details}</div>` : ''}
+    ${invoice.start_date && invoice.end_date
+      ? `<div style="font-size:10px;">Du ${fmtDate(invoice.start_date)} au ${fmtDate(invoice.end_date)}</div>`
+      : ''}
+
+    ${sep()}
+
+    ${row('Montant total', `${fmt(invoice.total_amount)} FCFA`)}
+    ${Number(invoice.remise) > 0
+      ? row('Remise', `- ${fmt(invoice.remise)} FCFA`)
+      : ''}
+    ${Number(invoice.acompte) > 0
+      ? `<div style="display:flex;justify-content:space-between;align-items:baseline;margin:2px 0;font-size:10px;">
+           <span>Acompte déjà versé</span><span>${fmt(invoice.acompte)} FCFA</span>
+         </div>`
+      : ''}
+
+    <div style="border-top:2px solid #000;margin:4px 0;"></div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;font-weight:bold;font-size:14px;">
+      <span>MONTANT REÇU</span><span>${fmt(totalPaid)} FCFA</span>
+    </div>
+    <div style="border-bottom:2px solid #000;margin:4px 0;"></div>
+
+    ${row('Mode de paiement', invoice.payment_method || 'Espèces')}
+    ${row('Date', fmtDate(invoice.issue_date))}
+
+    ${sep(true)}
+
+    <div style="text-align:center;margin:6px 0;">
+      <div style="font-size:20px;font-weight:bold;letter-spacing:2px;">✓ PAYÉ</div>
+    </div>
+
+    ${sep(true)}
+
+    <div style="text-align:center;font-size:10px;margin-top:4px;">
+      <div>Fait à Brazzaville, le ${fmtDateLong(invoice.issue_date)}</div>
+      <div style="margin-top:6px;font-weight:bold;">Merci de votre confiance.</div>
+    </div>
+  `;
+
+  _doPrint(html);
 }

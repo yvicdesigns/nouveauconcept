@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Printer, Download, FileText, X, Loader2, Receipt } from 'lucide-react';
+import { Printer, Download, FileText, X, Loader2, Receipt, BadgeCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { printThermalReceipt } from '@/utils/printReceipt';
+import { printThermalReceipt, printPaymentReceipt } from '@/utils/printReceipt';
 
 const ViewInvoiceModal = ({ open, onOpenChange, invoice }) => {
   const [isExporting, setIsExporting] = useState(false);
@@ -74,6 +74,13 @@ const ViewInvoiceModal = ({ open, onOpenChange, invoice }) => {
               <Receipt className="h-4 w-4 mr-2" />
               Ticket
             </Button>
+            {invoice.status === 'Payé' && (
+              <Button variant="outline" size="sm" onClick={() => printPaymentReceipt(invoice)}
+                className="border-emerald-300 text-emerald-700 hover:bg-emerald-50">
+                <BadgeCheck className="h-4 w-4 mr-2" />
+                Reçu
+              </Button>
+            )}
             <Button size="sm" onClick={downloadPDF} disabled={isExporting}
               className="bg-blue-600 hover:bg-blue-700 text-white min-w-[130px]">
               {isExporting

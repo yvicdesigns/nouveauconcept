@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Plus, Download, Eye, Trash2, Edit, Receipt, Loader2, FileDown, Printer, BadgeCheck } from 'lucide-react';
+import { Search, Plus, Download, Eye, Trash2, Edit, Receipt, Loader2, FileDown, Printer, BadgeCheck, Zap } from 'lucide-react';
 import { printThermalReceipt, printPaymentReceipt } from '@/utils/printReceipt';
 import usePagination from '@/hooks/usePagination';
 import PaginationBar from '@/components/ui/PaginationBar';
@@ -12,7 +12,7 @@ import { historyService } from '@/lib/historyService';
 import AddInvoiceModal from '@/components/modals/AddInvoiceModal';
 import ViewInvoiceModal from '@/components/modals/ViewInvoiceModal';
 import ContactDetailSheet from '@/components/modals/ContactDetailSheet';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
   AlertDialog,
@@ -39,10 +39,89 @@ const Billing = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState(null);
   const [contactSheet, setContactSheet] = useState({ open: false, name: null });
+  const [isBulkGenerating, setIsBulkGenerating] = useState(false);
+  const [bulkPreview, setBulkPreview] = useState(null); // { count, total, items }
+  const [showBulkConfirm, setShowBulkConfirm] = useState(false);
 
   useEffect(() => {
     fetchInvoices();
   }, []);
+
+  const previewBulkGenerate = async () => {
+    try {
+      setIsBulkGenerating(true);
+      const [{ data: terminees }, { data: existingInvoices }] = await Promise.all([
+        supabase
+          .from('reservations')
+          .select('id, total_price, start_date, end_date, contacts(name), vehicles(brand, model, license_plate, daily_rate)')
+          .eq('status', 'Terminée')
+          .gt('total_price', 0),
+        supabase.from('invoices').select('reservation_id').not('reservation_id', 'is', null),
+      ]);
+      const invoicedIds = new Set((existingInvoices || []).map(i => i.reservation_id));
+      const toGenerate = (terminees || []).filter(r => !invoicedIds.has(r.id));
+      const totalCA = toGenerate.reduce((s, r) => s + Number(r.total_price), 0);
+      setBulkPreview({ count: toGenerate.length, total: totalCA, items: toGenerate });
+      setShowBulkConfirm(true);
+    } catch {
+      toast({ title: 'Erreur', description: 'Impossible de charger les réservations.', variant: 'destructive' });
+    } finally {
+      setIsBulkGenerating(false);
+    }
+  };
+
+  const executeBulkGenerate = async () => {
+    if (!bulkPreview?.items?.length) return;
+    try {
+      setIsBulkGenerating(true);
+      const invoicesToInsert = bulkPreview.items.map(r => {
+        const days = Math.max(1, differenceInDays(new Date(r.end_date), new Date(r.start_date)));
+        const total = Number(r.total_price);
+        const dailyRate = r.vehicles?.daily_rate
+          ? Number(r.vehicles.daily_rate)
+          : Math.round(total / days);
+        const endDateStr = format(new Date(r.end_date), 'yyyy-MM-dd');
+        return {
+          invoice_number: `INV-${format(new Date(r.end_date), 'yyyyMMdd')}-${Math.floor(1000 + Math.random() * 9000)}`,
+          reservation_id: r.id,
+          client_name: r.contacts?.name || 'Client inconnu',
+          vehicle_details: `${r.vehicles?.brand || ''} ${r.vehicles?.model || ''} (${r.vehicles?.license_plate || ''})`.trim(),
+          start_date: r.start_date,
+          end_date: r.end_date,
+          daily_rate: dailyRate,
+          days_count: days,
+          subtotal: total,
+          tax_amount: 0,
+          commission_rate: 0,
+          commission_amount: 0,
+          commission_type: '',
+          total_amount: total,
+          status: 'Payé',
+          issue_date: endDateStr,
+          due_date: endDateStr,
+          payment_method: 'Espèces',
+          remise: 0,
+          acompte: 0,
+          caution: false,
+          caution_amount: 0,
+        };
+      });
+      const { error } = await supabase.from('invoices').insert(invoicesToInsert);
+      if (error) throw error;
+      toast({
+        title: `✅ ${bulkPreview.count} factures générées`,
+        description: `CA récupéré : ${bulkPreview.total.toLocaleString('fr-FR')} FCFA`,
+        className: 'bg-green-50 border-green-200 text-green-900',
+      });
+      setShowBulkConfirm(false);
+      setBulkPreview(null);
+      fetchInvoices();
+    } catch (err) {
+      toast({ title: 'Erreur', description: 'La génération a échoué.', variant: 'destructive' });
+    } finally {
+      setIsBulkGenerating(false);
+    }
+  };
 
   const fetchInvoices = async () => {
     try {
@@ -228,10 +307,23 @@ const Billing = () => {
           <h1 className="text-3xl font-bold text-slate-900">Facturation</h1>
           <p className="text-slate-600 mt-1">Gérez vos paiements et factures clients</p>
         </div>
-        <Button onClick={handleAdd} className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white">
-          <Plus className="h-4 w-4 mr-2" />
-          Créer une facture
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={previewBulkGenerate}
+            disabled={isBulkGenerating}
+            className="border-amber-300 text-amber-700 hover:bg-amber-50"
+          >
+            {isBulkGenerating
+              ? <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              : <Zap className="h-4 w-4 mr-2" />}
+            Importer réservations
+          </Button>
+          <Button onClick={handleAdd} className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white">
+            <Plus className="h-4 w-4 mr-2" />
+            Créer une facture
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -379,6 +471,48 @@ const Billing = () => {
             <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white">
               Supprimer
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog confirmation génération en masse */}
+      <AlertDialog open={showBulkConfirm} onOpenChange={setShowBulkConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Générer les factures manquantes</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 mt-2">
+                {bulkPreview?.count === 0 ? (
+                  <p>Toutes les réservations terminées sont déjà facturées. 🎉</p>
+                ) : (
+                  <>
+                    <p>
+                      <strong>{bulkPreview?.count}</strong> réservation{bulkPreview?.count > 1 ? 's' : ''} terminée{bulkPreview?.count > 1 ? 's' : ''} sans facture trouvée{bulkPreview?.count > 1 ? 's' : ''}.
+                    </p>
+                    <p className="text-lg font-bold text-green-700">
+                      CA total à récupérer : {bulkPreview?.total?.toLocaleString('fr-FR')} FCFA
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      Les factures seront créées avec le statut <strong>Payé</strong>, mode de paiement Espèces. Tu pourras les modifier ensuite.
+                    </p>
+                  </>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            {bulkPreview?.count > 0 && (
+              <AlertDialogAction
+                onClick={executeBulkGenerate}
+                disabled={isBulkGenerating}
+                className="bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                {isBulkGenerating
+                  ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Génération…</>
+                  : `Générer ${bulkPreview?.count} facture${bulkPreview?.count > 1 ? 's' : ''}`}
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

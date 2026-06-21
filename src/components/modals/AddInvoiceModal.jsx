@@ -135,8 +135,13 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
     const startDate = parseISO(reservation.start_date);
     const endDate = parseISO(reservation.end_date);
     const days = differenceInDays(endDate, startDate) || 1;
-    const dailyRate = reservation.vehicles?.daily_rate || 0;
-    const subtotal = days * dailyRate;
+    // Priorité à total_price de la réservation, sinon calcul depuis daily_rate
+    const reservationTotal = Number(reservation.total_price) || 0;
+    const vehicleDailyRate = reservation.vehicles?.daily_rate || 0;
+    const subtotal = reservationTotal > 0 ? reservationTotal : days * vehicleDailyRate;
+    const dailyRate = reservationTotal > 0 && days > 0
+      ? Math.round(reservationTotal / days)
+      : vehicleDailyRate;
     setFormData(prev => {
       const commRate = Number(prev.commission_rate) || 0;
       const commAmt = Math.round(subtotal * commRate / 100);
@@ -171,9 +176,12 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
       const endDate = parseISO(reservation.end_date);
       const days = differenceInDays(endDate, startDate) || 1; // Min 1 day
       
-      // Calculate financials
-      const dailyRate = reservation.vehicles?.daily_rate || 0;
-      const subtotal = days * dailyRate;
+      const reservationTotal = Number(reservation.total_price) || 0;
+      const vehicleDailyRate = reservation.vehicles?.daily_rate || 0;
+      const subtotal = reservationTotal > 0 ? reservationTotal : days * vehicleDailyRate;
+      const dailyRate = reservationTotal > 0 && days > 0
+        ? Math.round(reservationTotal / days)
+        : vehicleDailyRate;
 
       setFormData(prev => {
         const commRate = Number(prev.commission_rate) || 0;

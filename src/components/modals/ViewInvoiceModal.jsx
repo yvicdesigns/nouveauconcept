@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Printer, Download, FileText, X, Loader2 } from 'lucide-react';
+import { Printer, Download, FileText, X, Loader2, Receipt } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { printThermalReceipt } from '@/utils/printReceipt';
 
 const ViewInvoiceModal = ({ open, onOpenChange, invoice }) => {
   const [isExporting, setIsExporting] = useState(false);
@@ -69,9 +70,9 @@ const ViewInvoiceModal = ({ open, onOpenChange, invoice }) => {
             Facture {invoice.invoice_number}
           </DialogTitle>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={printInvoice}>
-              <Printer className="h-4 w-4 mr-2" />
-              Imprimer
+            <Button variant="outline" size="sm" onClick={() => printThermalReceipt(invoice)}>
+              <Receipt className="h-4 w-4 mr-2" />
+              Ticket
             </Button>
             <Button size="sm" onClick={downloadPDF} disabled={isExporting}
               className="bg-blue-600 hover:bg-blue-700 text-white min-w-[130px]">

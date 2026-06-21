@@ -31,6 +31,27 @@
 	</head>
 	<body>
 		<div id="root"></div>
+		<div id="thermal-receipt"></div>
 		<script type="module" src="/src/main.jsx"></script>
+
+		<style>
+			#thermal-receipt { display: none; }
+
+			@media print {
+				#root { display: none !important; }
+				#thermal-receipt {
+					display: block !important;
+					font-family: 'Courier New', Courier, monospace;
+					font-size: 12px;
+					line-height: 1.5;
+					width: 64mm;
+					margin: 0;
+					padding: 2mm;
+					box-sizing: border-box;
+					color: #000;
+					background: #fff;
+				}
+			}
+		</style>
 	</body>
 </html>

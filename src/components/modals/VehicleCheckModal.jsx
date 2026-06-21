@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trash2, AlertCircle, Gauge, Fuel, CheckCircle2, User, Clock, Loader2 } from 'lucide-react';
+import { X, Trash2, AlertCircle, Gauge, Fuel, CheckCircle2, User, Clock, Loader2, CalendarDays } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/customSupabaseClient';
 
 const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
+  const { toast } = useToast();
   const [fuelLevel, setFuelLevel] = useState(100);
   const [currentMileage, setCurrentMileage] = useState(0);
   const [observations, setObservations] = useState('');
@@ -18,6 +20,7 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
   const [isLoadingClients, setIsLoadingClients] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState('');
   const [departureTime, setDepartureTime] = useState('');
+  const [expectedReturnDate, setExpectedReturnDate] = useState('');
   
   const diagramRef = useRef(null);
 
@@ -69,6 +72,10 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
       setSelectedClientId('');
       const now = new Date();
       setDepartureTime(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+      // Default return date = tomorrow
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      setExpectedReturnDate(tomorrow.toISOString().split('T')[0]);
 
       if (type === 'checkout') {
         fetchClients();
@@ -129,7 +136,7 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
   const handleConfirm = () => {
     // Basic validation for checkout
     if (type === 'checkout' && !selectedClientId) {
-      alert("Veuillez sélectionner un client pour le départ.");
+      toast({ title: "Client requis", description: "Veuillez sélectionner un client avant de valider le départ.", variant: "destructive" });
       return;
     }
 
@@ -140,10 +147,10 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
       finalMileage: currentMileage,
       observations,
       damages,
-      // New fields
       clientId: selectedClientId,
       clientName: clients.find(c => c.id === selectedClientId)?.name || 'Client inconnu',
-      departureTime
+      departureTime,
+      expectedReturnDate,
     });
     onClose();
   };
@@ -239,10 +246,24 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
                         <Clock className="h-4 w-4 text-blue-500" />
                         Heure de départ
                       </label>
-                      <input 
-                        type="time" 
+                      <input
+                        type="time"
                         value={departureTime}
                         onChange={(e) => setDepartureTime(e.target.value)}
+                        className="w-full px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-4">
+                      <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
+                        <CalendarDays className="h-4 w-4 text-blue-500" />
+                        Date de retour prévue
+                      </label>
+                      <input
+                        type="date"
+                        value={expectedReturnDate}
+                        min={new Date().toISOString().split('T')[0]}
+                        onChange={(e) => setExpectedReturnDate(e.target.value)}
                         className="w-full px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                       />
                     </div>

@@ -4,9 +4,11 @@ import { Search, Plus, Gauge, Fuel, Settings2, Calendar, History as HistoryIcon,
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import VehicleCheckModal from '@/components/modals/VehicleCheckModal';
+import VehicleDetailSheet from '@/components/modals/VehicleDetailSheet';
 import AddVehicleModal from '@/components/modals/AddVehicleModal';
 import AddLoanModal from '@/components/modals/AddLoanModal';
 import HistoryTab from '@/components/history/HistoryTab';
+const CarViewer3D = React.lazy(() => import('@/components/vehicles/CarViewer3D'));
 import { historyService } from '@/lib/historyService';
 import { supabase } from '@/lib/customSupabaseClient';
 import usePagination from '@/hooks/usePagination';
@@ -52,10 +54,14 @@ const VehicleDetailTabs = ({ vehicle }) => {
         ))}
       </div>
       {tab === 'diagram' && (
-        <div className="flex flex-col items-center justify-center h-64 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">
-          <p className="font-medium text-slate-500">Visualisation 3D — bientôt disponible</p>
-          <p className="text-sm mt-1 text-slate-400">En cours d'intégration</p>
-        </div>
+        <React.Suspense fallback={
+          <div className="flex items-center justify-center h-64 text-slate-400 gap-3">
+            <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+            <span className="text-sm font-medium text-slate-500">Chargement de la vue 3D…</span>
+          </div>
+        }>
+          <CarViewer3D vehicleId={vehicle.id} />
+        </React.Suspense>
       )}
       {tab === 'history' && (
         <div className="max-h-[70vh] overflow-y-auto">
@@ -84,6 +90,8 @@ const Vehicles = () => {
   
   // New Modals State
   const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [detailVehicleId, setDetailVehicleId] = useState(null);
 
   const [vehicles, setVehicles] = useState([]);
 
@@ -246,15 +254,13 @@ const Vehicles = () => {
       setCheckModalType('checkin');
       setIsCheckModalOpen(true);
     } else if (action === 'Détails') {
-      toast({
-        title: `Détails: ${vehicle.name}`,
-        description: `Consultation des détails pour ${vehicle.plate}`,
-      });
+      setDetailVehicleId(vehicle.id);
+      setIsDetailOpen(true);
     }
   };
 
   const handleCheckModalConfirm = async (data) => {
-    const { vehicleId, type, finalMileage, observations, damages, clientId, clientName, departureTime } = data;
+    const { vehicleId, type, finalMileage, observations, damages, clientId, clientName, departureTime, expectedReturnDate } = data;
     const vehicle = vehicles.find(v => v.id === vehicleId);
     
     if (!vehicle) return;
@@ -287,13 +293,32 @@ const Vehicles = () => {
 
       if (vehicleError) throw vehicleError;
 
-      // 2. Handle specific logic for Checkout (Reservation Creation)
+      // 2. Handle check-in: close the active reservation
+      if (type === 'checkin') {
+        const { data: activeRes } = await supabase
+          .from('reservations')
+          .select('id')
+          .eq('vehicle_id', vehicleId)
+          .in('status', ['En cours', 'confirmed', 'Confirmée'])
+          .order('start_date', { ascending: false })
+          .limit(1)
+          .single();
+        if (activeRes?.id) {
+          await supabase
+            .from('reservations')
+            .update({ status: 'Terminée', end_date: new Date().toISOString() })
+            .eq('id', activeRes.id);
+        }
+      }
+
+      // 3. Handle specific logic for Checkout (Reservation Creation)
       if (type === 'checkout' && clientId) {
         const todayStr = format(new Date(), 'yyyy-MM-dd');
         const startDateTimeStr = `${todayStr}T${departureTime || '09:00'}:00`;
         const startDateTime = new Date(startDateTimeStr);
-        const endDateTime = new Date(startDateTime);
-        endDateTime.setDate(endDateTime.getDate() + 1);
+        const endDateTime = expectedReturnDate
+          ? new Date(`${expectedReturnDate}T23:59:00`)
+          : new Date(startDateTime.getTime() + 24 * 60 * 60 * 1000);
 
         const dailyRate = Number(vehicle.rawData?.daily_rate) || 0;
         const estimatedPrice = dailyRate; 
@@ -302,10 +327,10 @@ const Vehicles = () => {
           .from('reservations')
           .insert({
             vehicle_id: vehicleId,
-            client_id: clientId,
+            contact_id: clientId,
             start_date: startDateTime.toISOString(),
-            end_date: endDateTime.toISOString(), 
-            status: 'confirmed', 
+            end_date: endDateTime.toISOString(),
+            status: 'En cours',
             total_price: estimatedPrice,
             notes: observations || 'Départ immédiat via module Véhicules'
           });
@@ -661,6 +686,12 @@ const Vehicles = () => {
         onClose={() => setIsLoanModalOpen(false)}
         vehicle={selectedVehicle}
         onSave={fetchVehicles}
+      />
+
+      <VehicleDetailSheet
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        vehicleId={detailVehicleId}
       />
 
       {/* Delete Confirmation Dialog */}

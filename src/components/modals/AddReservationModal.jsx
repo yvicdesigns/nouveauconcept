@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, CheckCircle, Calendar, Car, User, Clock, AlertCircle, Calculator, ChevronLeft, ChevronRight, MapPin, CreditCard, Banknote, Plus, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
@@ -13,6 +14,9 @@ const newRow = () => ({ key: Date.now() + Math.random(), vehicle_id: '', price: 
 const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservationToEdit = null }) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [errorDialog, setErrorDialog] = useState({ open: false, title: '', message: '' });
+
+  const showError = (title, message) => setErrorDialog({ open: true, title, message });
   const [clients, setClients] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [vehicleReservations, setVehicleReservations] = useState([]);
@@ -84,7 +88,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
   const fetchDependencies = async () => {
     try {
       const { data: clientsData } = await supabase.from('contacts').select('id, name').order('name');
-      const { data: vehiclesData } = await supabase.from('vehicles').select('id, name, brand, model, license_plate, daily_rate').order('name');
+      const { data: vehiclesData } = await supabase.from('vehicles').select('id, name, brand, model, license_plate, daily_rate, status').order('name');
       setClients(clientsData || []);
       setVehicles(vehiclesData || []);
     } catch (error) {
@@ -228,9 +232,19 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
         const realConflicts = (conflicts || []).filter(c => !reservationToEdit || c.id !== reservationToEdit.id);
         if (realConflicts.length > 0) {
           const veh = vehicles.find(v => v.id === row.vehicle_id);
-          const label = veh ? `${veh.brand} ${veh.model} (${veh.license_plate})` : 'ce véhicule';
+          const vehicleName = veh ? `${veh.name} (${veh.license_plate})` : 'Ce véhicule';
           const who = realConflicts[0]?.contacts?.name || 'un autre client';
-          throw new Error(`Conflit détecté : ${label} est déjà réservé par ${who} sur ces dates.`);
+          const conflictStart = realConflicts[0]?.start_date
+            ? new Date(realConflicts[0].start_date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+            : '?';
+          const conflictEnd = realConflicts[0]?.end_date
+            ? new Date(realConflicts[0].end_date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+            : '?';
+          const isCurrentlyRented = veh?.status === 'LOUÉ';
+          if (isCurrentlyRented) {
+            throw new Error(`🚫 ${vehicleName} est actuellement en location par ${who}. Elle ne sera disponible qu'à son retour.`);
+          }
+          throw new Error(`🚫 ${vehicleName} est déjà réservée par ${who} du ${conflictStart} au ${conflictEnd}. Choisissez d'autres dates ou un autre véhicule.`);
         }
       }
 
@@ -259,7 +273,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
           .eq('id', reservationToEdit.id)
           .select('*, contacts(name), vehicles(name)')
           .single();
-        if (error) throw error;
+        if (error) throw new Error(`Erreur technique lors de la mise à jour. Contactez le développeur si le problème persiste. (Code : ${error.code || error.message})`);
         resultData = data;
 
         await historyService.logEvent({
@@ -279,7 +293,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
             .insert([{ ...commonPayload, vehicle_id: row.vehicle_id, total_price: row.price }])
             .select('*, contacts(name), vehicles(name)')
             .single();
-          if (error) throw error;
+          if (error) throw new Error(`Erreur technique lors de la création. Contactez le développeur si le problème persiste. (Code : ${error.code || error.message})`);
           created.push(data);
         }
         resultData = created[0];
@@ -301,7 +315,12 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
 
     } catch (error) {
       console.error('Error:', error);
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      const isBusinessError = error.message.startsWith('🚫') || error.message.startsWith('Veuillez');
+      if (isBusinessError) {
+        showError('Réservation impossible', error.message);
+      } else {
+        showError('Erreur technique', error.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -310,6 +329,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
   const isEditing = !!reservationToEdit;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -402,9 +422,10 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                         <option value="">Sélectionner un véhicule…</option>
                         {vehicles.map(v => {
                           const alreadySelected = formData.vehicleRows.some((r, i) => i !== index && r.vehicle_id === v.id);
+                          const isLoued = v.status === 'LOUÉ';
                           return (
-                            <option key={v.id} value={v.id} disabled={alreadySelected}>
-                              {v.name} — {v.license_plate} ({v.daily_rate?.toLocaleString()} FCFA/j)
+                            <option key={v.id} value={v.id} disabled={alreadySelected || isLoued}>
+                              {isLoued ? '🔴 ' : '🟢 '}{v.name} — {v.license_plate} ({v.daily_rate?.toLocaleString()} FCFA/j){isLoued ? ' [Actuellement louée]' : ''}
                             </option>
                           );
                         })}
@@ -661,6 +682,28 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
         </form>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={errorDialog.open} onOpenChange={(open) => setErrorDialog(e => ({ ...e, open }))}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className={errorDialog.title === 'Erreur technique' ? 'text-orange-600' : 'text-red-600'}>
+            {errorDialog.title === 'Erreur technique' ? '⚠️ ' : '🚫 '}{errorDialog.title}
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
+            {errorDialog.message.replace(/^🚫 /, '')}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogAction
+            onClick={() => setErrorDialog(e => ({ ...e, open: false }))}
+            className={errorDialog.title === 'Erreur technique' ? 'bg-orange-600 hover:bg-orange-700' : 'bg-red-600 hover:bg-red-700'}
+          >
+            Compris
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
 

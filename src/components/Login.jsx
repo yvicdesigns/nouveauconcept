@@ -12,47 +12,41 @@ const Login = ({ onLoginSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
 
+  const withTimeout = (promise, ms = 12000) =>
+    Promise.race([
+      promise,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Délai dépassé. Vérifiez votre connexion internet.')), ms)
+      ),
+    ]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // 1. Authenticate with Supabase Auth (Auth.users table)
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data: authData, error: authError } = await withTimeout(
+        supabase.auth.signInWithPassword({ email, password })
+      );
 
-      if (authError) {
-        throw new Error("Email ou mot de passe incorrect");
-      }
+      if (authError) throw new Error("Email ou mot de passe incorrect");
 
       const user = authData.user;
 
-      // 2. Fetch user details and role from public.users table (Custom table)
-      // We assume there's a trigger or manual entry syncing auth.users.email to public.users.email
-      // Or we just check based on email for this specific app logic as requested.
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .single();
+      const { data: userData, error: userError } = await withTimeout(
+        supabase.from('users').select('*').eq('email', email).single()
+      );
 
       if (userError || !userData) {
-        // Fallback: If no public profile exists yet, creating a session based on Auth only might be risky if we enforce roles from public table.
-        // For this task, we strictly enforce role check from public.users as requested.
         throw new Error("Compte utilisateur introuvable ou accès non autorisé.");
       }
 
-      // 3. Check Role
       const allowedRoles = ['admin', 'manager'];
       if (!allowedRoles.includes(userData.role?.toLowerCase())) {
-        await supabase.auth.signOut(); // Force sign out
-        throw new Error("Accès refusé : Vous n'avez pas les droits d'administration nécessaires.");
+        await supabase.auth.signOut();
+        throw new Error("Accès refusé : droits insuffisants.");
       }
 
-      // 4. Success
-      // Combine auth session data with public profile data
       const sessionData = {
         id: userData.id,
         email: userData.email,
@@ -60,14 +54,8 @@ const Login = ({ onLoginSuccess }) => {
         role: userData.role,
         auth_id: user.id
       };
-      
+
       onLoginSuccess(sessionData);
-      
-      toast({
-        title: "Connexion réussie",
-        description: `Bienvenue, ${userData.full_name}`,
-        className: "bg-green-50 border-green-200",
-      });
 
     } catch (error) {
       console.error('Login error:', error);

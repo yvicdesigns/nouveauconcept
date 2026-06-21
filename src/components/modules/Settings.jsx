@@ -72,10 +72,18 @@ const Settings = () => {
     maintenanceAlerts: true
   });
 
+  const [realUsers, setRealUsers] = useState([]);
+
   // Fetch company settings on mount
   useEffect(() => {
     fetchCompanySettings();
+    fetchRealUsers();
   }, []);
+
+  const fetchRealUsers = async () => {
+    const { data } = await supabase.from('users').select('id, full_name, email, role').order('full_name');
+    if (data) setRealUsers(data);
+  };
 
   const fetchCompanySettings = async () => {
     setIsLoading(true);
@@ -221,11 +229,6 @@ const Settings = () => {
     { id: 'guide', label: 'Guide d\'utilisation', icon: BookOpen },
   ];
 
-  const users = [
-    { name: 'Jean Admin', role: 'Administrateur', lastLogin: 'À l\'instant', initials: 'JA', color: 'bg-purple-100 text-purple-700' },
-    { name: 'Sophie Commerciale', role: 'Agent', lastLogin: 'Il y a 2h', initials: 'SC', color: 'bg-blue-100 text-blue-700' },
-    { name: 'Marc Garage', role: 'Technicien', lastLogin: 'Hier', initials: 'MG', color: 'bg-gray-100 text-gray-700' },
-  ];
 
   const renderContent = () => {
     switch (activeTab) {
@@ -447,7 +450,16 @@ const Settings = () => {
                   <p className="text-sm text-blue-700 mt-1 leading-relaxed">
                     Les conditions générales de vente (CGV) sont jointes aux contrats générés.
                   </p>
-                  <button className="text-xs font-bold text-blue-700 hover:text-blue-900 underline mt-3 flex items-center gap-1">
+                  <button
+                    onClick={() => {
+                      const a = document.createElement('a');
+                      a.href = '/cgv-modele.pdf';
+                      a.download = 'CGV-NouveauConcept.pdf';
+                      a.click();
+                      toast({ title: "Téléchargement", description: "Le modèle CGV a été téléchargé." });
+                    }}
+                    className="text-xs font-bold text-blue-700 hover:text-blue-900 underline mt-3 flex items-center gap-1"
+                  >
                     <Download className="h-3 w-3" />
                     Télécharger le modèle actuel
                   </button>
@@ -556,7 +568,12 @@ const Settings = () => {
                   <p className="text-sm text-gray-500 mt-0.5">Gérez les accès et les rôles</p>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:text-blue-700 rounded-lg font-medium shadow-sm">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:text-blue-700 rounded-lg font-medium shadow-sm"
+                onClick={() => toast({ title: "Invitation", description: "Rendez-vous dans le module Utilisateurs pour ajouter un compte." })}
+              >
                 <UserPlus className="h-4 w-4 mr-2" />
                 Inviter
               </Button>
@@ -574,38 +591,42 @@ const Settings = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {users.map((user, index) => (
-                      <tr key={index} className="group hover:bg-gray-50/50 transition-colors">
-                        <td className="py-5 pl-2">
-                          <div className="flex items-center gap-4">
-                            <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-600 border border-gray-200 shadow-sm">
-                              {user.initials}
+                    {realUsers.length === 0 ? (
+                      <tr><td colSpan={4} className="py-8 text-center text-sm text-gray-400">Aucun utilisateur trouvé.</td></tr>
+                    ) : realUsers.map((u) => {
+                      const initials = (u.full_name || u.email || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                      const roleLabel = u.role === 'admin' ? 'Administrateur' : u.role === 'manager' ? 'Manager' : u.role || 'Utilisateur';
+                      return (
+                        <tr key={u.id} className="group hover:bg-gray-50/50 transition-colors">
+                          <td className="py-5 pl-2">
+                            <div className="flex items-center gap-4">
+                              <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-600 border border-gray-200 shadow-sm">
+                                {initials}
+                              </div>
+                              <div>
+                                <p className="font-bold text-gray-900">{u.full_name || '—'}</p>
+                                <p className="text-xs text-gray-400">{u.email}</p>
+                              </div>
                             </div>
-                            <span className="font-bold text-gray-900">{user.name}</span>
-                          </div>
-                        </td>
-                        <td className="py-5">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
-                            user.role === 'Administrateur' ? 'bg-purple-100 text-purple-700' :
-                            user.role === 'Agent' ? 'bg-blue-100 text-blue-700' :
-                            'bg-gray-100 text-gray-700'
-                          }`}>
-                            {user.role}
-                          </span>
-                        </td>
-                        <td className="py-5 text-sm text-gray-500 font-medium">
-                          <div className="flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
-                            {user.lastLogin}
-                          </div>
-                        </td>
-                        <td className="py-5 text-right pr-2">
-                          <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="py-5">
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
+                              roleLabel === 'Administrateur' ? 'bg-purple-100 text-purple-700' :
+                              roleLabel === 'Manager' ? 'bg-blue-100 text-blue-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {roleLabel}
+                            </span>
+                          </td>
+                          <td className="py-5 text-sm text-gray-400 font-medium italic">—</td>
+                          <td className="py-5 text-right pr-2">
+                            <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Supprimer (module Utilisateurs)">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -617,7 +638,7 @@ const Settings = () => {
                 <div>
                   <h3 className="text-sm font-bold text-yellow-900">Authentification à deux facteurs (2FA)</h3>
                   <p className="text-sm text-yellow-800 mt-1 leading-relaxed">
-                    Recommandé pour les comptes administrateur. <button className="underline font-bold hover:text-yellow-950 decoration-yellow-700/50 hover:decoration-yellow-950">Activer maintenant.</button>
+                    Recommandé pour les comptes administrateur. <button onClick={() => toast({ title: "2FA", description: "La double authentification sera disponible dans une prochaine mise à jour." })} className="underline font-bold hover:text-yellow-950 decoration-yellow-700/50 hover:decoration-yellow-950">Activer maintenant.</button>
                   </p>
                 </div>
               </div>

@@ -35,170 +35,262 @@ const PARTS = [
   { id: 'wheel_rr',     label: 'Roue AR D' },
 ];
 
-/*
-  Géométrie du schéma (viewBox="0 0 280 510") :
-
-  Corps central : x=72–208 (w=136)
-  Pare-chocs    : x=90–190 (w=100, arrondis)
-  Portes        : x=50–74 (G) et x=206–230 (D)
-  Roues         : cx=42/238, cy=132/390
-
-  Zones empilées (y) :
-    bumper_front : 24 → 58   (path courbe)
-    hood         : 58 → 154  (h=96)
-    windshield   : 154 → 200 (h=46)
-    — cabin + doors : 200 → 320 (h=120) —
-      door_fl  : x=50–74,  y=200–265
-      cabin    : x=74–206, y=200–320
-      door_fr  : x=206–230, y=200–265
-      door_rl  : x=50–74,  y=265–320
-      door_rr  : x=206–230, y=265–320
-    rear_window  : 320 → 366 (h=46)
-    trunk        : 366 → 462 (h=96)
-    bumper_rear  : 462 → 488 (path courbe)
-*/
-
 const DOT_POS = {
-  bumper_front: { x: 140, y: 40  },
-  hood:         { x: 140, y: 106 },
-  windshield:   { x: 140, y: 177 },
-  door_fl:      { x: 62,  y: 232 },
-  cabin:        { x: 140, y: 260 },
-  door_fr:      { x: 218, y: 232 },
-  door_rl:      { x: 62,  y: 292 },
-  door_rr:      { x: 218, y: 292 },
-  rear_window:  { x: 140, y: 343 },
-  trunk:        { x: 140, y: 414 },
-  bumper_rear:  { x: 140, y: 476 },
-  wheel_fl:     { x: 42,  y: 132 },
-  wheel_fr:     { x: 238, y: 132 },
-  wheel_rl:     { x: 42,  y: 390 },
-  wheel_rr:     { x: 238, y: 390 },
+  bumper_front: { x: 140, y: 38  },
+  hood:         { x: 140, y: 90  },
+  windshield:   { x: 140, y: 148 },
+  door_fl:      { x: 68,  y: 205 },
+  cabin:        { x: 140, y: 232 },
+  door_fr:      { x: 212, y: 205 },
+  door_rl:      { x: 68,  y: 282 },
+  door_rr:      { x: 212, y: 282 },
+  rear_window:  { x: 140, y: 345 },
+  trunk:        { x: 140, y: 405 },
+  bumper_rear:  { x: 140, y: 446 },
+  wheel_fl:     { x: 36,  y: 158 },
+  wheel_fr:     { x: 244, y: 158 },
+  wheel_rl:     { x: 36,  y: 330 },
+  wheel_rr:     { x: 244, y: 330 },
 };
 
-// ─── Diagramme 2D SVG (vue de dessus) ────────────────────────────────────────
+// ─── Diagramme 2D SVG — vue de dessus réaliste ───────────────────────────────
 const CarDiagram2D = ({ selectedPart, hoveredPart, onSelect, onHover, issuePartIds }) => {
-  const fill = id =>
-    selectedPart === id     ? '#fbbf24'
-    : hoveredPart === id    ? '#93c5fd'
-    : issuePartIds.includes(id) ? '#fca5a5'
-    : '#dde1e9';
+  const isGlass   = id => id === 'windshield' || id === 'rear_window';
 
-  const stroke = id =>
-    selectedPart === id     ? '#d97706'
-    : hoveredPart === id    ? '#2563eb'
-    : issuePartIds.includes(id) ? '#dc2626'
-    : '#9ca3af';
+  const zoneFill = id => {
+    if (selectedPart === id) return '#fbbf24';
+    if (hoveredPart  === id) return '#93c5fd';
+    if (issuePartIds.includes(id)) return '#fca5a5';
+    // Default appearance by type
+    if (isGlass(id))             return '#242e42';  // dark glass
+    if (id.startsWith('wheel'))  return '#3a3a3a';  // dark tires
+    if (id === 'cabin')          return '#d8dde6';  // roof (slightly darker than body)
+    return '#efefef';  // body parts (white-ish)
+  };
+
+  const zoneStroke = id => {
+    if (selectedPart === id) return '#d97706';
+    if (hoveredPart  === id) return '#2563eb';
+    if (issuePartIds.includes(id)) return '#dc2626';
+    if (isGlass(id))    return '#1a2233';
+    if (id === 'cabin') return '#b0b8c8';
+    return '#c0c0c0';
+  };
 
   const z = id => ({
-    fill:         fill(id),
-    stroke:       stroke(id),
+    fill:         zoneFill(id),
+    stroke:       zoneStroke(id),
     strokeWidth:  selectedPart === id || hoveredPart === id ? 2.5 : 1,
-    style:        { cursor: 'pointer', transition: 'fill 0.1s, stroke 0.1s' },
+    style:        { cursor: 'pointer', transition: 'fill 0.12s, stroke 0.12s' },
     onClick:      () => onSelect(selectedPart === id ? null : id),
     onMouseEnter: () => onHover(id),
     onMouseLeave: () => onHover(null),
   });
 
+  // Silhouette de la voiture — contour réaliste (vue de dessus berline)
+  // Avant en haut, arrière en bas
+  const bodyPath =
+    'M140,28 ' +
+    'C162,28 185,40 200,60 C214,78 220,100 222,122 ' +
+    'L246,136 L222,150 ' +                                // rétroviseur droit
+    'C226,168 228,192 228,232 C228,280 224,315 218,348 ' +
+    'C210,390 196,422 140,448 ' +                         // arrière droit → centre
+    'C84,422 70,390 62,348 ' +                            // arrière gauche
+    'C56,315 52,280 52,232 C52,192 54,168 58,150 ' +
+    'L34,136 L58,122 ' +                                  // rétroviseur gauche
+    'C60,100 66,78 80,60 C95,40 118,28 140,28 Z';
+
   return (
     <svg
-      viewBox="0 0 280 510"
+      viewBox="0 0 280 490"
       width="100%"
-      style={{ maxHeight: 300, display: 'block', userSelect: 'none' }}
-      xmlns="http://www.w3.org/2000/svg"
+      style={{ maxHeight: 320, display: 'block', userSelect: 'none' }}
     >
-      {/* ── Fond silhouette ── */}
-      <rect x="45" y="22" width="190" height="466" rx="32" fill="#f1f5f9" stroke="#e2e8f0" strokeWidth="1" />
+      <defs>
+        {/* Clip = contour exact de la carrosserie */}
+        <clipPath id="carClip">
+          <path d={bodyPath} />
+        </clipPath>
 
-      {/* ── Roues ── */}
-      <ellipse {...z('wheel_fl')} cx="42"  cy="132" rx="17" ry="36"><title>Roue AV G</title></ellipse>
-      <ellipse {...z('wheel_fr')} cx="238" cy="132" rx="17" ry="36"><title>Roue AV D</title></ellipse>
-      <ellipse {...z('wheel_rl')} cx="42"  cy="390" rx="17" ry="36"><title>Roue AR G</title></ellipse>
-      <ellipse {...z('wheel_rr')} cx="238" cy="390" rx="17" ry="36"><title>Roue AR D</title></ellipse>
+        {/* Gradient latéral : ombres sur les côtés, blanc au centre */}
+        <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stopColor="#b8b8b8" />
+          <stop offset="18%"  stopColor="#e0e0e0" />
+          <stop offset="50%"  stopColor="#f5f5f5" />
+          <stop offset="82%"  stopColor="#e0e0e0" />
+          <stop offset="100%" stopColor="#b8b8b8" />
+        </linearGradient>
 
-      {/* ── Pare-chocs avant (arrondi au sommet) ── */}
-      <path {...z('bumper_front')} d="M90,24 Q140,14 190,24 L190,58 L90,58 Z">
-        <title>Pare-chocs AV</title>
+        {/* Reflet vitre avant */}
+        <linearGradient id="glare" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stopColor="white" stopOpacity="0.22" />
+          <stop offset="60%"  stopColor="white" stopOpacity="0.04" />
+          <stop offset="100%" stopColor="white" stopOpacity="0"    />
+        </linearGradient>
+
+        {/* Ombre portée sous le contour */}
+        <filter id="shadow">
+          <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#000" floodOpacity="0.18" />
+        </filter>
+      </defs>
+
+      {/* ── Ombre de la carrosserie ── */}
+      <path d={bodyPath} fill="#00000018" transform="translate(2,4)" />
+
+      {/* ── Base carrosserie (blanc/gris gradient) ── */}
+      <path d={bodyPath} fill="url(#bodyGrad)" stroke="#a0a0a0" strokeWidth="1.5" />
+
+      {/* ── Zones cliquables (clippées au contour) ── */}
+      <g clipPath="url(#carClip)">
+
+        {/* Pare-chocs avant */}
+        <rect {...z('bumper_front')} x="40" y="22" width="200" height="32" />
+
+        {/* Capot */}
+        <rect {...z('hood')} x="40" y="54" width="200" height="68" />
+
+        {/* Pare-brise avant (zone cliquable dark) */}
+        <path {...z('windshield')}
+          d="M 68,122 C 82,116 118,112 140,112 C 162,112 198,116 212,122
+             L 214,162 C 200,168 174,172 140,172 C 106,172 80,168 66,162 Z">
+          <title>Pare-brise</title>
+        </path>
+
+        {/* Portières avant gauche */}
+        <rect {...z('door_fl')} x="40" y="172" width="68" height="84" />
+
+        {/* Toit / habitacle (centre) */}
+        <rect {...z('cabin')} x="108" y="172" width="64" height="148" />
+
+        {/* Portières avant droite */}
+        <rect {...z('door_fr')} x="172" y="172" width="68" height="84" />
+
+        {/* Portières arrière gauche */}
+        <rect {...z('door_rl')} x="40" y="256" width="68" height="90" />
+
+        {/* Portières arrière droite */}
+        <rect {...z('door_rr')} x="172" y="256" width="68" height="90" />
+
+        {/* Lunette arrière (zone cliquable dark) */}
+        <path {...z('rear_window')}
+          d="M 68,346 C 80,340 114,336 140,336 C 166,336 200,340 212,346
+             L 212,384 C 200,390 170,394 140,394 C 110,394 80,390 68,384 Z">
+          <title>Lunette AR</title>
+        </path>
+
+        {/* Coffre */}
+        <rect {...z('trunk')} x="40" y="384" width="200" height="56" />
+
+        {/* Pare-chocs arrière */}
+        <rect {...z('bumper_rear')} x="40" y="440" width="200" height="20" />
+
+      </g>
+
+      {/* ── Décorations non-interactives (par-dessus les zones) ── */}
+
+      {/* Ligne de séparation portière AV / AR (gauche) */}
+      <line x1="52" y1="256" x2="108" y2="256"
+        stroke="#888" strokeWidth="1.5" strokeDasharray="2,1" pointerEvents="none" clipPath="url(#carClip)" />
+      {/* Ligne de séparation portière AV / AR (droite) */}
+      <line x1="172" y1="256" x2="228" y2="256"
+        stroke="#888" strokeWidth="1.5" strokeDasharray="2,1" pointerEvents="none" clipPath="url(#carClip)" />
+
+      {/* Montants B (entre habitacle et portes) */}
+      <line x1="108" y1="172" x2="108" y2="320"
+        stroke="#909090" strokeWidth="2" pointerEvents="none" />
+      <line x1="172" y1="172" x2="172" y2="320"
+        stroke="#909090" strokeWidth="2" pointerEvents="none" />
+
+      {/* Reflet vitre avant */}
+      <path clipPath="url(#carClip)" pointerEvents="none"
+        d="M 76,122 C 90,116 120,113 148,113 L 150,155 C 118,155 88,158 76,163 Z"
+        fill="url(#glare)" />
+
+      {/* Reflet vitre arrière (inversé) */}
+      <path clipPath="url(#carClip)" pointerEvents="none"
+        d="M 130,337 C 142,336 170,338 204,344 L 202,385 C 170,390 142,390 130,386 Z"
+        fill="url(#glare)" />
+
+      {/* Contour du toit (zone cabin) */}
+      <rect x="108" y="172" width="64" height="148"
+        fill="none" stroke="#9aa0ae" strokeWidth="1" pointerEvents="none" />
+
+      {/* Contour extérieur final (par-dessus tout pour l'épaisseur) */}
+      <path d={bodyPath} fill="none" stroke="#909090" strokeWidth="1.5" pointerEvents="none" />
+
+      {/* ── Rétroviseurs (visuels, aussi cliquables → dans door_fl/fr) ── */}
+      {/* Rétro gauche */}
+      <path
+        fill={selectedPart === 'door_fl' ? '#fbbf24' : hoveredPart === 'door_fl' ? '#93c5fd' : '#c8c8c8'}
+        stroke="#909090" strokeWidth="1"
+        d="M 58,122 L 34,136 L 36,146 L 58,150 Z"
+        style={{ cursor: 'pointer', transition: 'fill 0.12s' }}
+        onClick={() => onSelect(selectedPart === 'door_fl' ? null : 'door_fl')}
+        onMouseEnter={() => onHover('door_fl')}
+        onMouseLeave={() => onHover(null)}
+      >
+        <title>Rétroviseur / Portière AV G</title>
+      </path>
+      {/* Rétro droit */}
+      <path
+        fill={selectedPart === 'door_fr' ? '#fbbf24' : hoveredPart === 'door_fr' ? '#93c5fd' : '#c8c8c8'}
+        stroke="#909090" strokeWidth="1"
+        d="M 222,122 L 246,136 L 244,146 L 222,150 Z"
+        style={{ cursor: 'pointer', transition: 'fill 0.12s' }}
+        onClick={() => onSelect(selectedPart === 'door_fr' ? null : 'door_fr')}
+        onMouseEnter={() => onHover('door_fr')}
+        onMouseLeave={() => onHover(null)}
+      >
+        <title>Rétroviseur / Portière AV D</title>
       </path>
 
-      {/* ── Capot ── */}
-      <rect {...z('hood')} x="72" y="58" width="136" height="96" rx="0">
-        <title>Capot</title>
-      </rect>
+      {/* ── Roues (hors carrosserie, cliquables) ── */}
+      {/* AV G */}
+      <ellipse {...z('wheel_fl')} cx="38" cy="160" rx="14" ry="28"><title>Roue AV G</title></ellipse>
+      {/* AV D */}
+      <ellipse {...z('wheel_fr')} cx="242" cy="160" rx="14" ry="28"><title>Roue AV D</title></ellipse>
+      {/* AR G */}
+      <ellipse {...z('wheel_rl')} cx="38" cy="330" rx="14" ry="28"><title>Roue AR G</title></ellipse>
+      {/* AR D */}
+      <ellipse {...z('wheel_rr')} cx="242" cy="330" rx="14" ry="28"><title>Roue AR D</title></ellipse>
 
-      {/* ── Pare-brise ── */}
-      <rect {...z('windshield')} x="72" y="154" width="136" height="46" rx="0">
-        <title>Pare-brise</title>
-      </rect>
+      {/* Jantes (cercles blancs au centre des roues) */}
+      {[
+        { cx:38,  cy:160 }, { cx:242, cy:160 },
+        { cx:38,  cy:330 }, { cx:242, cy:330 },
+      ].map((p, i) => (
+        <ellipse key={i} cx={p.cx} cy={p.cy} rx={7} ry={14}
+          fill="#d0d0d0" stroke="#a0a0a0" strokeWidth="1" pointerEvents="none" />
+      ))}
 
-      {/* ── Portières avant (gauche + droite) ── */}
-      <rect {...z('door_fl')} x="50" y="200" width="24" height="65" rx="0">
-        <title>Portière AV G</title>
-      </rect>
-      <rect {...z('door_fr')} x="206" y="200" width="24" height="65" rx="0">
-        <title>Portière AV D</title>
-      </rect>
-
-      {/* ── Habitacle (centre, toute hauteur du bloc cabin) ── */}
-      <rect {...z('cabin')} x="74" y="200" width="132" height="120" rx="0">
-        <title>Habitacle / Toit</title>
-      </rect>
-
-      {/* ── Portières arrière (gauche + droite) ── */}
-      <rect {...z('door_rl')} x="50" y="265" width="24" height="55" rx="0">
-        <title>Portière AR G</title>
-      </rect>
-      <rect {...z('door_rr')} x="206" y="265" width="24" height="55" rx="0">
-        <title>Portière AR D</title>
-      </rect>
-
-      {/* ── Lunette arrière ── */}
-      <rect {...z('rear_window')} x="72" y="320" width="136" height="46" rx="0">
-        <title>Lunette AR</title>
-      </rect>
-
-      {/* ── Coffre ── */}
-      <rect {...z('trunk')} x="72" y="366" width="136" height="96" rx="0">
-        <title>Coffre</title>
-      </rect>
-
-      {/* ── Pare-chocs arrière (arrondi au bas) ── */}
-      <path {...z('bumper_rear')} d="M90,462 L190,462 L190,488 Q140,498 90,488 Z">
-        <title>Pare-chocs AR</title>
-      </path>
-
-      {/* ── Séparateurs visuels (non-interactifs) ── */}
-      <line x1="72" y1="154" x2="208" y2="154" stroke="#64748b" strokeWidth="0.5" pointerEvents="none" opacity="0.4" />
-      <line x1="72" y1="320" x2="208" y2="320" stroke="#64748b" strokeWidth="0.5" pointerEvents="none" opacity="0.4" />
-      <line x1="50" y1="265" x2="74" y2="265" stroke="#64748b" strokeWidth="0.5" pointerEvents="none" opacity="0.4" />
-      <line x1="206" y1="265" x2="230" y2="265" stroke="#64748b" strokeWidth="0.5" pointerEvents="none" opacity="0.4" />
-
-      {/* ── Labels texte ── */}
-      <text x="140" y="110" textAnchor="middle" fontSize="10" fill="#475569" pointerEvents="none" fontWeight="500">Capot</text>
-      <text x="140" y="180" textAnchor="middle" fontSize="9"  fill="#475569" pointerEvents="none">Pare-brise</text>
-      <text x="140" y="263" textAnchor="middle" fontSize="10" fill="#475569" pointerEvents="none" fontWeight="500">Habitacle</text>
-      <text x="140" y="346" textAnchor="middle" fontSize="9"  fill="#475569" pointerEvents="none">Lunette AR</text>
-      <text x="140" y="417" textAnchor="middle" fontSize="10" fill="#475569" pointerEvents="none" fontWeight="500">Coffre</text>
-
-      {/* ── Points rouges = zones avec intervention ── */}
+      {/* ── Points d'alerte (zones avec interventions) ── */}
       {issuePartIds.map(id => {
         const p = DOT_POS[id];
         return p ? (
-          <circle key={id} cx={p.x} cy={p.y} r={5}
-            fill="#ef4444" stroke="white" strokeWidth={1.5} pointerEvents="none" />
+          <g key={id} pointerEvents="none">
+            <circle cx={p.x} cy={p.y} r={7} fill="#ef4444" opacity="0.25" />
+            <circle cx={p.x} cy={p.y} r={5} fill="#ef4444" stroke="white" strokeWidth={1.5} />
+          </g>
         ) : null;
       })}
 
+      {/* ── Feux avant (petites pastilles rouges/oranges) ── */}
+      <ellipse cx="92"  cy="28" rx="10" ry="5" fill="#ff6030" opacity="0.85" pointerEvents="none" />
+      <ellipse cx="188" cy="28" rx="10" ry="5" fill="#ff6030" opacity="0.85" pointerEvents="none" />
+      {/* Feux arrière */}
+      <ellipse cx="94"  cy="448" rx="12" ry="5" fill="#e02020" opacity="0.9" pointerEvents="none" />
+      <ellipse cx="186" cy="448" rx="12" ry="5" fill="#e02020" opacity="0.9" pointerEvents="none" />
+
       {/* ── Orientations ── */}
-      <text x="140" y="10"  textAnchor="middle" fontSize="9" fill="#94a3b8" fontWeight="700" pointerEvents="none">▲ AVANT</text>
-      <text x="140" y="508" textAnchor="middle" fontSize="9" fill="#94a3b8" fontWeight="700" pointerEvents="none">▼ ARRIÈRE</text>
-      <text x="7"   y="260" textAnchor="middle" fontSize="7" fill="#94a3b8" transform="rotate(-90,7,260)"   pointerEvents="none">GAUCHE</text>
-      <text x="273" y="260" textAnchor="middle" fontSize="7" fill="#94a3b8" transform="rotate(90,273,260)" pointerEvents="none">DROITE</text>
+      <text x="140" y="10"  textAnchor="middle" fontSize="8" fill="#94a3b8" fontWeight="700" pointerEvents="none">▲ AVANT</text>
+      <text x="140" y="487" textAnchor="middle" fontSize="8" fill="#94a3b8" fontWeight="700" pointerEvents="none">▼ ARRIÈRE</text>
+      <text x="6"   y="250" textAnchor="middle" fontSize="7" fill="#94a3b8" transform="rotate(-90,6,250)"   pointerEvents="none">GAUCHE</text>
+      <text x="274" y="250" textAnchor="middle" fontSize="7" fill="#94a3b8" transform="rotate(90,274,250)" pointerEvents="none">DROITE</text>
     </svg>
   );
 };
 
-// ─── Modèle 3D (visualisation uniquement — le clic est sur le SVG) ────────────
+// ─── Modèle 3D (visualisation uniquement) ────────────────────────────────────
 const CarModel = ({ modelPath, issuePartIds }) => {
   const { scene } = useGLTF(modelPath);
 
@@ -289,7 +381,7 @@ const CarViewer3D = ({ vehicleId = null }) => {
 
       <div className="flex flex-col lg:flex-row gap-4">
 
-        {/* ── Vue 3D (rotation/zoom libres, pas de clic zone) ── */}
+        {/* ── Vue 3D ── */}
         <div
           className="relative flex-1 bg-gradient-to-b from-slate-100 to-slate-200 rounded-2xl overflow-hidden shadow-inner"
           style={{ height: 440 }}
@@ -306,25 +398,15 @@ const CarViewer3D = ({ vehicleId = null }) => {
             <Suspense fallback={null}>
               <CarModel modelPath={modelPath} issuePartIds={issuePartIds} />
             </Suspense>
-            <OrbitControls
-              ref={controlsRef}
-              enablePan={false}
-              minDistance={2}
-              maxDistance={14}
-              maxPolarAngle={Math.PI / 2.1}
-            />
+            <OrbitControls ref={controlsRef} enablePan={false} minDistance={2} maxDistance={14} maxPolarAngle={Math.PI / 2.1} />
           </Canvas>
 
-          {/* Reset caméra */}
-          <button
-            onClick={() => controlsRef.current?.reset()}
+          <button onClick={() => controlsRef.current?.reset()}
             className="absolute top-3 right-3 bg-white/80 hover:bg-white backdrop-blur-sm p-2 rounded-lg shadow text-slate-600 transition-colors"
-            title="Réinitialiser la vue"
-          >
+            title="Réinitialiser la vue">
             <RotateCcw className="h-4 w-4" />
           </button>
 
-          {/* Badge interventions actives */}
           {issuePartIds.length > 0 && (
             <div className="absolute bottom-3 right-3 flex items-center gap-2 bg-white/85 backdrop-blur-sm px-2.5 py-1.5 rounded-lg text-xs font-semibold text-red-700">
               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
@@ -340,17 +422,14 @@ const CarViewer3D = ({ vehicleId = null }) => {
         {/* ── Colonne droite ── */}
         <div className="w-full lg:w-72 flex flex-col gap-3">
 
-          {/* Diagramme 2D */}
+          {/* Schéma 2D */}
           <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
                 Schéma — cliquez une zone
               </p>
               {selectedPart && (
-                <button
-                  onClick={() => setSelectedPart(null)}
-                  className="text-slate-400 hover:text-slate-700 transition-colors"
-                >
+                <button onClick={() => setSelectedPart(null)} className="text-slate-400 hover:text-slate-700">
                   <X className="h-3.5 w-3.5" />
                 </button>
               )}
@@ -364,22 +443,20 @@ const CarViewer3D = ({ vehicleId = null }) => {
               issuePartIds={issuePartIds}
             />
 
-            {/* Légende */}
             <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2.5 pt-2 border-t border-slate-100">
               {[
-                { cls: 'bg-red-300',    label: 'Intervention' },
+                { cls: 'bg-red-400',    label: 'Intervention' },
                 { cls: 'bg-amber-400',  label: 'Sélectionné' },
                 { cls: 'bg-blue-300',   label: 'Survolé' },
               ].map(l => (
                 <span key={l.label} className="flex items-center gap-1 text-xs text-slate-500">
-                  <span className={`w-2 h-2 rounded-sm ${l.cls}`} />
-                  {l.label}
+                  <span className={`w-2 h-2 rounded-sm ${l.cls}`} />{l.label}
                 </span>
               ))}
             </div>
           </div>
 
-          {/* Panel interventions de la zone sélectionnée */}
+          {/* Panel interventions */}
           <div className="flex-1 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
             {!selectedPart ? (
               <div className="flex flex-col items-center justify-center h-32 text-center px-5">
@@ -395,21 +472,16 @@ const CarViewer3D = ({ vehicleId = null }) => {
               </div>
             ) : (
               <>
-                {/* Header zone */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 text-white flex items-center justify-between">
                   <div>
                     <p className="text-xs text-blue-200 uppercase tracking-widest mb-0.5">Zone sélectionnée</p>
                     <p className="font-bold text-base leading-tight">{selectedLabel}</p>
                   </div>
-                  <button
-                    onClick={() => setSelectedPart(null)}
-                    className="text-blue-200 hover:text-white transition-colors"
-                  >
+                  <button onClick={() => setSelectedPart(null)} className="text-blue-200 hover:text-white">
                     <X className="h-4 w-4" />
                   </button>
                 </div>
 
-                {/* Liste des interventions */}
                 <div className="p-3 max-h-52 overflow-y-auto">
                   {isLoading ? (
                     <div className="flex justify-center py-6">
@@ -432,7 +504,7 @@ const CarViewer3D = ({ vehicleId = null }) => {
                             ? 'bg-red-50 border-red-200'
                             : 'bg-amber-50 border-amber-200'
                         }`}>
-                          <div className="flex items-start gap-1.5 mb-1.5">
+                          <div className="flex items-start gap-1.5 mb-1">
                             <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
                             <span className="font-semibold text-slate-800 leading-snug">{r.description}</span>
                           </div>
@@ -446,9 +518,7 @@ const CarViewer3D = ({ vehicleId = null }) => {
                               </span>
                             )}
                           </div>
-                          {r.mechanic && (
-                            <p className="text-slate-400 mt-1">👷 {r.mechanic}</p>
-                          )}
+                          {r.mechanic && <p className="text-slate-400 mt-1">👷 {r.mechanic}</p>}
                         </div>
                       ))}
                     </div>

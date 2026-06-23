@@ -8,7 +8,35 @@ import VehicleDetailSheet from '@/components/modals/VehicleDetailSheet';
 import AddVehicleModal from '@/components/modals/AddVehicleModal';
 import AddLoanModal from '@/components/modals/AddLoanModal';
 import HistoryTab from '@/components/history/HistoryTab';
-const CarViewer3D = React.lazy(() => import('@/components/vehicles/CarViewer3D'));
+const CarViewer3D = React.lazy(() =>
+  import('@/components/vehicles/CarViewer3D').catch(() =>
+    new Promise(r => setTimeout(r, 800))
+      .then(() => import('@/components/vehicles/CarViewer3D'))
+  )
+);
+
+class CarViewerErrorBoundary extends React.Component {
+  state = { error: false };
+  static getDerivedStateFromError() { return { error: true }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="flex flex-col items-center justify-center h-64 gap-4 text-center px-6">
+          <p className="text-slate-600 font-medium text-sm">
+            Le visualiseur n'a pas pu se charger (mise à jour du cache).
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+          >
+            Rafraîchir la page
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import { historyService } from '@/lib/historyService';
 import { supabase } from '@/lib/customSupabaseClient';
 import usePagination from '@/hooks/usePagination';
@@ -54,14 +82,16 @@ const VehicleDetailTabs = ({ vehicle }) => {
         ))}
       </div>
       {tab === 'diagram' && (
-        <React.Suspense fallback={
-          <div className="flex items-center justify-center h-64 text-slate-400 gap-3">
-            <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-            <span className="text-sm font-medium text-slate-500">Chargement de la vue 3D…</span>
-          </div>
-        }>
-          <CarViewer3D vehicleId={vehicle.id} />
-        </React.Suspense>
+        <CarViewerErrorBoundary>
+          <React.Suspense fallback={
+            <div className="flex items-center justify-center h-64 text-slate-400 gap-3">
+              <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+              <span className="text-sm font-medium text-slate-500">Chargement de la vue 3D…</span>
+            </div>
+          }>
+            <CarViewer3D vehicleId={vehicle.id} />
+          </React.Suspense>
+        </CarViewerErrorBoundary>
       )}
       {tab === 'history' && (
         <div className="max-h-[70vh] overflow-y-auto">

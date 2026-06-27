@@ -97,7 +97,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
       const [{ data: clientsData }, { data: vehiclesData }, { data: driversData }] = await Promise.all([
         supabase.from('contacts').select('id, name').order('name'),
         supabase.from('vehicles').select('id, name, brand, model, license_plate, daily_rate, status').order('name'),
-        supabase.from('drivers').select('id, name, status').eq('status', 'active').order('name'),
+        supabase.from('drivers').select('id, name, status').order('name'),
       ]);
       setClients(clientsData || []);
       setVehicles(vehiclesData || []);
@@ -398,7 +398,9 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
               >
                 <option value="">— Aucun chauffeur —</option>
                 {drivers.map(d => (
-                  <option key={d.id} value={d.name}>{d.name}</option>
+                  <option key={d.id} value={d.name} disabled={d.status === 'inactive'}>
+                    {d.name}{d.status === 'inactive' ? ' (inactif)' : d.status === 'on_leave' ? ' (congé)' : ''}
+                  </option>
                 ))}
                 <option value="__custom__">✏ Saisie libre…</option>
               </select>

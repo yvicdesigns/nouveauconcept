@@ -97,11 +97,12 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
           start_date,
           end_date,
           total_price,
-          contacts (name),
+          driver_name,
+          contacts (id, name, phone),
           vehicles (name, brand, model, license_plate, daily_rate)
         `)
         .order('created_at', { ascending: false })
-        .limit(50); // Limit to recent 50 for performance
+        .limit(50);
 
       if (error) throw error;
       setReservations(data || []);
@@ -148,16 +149,18 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
       return {
         ...prev,
         reservation_id: resId,
-        client_name: reservation.contacts?.name || 'Client inconnu',
+        client_name:  reservation.contacts?.name  || 'Client inconnu',
+        client_phone: reservation.contacts?.phone || prev.client_phone || '',
         vehicle_details: `${reservation.vehicles?.brand} ${reservation.vehicles?.model} (${reservation.vehicles?.license_plate})`,
         start_date: format(startDate, 'yyyy-MM-dd'),
-        end_date: format(endDate, 'yyyy-MM-dd'),
+        end_date:   format(endDate,   'yyyy-MM-dd'),
         daily_rate: dailyRate,
         days_count: days,
         subtotal,
         tax_amount: 0,
         commission_amount: commAmt,
         total_amount: subtotal + commAmt,
+        ...(reservation.driver_name ? { notes: prev.notes || `Chauffeur : ${reservation.driver_name}` } : {}),
       };
     });
   };
@@ -189,16 +192,18 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
         return {
           ...prev,
           reservation_id: resId,
-          client_name: reservation.contacts?.name || 'Client inconnu',
+          client_name:  reservation.contacts?.name  || 'Client inconnu',
+          client_phone: reservation.contacts?.phone || prev.client_phone || '',
           vehicle_details: `${reservation.vehicles?.brand} ${reservation.vehicles?.model} (${reservation.vehicles?.license_plate})`,
           start_date: format(startDate, 'yyyy-MM-dd'),
-          end_date: format(endDate, 'yyyy-MM-dd'),
+          end_date:   format(endDate,   'yyyy-MM-dd'),
           daily_rate: dailyRate,
           days_count: days,
           subtotal,
           tax_amount: 0,
           commission_amount: commAmt,
           total_amount: subtotal + commAmt,
+          ...(reservation.driver_name ? { notes: prev.notes || `Chauffeur : ${reservation.driver_name}` } : {}),
         };
       });
     }

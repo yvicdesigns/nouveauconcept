@@ -19,6 +19,8 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
   const showError = (title, message) => setErrorDialog({ open: true, title, message });
   const [clients, setClients] = useState([]);
   const [vehicles, setVehicles] = useState([]);
+  const [drivers, setDrivers] = useState([]);
+  const [driverMode, setDriverMode] = useState('list'); // 'list' | 'custom'
   const [vehicleReservations, setVehicleReservations] = useState([]);
   const [calendarVehicleId, setCalendarVehicleId] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -43,30 +45,35 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
 
   useEffect(() => {
     if (open) {
-      fetchDependencies();
-      if (reservationToEdit) {
-        setFormData({
-          client_id: reservationToEdit.client_id,
-          vehicleRows: [{ key: 0, vehicle_id: reservationToEdit.vehicle_id, price: reservationToEdit.total_price || 0 }],
-          start_date: reservationToEdit.start_date ? format(new Date(reservationToEdit.start_date), 'yyyy-MM-dd') : '',
-          start_time: reservationToEdit.start_date ? format(new Date(reservationToEdit.start_date), 'HH:mm') : '09:00',
-          end_date: reservationToEdit.end_date ? format(new Date(reservationToEdit.end_date), 'yyyy-MM-dd') : '',
-          end_time: reservationToEdit.end_date ? format(new Date(reservationToEdit.end_date), 'HH:mm') : '18:00',
-          status: reservationToEdit.status,
-          payment_mode: reservationToEdit.payment_mode || 'immediate',
-          driver_name: reservationToEdit.driver_name || '',
-          departure_location: reservationToEdit.departure_location || '',
-          return_location: reservationToEdit.return_location || '',
-          notes: reservationToEdit.notes || '',
-          cancellation_penalty: reservationToEdit.cancellation_penalty || 0,
-        });
-        setCalendarVehicleId(reservationToEdit.vehicle_id);
-        fetchVehicleReservations(reservationToEdit.vehicle_id);
-      } else {
-        setFormData(initialFormState);
-        setVehicleReservations([]);
-        setCalendarVehicleId('');
-      }
+      fetchDependencies().then(loadedDrivers => {
+        if (reservationToEdit) {
+          const existingName = reservationToEdit.driver_name || '';
+          const inList = loadedDrivers.some(d => d.name === existingName);
+          setDriverMode(existingName && !inList ? 'custom' : 'list');
+          setFormData({
+            client_id: reservationToEdit.client_id,
+            vehicleRows: [{ key: 0, vehicle_id: reservationToEdit.vehicle_id, price: reservationToEdit.total_price || 0 }],
+            start_date: reservationToEdit.start_date ? format(new Date(reservationToEdit.start_date), 'yyyy-MM-dd') : '',
+            start_time: reservationToEdit.start_date ? format(new Date(reservationToEdit.start_date), 'HH:mm') : '09:00',
+            end_date: reservationToEdit.end_date ? format(new Date(reservationToEdit.end_date), 'yyyy-MM-dd') : '',
+            end_time: reservationToEdit.end_date ? format(new Date(reservationToEdit.end_date), 'HH:mm') : '18:00',
+            status: reservationToEdit.status,
+            payment_mode: reservationToEdit.payment_mode || 'immediate',
+            driver_name: existingName,
+            departure_location: reservationToEdit.departure_location || '',
+            return_location: reservationToEdit.return_location || '',
+            notes: reservationToEdit.notes || '',
+            cancellation_penalty: reservationToEdit.cancellation_penalty || 0,
+          });
+          setCalendarVehicleId(reservationToEdit.vehicle_id);
+          fetchVehicleReservations(reservationToEdit.vehicle_id);
+        } else {
+          setDriverMode('list');
+          setFormData(initialFormState);
+          setVehicleReservations([]);
+          setCalendarVehicleId('');
+        }
+      });
     }
   }, [open, reservationToEdit]);
 
@@ -87,12 +94,18 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
 
   const fetchDependencies = async () => {
     try {
-      const { data: clientsData } = await supabase.from('contacts').select('id, name').order('name');
-      const { data: vehiclesData } = await supabase.from('vehicles').select('id, name, brand, model, license_plate, daily_rate, status').order('name');
+      const [{ data: clientsData }, { data: vehiclesData }, { data: driversData }] = await Promise.all([
+        supabase.from('contacts').select('id, name').order('name'),
+        supabase.from('vehicles').select('id, name, brand, model, license_plate, daily_rate, status').order('name'),
+        supabase.from('drivers').select('id, name, status').eq('status', 'active').order('name'),
+      ]);
       setClients(clientsData || []);
       setVehicles(vehiclesData || []);
+      setDrivers(driversData || []);
+      return driversData || [];
     } catch (error) {
       console.error('Error fetching dependencies:', error);
+      return [];
     }
   };
 
@@ -370,14 +383,36 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
               <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                 <User className="h-4 w-4" /> Chauffeur
               </label>
-              <input
-                type="text"
-                name="driver_name"
-                value={formData.driver_name}
-                onChange={handleChange}
-                placeholder="Nom du chauffeur (si différent du client)"
+              <select
+                value={driverMode === 'custom' ? '__custom__' : (formData.driver_name || '')}
+                onChange={e => {
+                  if (e.target.value === '__custom__') {
+                    setDriverMode('custom');
+                    setFormData(prev => ({ ...prev, driver_name: '' }));
+                  } else {
+                    setDriverMode('list');
+                    setFormData(prev => ({ ...prev, driver_name: e.target.value }));
+                  }
+                }}
                 className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
-              />
+              >
+                <option value="">— Aucun chauffeur —</option>
+                {drivers.map(d => (
+                  <option key={d.id} value={d.name}>{d.name}</option>
+                ))}
+                <option value="__custom__">✏ Saisie libre…</option>
+              </select>
+              {driverMode === 'custom' && (
+                <input
+                  type="text"
+                  name="driver_name"
+                  value={formData.driver_name}
+                  onChange={handleChange}
+                  placeholder="Nom du chauffeur"
+                  autoFocus
+                  className="w-full p-2.5 border border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
+                />
+              )}
             </div>
 
             {/* Vehicles — multi-row */}

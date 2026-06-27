@@ -119,7 +119,7 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
   };
 
   const fetchDrivers = async () => {
-    const { data } = await supabase.from('drivers').select('id, name').eq('status', 'active').order('name');
+    const { data } = await supabase.from('drivers').select('id, name').order('name');
     setDrivers(data || []);
   };
 
@@ -130,19 +130,34 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
     }
   }, [reservations, prefillReservationId]);
 
-  const applyReservationData = (resId) => {
+  // If drivers load after the prefill, retroactively fill driver_id
+  useEffect(() => {
+    if (drivers.length > 0 && formData.reservation_id && !formData.driver_id) {
+      const reservation = reservations.find(r => r.id === formData.reservation_id);
+      if (reservation?.driver_name) {
+        const matchedDriver = drivers.find(d => d.name === reservation.driver_name);
+        if (matchedDriver) {
+          setFormData(prev => ({ ...prev, driver_id: matchedDriver.id }));
+        }
+      }
+    }
+  }, [drivers]);
+
+  const applyReservationData = (resId, driversList = drivers) => {
     const reservation = reservations.find(r => r.id === resId);
     if (!reservation) return;
     const startDate = parseISO(reservation.start_date);
     const endDate = parseISO(reservation.end_date);
     const days = differenceInDays(endDate, startDate) || 1;
-    // Priorité à total_price de la réservation, sinon calcul depuis daily_rate
     const reservationTotal = Number(reservation.total_price) || 0;
     const vehicleDailyRate = reservation.vehicles?.daily_rate || 0;
     const subtotal = reservationTotal > 0 ? reservationTotal : days * vehicleDailyRate;
     const dailyRate = reservationTotal > 0 && days > 0
       ? Math.round(reservationTotal / days)
       : vehicleDailyRate;
+    const matchedDriver = reservation.driver_name
+      ? driversList.find(d => d.name === reservation.driver_name)
+      : null;
     setFormData(prev => {
       const commRate = Number(prev.commission_rate) || 0;
       const commAmt = Math.round(subtotal * commRate / 100);
@@ -160,7 +175,7 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
         tax_amount: 0,
         commission_amount: commAmt,
         total_amount: subtotal + commAmt,
-        ...(reservation.driver_name ? { notes: prev.notes || `Chauffeur : ${reservation.driver_name}` } : {}),
+        ...(matchedDriver ? { driver_id: matchedDriver.id } : {}),
       };
     });
   };
@@ -177,14 +192,16 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
     if (reservation) {
       const startDate = parseISO(reservation.start_date);
       const endDate = parseISO(reservation.end_date);
-      const days = differenceInDays(endDate, startDate) || 1; // Min 1 day
-      
+      const days = differenceInDays(endDate, startDate) || 1;
       const reservationTotal = Number(reservation.total_price) || 0;
       const vehicleDailyRate = reservation.vehicles?.daily_rate || 0;
       const subtotal = reservationTotal > 0 ? reservationTotal : days * vehicleDailyRate;
       const dailyRate = reservationTotal > 0 && days > 0
         ? Math.round(reservationTotal / days)
         : vehicleDailyRate;
+      const matchedDriver = reservation.driver_name
+        ? drivers.find(d => d.name === reservation.driver_name)
+        : null;
 
       setFormData(prev => {
         const commRate = Number(prev.commission_rate) || 0;
@@ -203,7 +220,7 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
           tax_amount: 0,
           commission_amount: commAmt,
           total_amount: subtotal + commAmt,
-          ...(reservation.driver_name ? { notes: prev.notes || `Chauffeur : ${reservation.driver_name}` } : {}),
+          ...(matchedDriver ? { driver_id: matchedDriver.id } : {}),
         };
       });
     }

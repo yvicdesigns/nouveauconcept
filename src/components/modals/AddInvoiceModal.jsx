@@ -48,8 +48,7 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
 
   useEffect(() => {
     if (open) {
-      fetchReservations();
-      fetchDrivers();
+      fetchInitialData();
       if (invoiceToEdit) {
         setFormData({
           ...invoiceToEdit,
@@ -86,31 +85,40 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
     return `INV-${datePart}-${randomPart}`;
   };
 
-  const fetchReservations = async () => {
+  const fetchInitialData = async () => {
     try {
       setIsReservationsLoading(true);
-      // Fetch reservations with related data
-      const { data, error } = await supabase
-        .from('reservations')
-        .select(`
-          id,
-          start_date,
-          end_date,
-          total_price,
-          driver_name,
-          contacts (id, name, phone),
-          vehicles (name, brand, model, license_plate, daily_rate)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(50);
+      const [{ data: resData, error: resError }, { data: drvData }] = await Promise.all([
+        supabase
+          .from('reservations')
+          .select(`
+            id,
+            start_date,
+            end_date,
+            total_price,
+            driver_name,
+            contacts (id, name, phone),
+            vehicles (name, brand, model, license_plate, daily_rate)
+          `)
+          .order('created_at', { ascending: false })
+          .limit(50),
+        supabase.from('drivers').select('id, name').order('name'),
+      ]);
 
-      if (error) throw error;
-      setReservations(data || []);
+      if (resError) throw resError;
+      const reservationsList = resData || [];
+      const driversList = drvData || [];
+      setReservations(reservationsList);
+      setDrivers(driversList);
+
+      if (prefillReservationId && !invoiceToEdit) {
+        applyReservationData(prefillReservationId, driversList, reservationsList);
+      }
     } catch (error) {
-      console.error('Error fetching reservations:', error);
+      console.error('Error fetching invoice data:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de charger les réservations.",
+        description: "Impossible de charger les données.",
         variant: "destructive"
       });
     } finally {
@@ -118,33 +126,8 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
     }
   };
 
-  const fetchDrivers = async () => {
-    const { data } = await supabase.from('drivers').select('id, name').order('name');
-    setDrivers(data || []);
-  };
-
-  // Auto-prefill when reservations load and prefillReservationId is set
-  useEffect(() => {
-    if (prefillReservationId && reservations.length > 0 && !invoiceToEdit) {
-      applyReservationData(prefillReservationId);
-    }
-  }, [reservations, prefillReservationId]);
-
-  // If drivers load after the prefill, retroactively fill driver_id
-  useEffect(() => {
-    if (drivers.length > 0 && formData.reservation_id && !formData.driver_id) {
-      const reservation = reservations.find(r => r.id === formData.reservation_id);
-      if (reservation?.driver_name) {
-        const matchedDriver = drivers.find(d => d.name === reservation.driver_name);
-        if (matchedDriver) {
-          setFormData(prev => ({ ...prev, driver_id: matchedDriver.id }));
-        }
-      }
-    }
-  }, [drivers]);
-
-  const applyReservationData = (resId, driversList = drivers) => {
-    const reservation = reservations.find(r => r.id === resId);
+  const applyReservationData = (resId, driversList = drivers, reservationsList = reservations) => {
+    const reservation = reservationsList.find(r => r.id === resId);
     if (!reservation) return;
     const startDate = parseISO(reservation.start_date);
     const endDate = parseISO(reservation.end_date);

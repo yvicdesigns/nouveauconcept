@@ -14,9 +14,6 @@ const newRow = () => ({ key: Date.now() + Math.random(), vehicle_id: '', price: 
 const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservationToEdit = null }) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [errorDialog, setErrorDialog] = useState({ open: false, title: '', message: '' });
-
-  const showError = (title, message) => setErrorDialog({ open: true, title, message });
   const [clients, setClients] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [drivers, setDrivers] = useState([]);
@@ -329,11 +326,12 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
     } catch (error) {
       console.error('Error:', error);
       const isBusinessError = error.message.startsWith('🚫') || error.message.startsWith('Veuillez');
-      if (isBusinessError) {
-        showError('Réservation impossible', error.message);
-      } else {
-        showError('Erreur technique', error.message);
-      }
+      toast({
+        title: isBusinessError ? '🚫 Réservation impossible' : '⚠️ Erreur technique',
+        description: error.message.replace(/^🚫 /, ''),
+        variant: 'destructive',
+        duration: 6000,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -720,26 +718,6 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
       </DialogContent>
     </Dialog>
 
-    <AlertDialog open={errorDialog.open} onOpenChange={(open) => setErrorDialog(e => ({ ...e, open }))}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle className={errorDialog.title === 'Erreur technique' ? 'text-orange-600' : 'text-red-600'}>
-            {errorDialog.title === 'Erreur technique' ? '⚠️ ' : '🚫 '}{errorDialog.title}
-          </AlertDialogTitle>
-          <AlertDialogDescription className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
-            {errorDialog.message.replace(/^🚫 /, '')}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogAction
-            onClick={() => setErrorDialog(e => ({ ...e, open: false }))}
-            className={errorDialog.title === 'Erreur technique' ? 'bg-orange-600 hover:bg-orange-700' : 'bg-red-600 hover:bg-red-700'}
-          >
-            Compris
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
     </>
   );
 };

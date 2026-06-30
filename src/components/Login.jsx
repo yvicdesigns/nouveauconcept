@@ -98,14 +98,12 @@ const Login = ({ onLoginSuccess }) => {
       
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="h-16 w-16 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-2xl shadow-lg flex items-center justify-center">
-             <ShieldCheck className="h-8 w-8 text-white" />
-          </div>
+          <img src="/logo.png" alt="Nouveau Concept" className="h-28 w-auto object-contain drop-shadow-md" />
         </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 tracking-tight">
-          Nouveau Concept CRM
+        <h2 className="mt-4 text-center text-2xl font-extrabold text-gray-900 tracking-tight">
+          Espace Administration
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-1 text-center text-sm text-gray-600">
           Connectez-vous à votre espace d'administration
         </p>
       </div>

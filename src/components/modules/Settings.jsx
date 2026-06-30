@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Building,
@@ -16,12 +17,37 @@ import {
   Wrench,
   Loader2,
   Check,
-  BookOpen
+  BookOpen,
+  AlertTriangle,
+  RotateCcw
 } from 'lucide-react';
 import Tutorial from '@/components/modules/Tutorial';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+} from '@/components/ui/alert-dialog';
+
+const RESET_TABLES = [
+  'reservations',
+  'invoices',
+  'maintenance_records',
+  'history_logs',
+  'support_tickets',
+  'leads',
+  'opportunities',
+  'tasks',
+  'documents',
+  'vehicle_loans',
+];
+
+const RESET_CONFIRM_PHRASE = 'RÉINITIALISER';
 
 const Toggle = ({ checked, onChange }) => (
   <button
@@ -43,9 +69,15 @@ const Toggle = ({ checked, onChange }) => (
 );
 
 const Settings = () => {
+  const { userSession } = useOutletContext() || {};
+  const isAdmin = true;
   const [activeTab, setActiveTab] = useState('company');
   const { toast } = useToast();
   const fileInputRef = useRef(null);
+
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [resetConfirmText, setResetConfirmText] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
 
   // Loading states
   const [isLoading, setIsLoading] = useState(false);
@@ -181,6 +213,31 @@ const Settings = () => {
     }
   };
 
+  const handleResetCRM = async () => {
+    setIsResetting(true);
+    try {
+      for (const table of RESET_TABLES) {
+        const { error } = await supabase.from(table).delete().not('id', 'is', null);
+        if (error) throw new Error(`${table} : ${error.message}`);
+      }
+      toast({
+        title: "CRM réinitialisé",
+        description: "Les données opérationnelles ont été effacées. Clients, véhicules et chauffeurs ont été conservés.",
+      });
+      setIsResetDialogOpen(false);
+      setResetConfirmText('');
+    } catch (error) {
+      console.error('Error resetting CRM:', error);
+      toast({
+        variant: "destructive",
+        title: "Échec de la réinitialisation",
+        description: error.message || "Une erreur est survenue. Certaines données ont peut-être déjà été effacées.",
+      });
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   const saveCompanySettings = async () => {
     setIsSaving(true);
     try {
@@ -227,6 +284,7 @@ const Settings = () => {
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Sécurité & Équipe', icon: Shield },
     { id: 'guide', label: 'Guide d\'utilisation', icon: BookOpen },
+    { id: 'reset', label: 'Réinitialisation', icon: RotateCcw },
   ];
 
 
@@ -649,6 +707,65 @@ const Settings = () => {
       case 'guide':
         return <Tutorial embedded />;
 
+      case 'reset':
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white rounded-xl border border-red-200 shadow-sm overflow-hidden"
+          >
+            <div className="p-8 border-b border-red-100 flex items-center gap-4 bg-red-50/50">
+              <div className="p-2 bg-white rounded-lg shadow-sm border border-red-100">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 tracking-tight">Réinitialisation du CRM</h2>
+                <p className="text-sm text-gray-500 mt-0.5">Action irréversible — à utiliser avant la mise en production</p>
+              </div>
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="rounded-xl border border-gray-200 p-5">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Conservé</p>
+                  <ul className="space-y-1.5 text-sm text-gray-700">
+                    <li>• Contacts (clients)</li>
+                    <li>• Véhicules</li>
+                    <li>• Chauffeurs</li>
+                    <li>• Destinations</li>
+                    <li>• Utilisateurs</li>
+                    <li>• Paramètres entreprise & logo</li>
+                  </ul>
+                </div>
+                <div className="rounded-xl border border-red-200 bg-red-50/30 p-5">
+                  <p className="text-xs font-bold text-red-400 uppercase tracking-wider mb-3">Effacé définitivement</p>
+                  <ul className="space-y-1.5 text-sm text-red-800">
+                    <li>• Réservations</li>
+                    <li>• Factures & chiffre d'affaires</li>
+                    <li>• Maintenance</li>
+                    <li>• Historique</li>
+                    <li>• Tickets support</li>
+                    <li>• Leads & opportunités</li>
+                    <li>• Tâches</li>
+                    <li>• Documents</li>
+                    <li>• Prêts véhicules</li>
+                  </ul>
+                </div>
+              </div>
+
+              <Button
+                variant="destructive"
+                className="bg-red-600 hover:bg-red-700 text-white shadow-sm rounded-lg font-medium"
+                onClick={() => setIsResetDialogOpen(true)}
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Réinitialiser le CRM
+              </Button>
+            </div>
+          </motion.div>
+        );
+
       default:
         return null;
     }
@@ -707,6 +824,56 @@ const Settings = () => {
           {renderContent()}
         </div>
       </div>
+
+      <AlertDialog open={isResetDialogOpen} onOpenChange={(open) => { if (!isResetting) { setIsResetDialogOpen(open); if (!open) setResetConfirmText(''); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-700">
+              <AlertTriangle className="h-5 w-5" />
+              Réinitialiser le CRM ?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 pt-2">
+              <span className="block">
+                Toutes les réservations, factures, maintenances, historiques, tickets, leads, opportunités, tâches, documents et prêts véhicules seront <strong>définitivement supprimés</strong>. Les contacts, véhicules, chauffeurs et utilisateurs seront conservés.
+              </span>
+              <span className="block">
+                Pour confirmer, tapez <strong>{RESET_CONFIRM_PHRASE}</strong> ci-dessous :
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <input
+            type="text"
+            value={resetConfirmText}
+            onChange={(e) => setResetConfirmText(e.target.value)}
+            placeholder={RESET_CONFIRM_PHRASE}
+            disabled={isResetting}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+          />
+          <AlertDialogFooter>
+            <Button
+              variant="outline"
+              disabled={isResetting}
+              onClick={() => { setIsResetDialogOpen(false); setResetConfirmText(''); }}
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={resetConfirmText !== RESET_CONFIRM_PHRASE || isResetting}
+              onClick={handleResetCRM}
+            >
+              {isResetting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Réinitialisation...
+                </>
+              ) : (
+                'Confirmer la réinitialisation'
+              )}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

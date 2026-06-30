@@ -59,7 +59,7 @@ const AppLayout = ({ userSession, onLogout, sidebarOpen, setSidebarOpen, activeM
       <main className={`flex-1 overflow-y-auto transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'ml-0'}`}>
         <MainContentHeader title={activeModuleTitle} />
         <div className="p-6">
-          <Outlet /> {/* Renders the matched child route component */}
+          <Outlet context={{ userSession }} /> {/* Renders the matched child route component */}
         </div>
       </main>
       <Toaster />

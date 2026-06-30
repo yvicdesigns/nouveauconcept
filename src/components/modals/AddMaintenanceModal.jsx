@@ -188,7 +188,7 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
                   name="vehicle_id"
                   value={formData.vehicle_id}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white"
                   disabled={isVehiclesLoading}
                   required
                 >
@@ -285,7 +285,7 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
                 onChange={handleChange}
                 rows={3}
                 required
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 resize-none"
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy resize-none"
                 placeholder="Détails du problème ou de l'intervention..."
               />
             </div>
@@ -301,7 +301,7 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
                   name="oil_change_mileage"
                   value={formData.oil_change_mileage}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy"
                   placeholder="ex: 45000"
                   min="0"
                 />
@@ -315,7 +315,7 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
                 name="mechanic"
                 value={formData.mechanic}
                 onChange={handleChange}
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy"
                 placeholder="Nom du technicien ou garage"
               />
             </div>
@@ -327,7 +327,7 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
                 name="cost"
                 value={formData.cost}
                 onChange={handleChange}
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy"
                 placeholder="0.00"
                 step="0.01"
               />
@@ -341,7 +341,7 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
                 value={formData.reported_date}
                 onChange={handleChange}
                 required
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy"
               />
             </div>
 
@@ -352,7 +352,7 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
                 name="completion_date"
                 value={formData.completion_date}
                 onChange={handleChange}
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy"
               />
             </div>
           </div>
@@ -379,7 +379,7 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
               value={formData.notes}
               onChange={handleChange}
               rows={2}
-              className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy resize-none"
               placeholder="Informations complémentaires..."
             />
           </div>
@@ -395,7 +395,7 @@ const AddMaintenanceModal = ({ open, onOpenChange, onRecordSaved, recordToEdit =
             </Button>
             <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white min-w-[150px]"
+              className="bg-nc-navy hover:bg-nc-navy-light text-white min-w-[150px]"
               disabled={isLoading}
             >
               {isLoading ? (

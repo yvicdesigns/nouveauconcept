@@ -27,7 +27,7 @@ class CarViewerErrorBoundary extends React.Component {
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-nc-navy text-white rounded-lg text-sm font-semibold hover:bg-nc-navy-light transition-colors"
           >
             Rafraîchir la page
           </button>
@@ -75,7 +75,7 @@ const VehicleDetailTabs = ({ vehicle }) => {
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-              tab === t.id ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+              tab === t.id ? 'bg-nc-navy text-white' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
             }`}>
             {t.label}
           </button>
@@ -451,7 +451,7 @@ const Vehicles = () => {
               placeholder="Rechercher un véhicule..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-gray-900"
+              className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy shadow-sm text-gray-900"
             />
           </div>
           <Button 
@@ -459,7 +459,7 @@ const Vehicles = () => {
               setVehicleToEdit(null);
               setIsAddModalOpen(true);
             }}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm px-6"
+            className="bg-nc-navy hover:bg-nc-navy-light text-white rounded-lg shadow-sm px-6"
           >
             <Plus className="h-4 w-4 mr-2" />
             Ajouter
@@ -646,7 +646,7 @@ const Vehicles = () => {
                     
                     {vehicle.status === 'DISPONIBLE' ? (
                       <Button 
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm"
+                        className="flex-1 bg-nc-navy hover:bg-nc-navy-light text-white rounded-lg font-medium shadow-sm"
                         onClick={() => handleAction('Louer', vehicle)}
                       >
                         Louer

@@ -52,12 +52,13 @@ const Sidebar = ({ isOpen, setIsOpen, user, onLogout, permissions }) => {
       {/* Sidebar Container */}
       <div 
         className={cn(
-          "fixed top-0 left-0 z-50 h-screen w-64 bg-slate-900 text-white transition-transform duration-300 ease-in-out lg:translate-x-0 shadow-xl flex flex-col",
+          "fixed top-0 left-0 z-50 h-screen w-64 text-white transition-transform duration-300 ease-in-out lg:translate-x-0 shadow-xl flex flex-col",
+          "bg-nc-navy",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Header */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800">
+        <div className="h-16 flex items-center justify-between px-6 border-b border-white/10">
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="Nouveau Concept" className="h-9 w-auto object-contain" />
           </div>
@@ -85,14 +86,14 @@ const Sidebar = ({ isOpen, setIsOpen, user, onLogout, permissions }) => {
                 }}
                 className={cn(
                   "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
-                  isActive 
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20 font-medium" 
-                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                  isActive
+                    ? "bg-nc-red text-white shadow-lg shadow-black/30 font-semibold"
+                    : "text-white/60 hover:bg-white/10 hover:text-white"
                 )}
               >
                 <Icon className={cn(
                   "h-5 w-5 transition-colors",
-                  isActive ? "text-white" : "text-slate-500 group-hover:text-white"
+                  isActive ? "text-white" : "text-white/40 group-hover:text-white"
                 )} />
                 <span className="text-sm">{item.label}</span>
                 {isActive && (
@@ -104,21 +105,21 @@ const Sidebar = ({ isOpen, setIsOpen, user, onLogout, permissions }) => {
         </div>
 
         {/* Footer User Section */}
-        <div className="p-4 border-t border-slate-800">
-          <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 transition-colors group">
+        <div className="p-4 border-t border-white/10">
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors group">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-sm font-bold border-2 border-slate-700 group-hover:border-slate-600 transition-colors shrink-0">
               {getInitials(user?.full_name)}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">{user?.full_name || 'Utilisateur'}</p>
-              <p className="text-xs text-slate-500 truncate capitalize">{user?.role || 'Membre'}</p>
+              <p className="text-xs text-white/40 truncate capitalize">{user?.role || 'Membre'}</p>
             </div>
             
             <div className="flex gap-1">
                <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-7 w-7 text-slate-400 hover:text-blue-400 hover:bg-slate-700/50"
+                className="h-7 w-7 text-white/40 hover:text-nc-gold hover:bg-white/10"
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsPasswordModalOpen(true);
@@ -130,7 +131,7 @@ const Sidebar = ({ isOpen, setIsOpen, user, onLogout, permissions }) => {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-7 w-7 text-slate-400 hover:text-red-400 hover:bg-slate-700/50"
+                className="h-7 w-7 text-white/40 hover:text-nc-red hover:bg-white/10"
                 onClick={(e) => {
                   e.stopPropagation();
                   onLogout();

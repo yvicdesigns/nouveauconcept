@@ -369,7 +369,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                 value={formData.client_id}
                 onChange={handleChange}
                 required
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white"
               >
                 <option value="">Sélectionner un client...</option>
                 {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -392,7 +392,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                     setFormData(prev => ({ ...prev, driver_name: e.target.value }));
                   }
                 }}
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white"
               >
                 <option value="">— Aucun chauffeur —</option>
                 {drivers.map(d => (
@@ -410,7 +410,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                   onChange={handleChange}
                   placeholder="Nom du chauffeur"
                   autoFocus
-                  className="w-full p-2.5 border border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
+                  className="w-full p-2.5 border border-blue-300 rounded-md focus:ring-2 focus:ring-nc-navy bg-white"
                 />
               )}
             </div>
@@ -452,7 +452,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                         value={row.vehicle_id}
                         onChange={e => updateVehicleRow(index, 'vehicle_id', e.target.value)}
                         onClick={() => row.vehicle_id && setCalendarVehicleId(row.vehicle_id)}
-                        className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white text-sm"
+                        className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white text-sm"
                       >
                         <option value="">Sélectionner un véhicule…</option>
                         {vehicles.map(v => {
@@ -471,7 +471,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                         type="number"
                         value={row.price}
                         onChange={e => updateVehicleRow(index, 'price', e.target.value)}
-                        className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 text-sm font-bold text-slate-900 text-right"
+                        className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy text-sm font-bold text-slate-900 text-right"
                         placeholder="Prix"
                       />
                     </div>
@@ -509,14 +509,14 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                   <Clock className="h-4 w-4" /> Heure de départ
                 </label>
                 <input type="time" name="start_time" value={formData.start_time} onChange={handleChange} required
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                   <Clock className="h-4 w-4" /> Heure de retour
                 </label>
                 <input type="time" name="end_time" value={formData.end_time} onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white" />
               </div>
             </div>
 
@@ -528,7 +528,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                 </label>
                 <input type="text" name="departure_location" value={formData.departure_location} onChange={handleChange}
                   placeholder="ex: Bras-à-vite, Aéroport…"
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white text-sm" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white text-sm" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
@@ -536,7 +536,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                 </label>
                 <input type="text" name="return_location" value={formData.return_location} onChange={handleChange}
                   placeholder="ex: Agence, Saint-Denis…"
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white text-sm" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white text-sm" />
               </div>
             </div>
 
@@ -561,7 +561,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Statut</label>
               <select name="status" value={formData.status} onChange={handleChange}
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white">
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white">
                 <option value="En attente">En attente</option>
                 <option value="Confirmée">Confirmée</option>
                 <option value="En cours">En cours</option>
@@ -588,7 +588,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Notes</label>
               <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3}
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 resize-none"
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy resize-none"
                 placeholder="Instructions spéciales..." />
             </div>
           </div>
@@ -641,7 +641,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
 
                     let btnClass = "h-9 w-full rounded-md flex items-center justify-center text-sm transition-all relative ";
                     if (isBlocked)       btnClass += "bg-red-100 text-red-400 cursor-not-allowed opacity-70";
-                    else if (isSelected) btnClass += "bg-blue-600 text-white font-bold shadow-md scale-105";
+                    else if (isSelected) btnClass += "bg-nc-navy text-white font-bold shadow-md scale-105";
                     else if (isToday)    btnClass += "ring-2 ring-blue-400 text-blue-700 font-bold cursor-pointer bg-blue-50";
                     else if (isPast)     btnClass += "text-slate-400 cursor-pointer bg-slate-50 hover:bg-amber-50 hover:text-amber-700";
                     else                 btnClass += "bg-green-50 text-green-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer";
@@ -662,7 +662,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
             <div className="flex items-center gap-4 text-xs text-slate-500 px-2">
               <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-green-100 border border-green-200"></div> Disponible</div>
               <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-red-100 border border-red-200"></div> Réservé</div>
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-blue-600"></div> Sélection</div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-nc-navy"></div> Sélection</div>
             </div>
 
             {/* Date range summary */}
@@ -701,7 +701,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 Annuler
               </Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white min-w-[150px]" disabled={isLoading}>
+              <Button type="submit" className="bg-nc-navy hover:bg-nc-navy-light text-white min-w-[150px]" disabled={isLoading}>
                 {isLoading ? (
                   <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Traitement...</>
                 ) : (

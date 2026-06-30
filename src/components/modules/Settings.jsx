@@ -30,7 +30,7 @@ const Toggle = ({ checked, onChange }) => (
     aria-checked={checked}
     onClick={() => onChange(!checked)}
     className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-      checked ? 'bg-blue-600' : 'bg-gray-200'
+      checked ? 'bg-nc-navy' : 'bg-gray-200'
     }`}
   >
     <span
@@ -312,7 +312,7 @@ const Settings = () => {
                           name="name"
                           value={companyData.name || ''}
                           onChange={handleCompanyChange}
-                          className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 shadow-sm" 
+                          className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy text-gray-900 shadow-sm" 
                           placeholder="Ex: Nouveau Concept"
                         />
                       </div>
@@ -323,7 +323,7 @@ const Settings = () => {
                           name="siret"
                           value={companyData.siret || ''}
                           onChange={handleCompanyChange}
-                          className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 shadow-sm" 
+                          className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy text-gray-900 shadow-sm" 
                           placeholder="Ex: 123 456 789 00012"
                         />
                       </div>
@@ -335,7 +335,7 @@ const Settings = () => {
                         name="address"
                         value={companyData.address || ''}
                         onChange={handleCompanyChange}
-                        className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 shadow-sm" 
+                        className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy text-gray-900 shadow-sm" 
                         placeholder="Ex: Centre-ville, Brazzaville"
                       />
                     </div>
@@ -350,7 +350,7 @@ const Settings = () => {
                       name="email"
                       value={companyData.email || ''}
                       onChange={handleCompanyChange}
-                      className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 shadow-sm" 
+                      className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy text-gray-900 shadow-sm" 
                       placeholder="contact@entreprise.com"
                     />
                   </div>
@@ -361,7 +361,7 @@ const Settings = () => {
                       name="phone"
                       value={companyData.phone || ''}
                       onChange={handleCompanyChange}
-                      className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 shadow-sm" 
+                      className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy text-gray-900 shadow-sm" 
                       placeholder="+242 XX XXX XXXX"
                     />
                   </div>
@@ -374,7 +374,7 @@ const Settings = () => {
                     name="website"
                     value={companyData.website || ''}
                     onChange={handleCompanyChange}
-                    className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 shadow-sm" 
+                    className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy text-gray-900 shadow-sm" 
                     placeholder="https://www.monsite.com"
                   />
                 </div>
@@ -404,7 +404,7 @@ const Settings = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Devise</label>
-                <select className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white shadow-sm">
+                <select className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy text-gray-900 bg-white shadow-sm">
                   <option>FCFA (XAF)</option>
                   <option>EUR (€)</option>
                   <option>USD ($)</option>
@@ -412,11 +412,11 @@ const Settings = () => {
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">TVA par défaut (%)</label>
-                <input type="number" defaultValue="18" className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 shadow-sm" />
+                <input type="number" defaultValue="18" className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy text-gray-900 shadow-sm" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Caution standard (FCFA)</label>
-                <input type="text" defaultValue="500000" className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 shadow-sm" />
+                <input type="text" defaultValue="500000" className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy text-gray-900 shadow-sm" />
               </div>
             </div>
 
@@ -534,14 +534,14 @@ const Settings = () => {
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Alerte km (tous les)</label>
                   <div className="relative">
-                    <input type="number" defaultValue="15000" className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 shadow-sm" />
+                    <input type="number" defaultValue="15000" className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy text-gray-900 shadow-sm" />
                     <span className="absolute right-4 top-2.5 text-sm font-medium text-gray-400">km</span>
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Alerte durée (tous les)</label>
                   <div className="relative">
-                    <input type="number" defaultValue="12" className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 shadow-sm" />
+                    <input type="number" defaultValue="12" className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy text-gray-900 shadow-sm" />
                     <span className="absolute right-4 top-2.5 text-sm font-medium text-gray-400">mois</span>
                   </div>
                 </div>
@@ -664,7 +664,7 @@ const Settings = () => {
         <Button 
           onClick={handleSave} 
           disabled={isSaving || isLoading}
-          className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm rounded-lg px-6 font-medium"
+          className="bg-nc-navy hover:bg-nc-navy-light text-white shadow-sm rounded-lg px-6 font-medium"
         >
           {isSaving ? (
             <>

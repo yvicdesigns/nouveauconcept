@@ -372,7 +372,7 @@ const CarViewer3D = ({ vehicleId = null }) => {
             onClick={() => { setModelKey(m.key); setSelectedPart(null); }}
             className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${
               modelKey === m.key
-                ? 'bg-blue-600 text-white border-blue-600'
+                ? 'bg-nc-navy text-white border-blue-600'
                 : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400 hover:text-blue-600'
             }`}
           >{m.label}</button>

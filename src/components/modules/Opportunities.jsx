@@ -244,7 +244,7 @@ const Opportunities = () => {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         <input type="text" placeholder="Rechercher une opportunité..."
           value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-          className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white" />
+          className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy text-sm bg-white" />
       </div>
 
       {/* Contenu */}
@@ -358,30 +358,30 @@ const Opportunities = () => {
                 <label className="text-sm font-medium text-slate-700">Titre *</label>
                 <input required type="text" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
                   placeholder="ex: Contrat flotte entreprise"
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm" />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Client *</label>
                 <input required type="text" value={form.client_name} onChange={e => setForm(p => ({ ...p, client_name: e.target.value }))}
                   placeholder="Nom entreprise ou client"
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm" />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Contact</label>
                 <input type="text" value={form.contact_name} onChange={e => setForm(p => ({ ...p, contact_name: e.target.value }))}
                   placeholder="Nom du contact"
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm" />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Valeur (FCFA)</label>
                 <input type="number" min="0" value={form.value} onChange={e => setForm(p => ({ ...p, value: e.target.value }))}
                   placeholder="ex: 500000"
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm" />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Étape</label>
                 <select value={form.stage} onChange={e => setForm(p => ({ ...p, stage: e.target.value }))}
-                  className="w-full p-2.5 border border-slate-200 rounded-md bg-white focus:ring-2 focus:ring-blue-500 text-sm">
+                  className="w-full p-2.5 border border-slate-200 rounded-md bg-white focus:ring-2 focus:ring-nc-navy text-sm">
                   {STAGE_OPTIONS.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
@@ -394,18 +394,18 @@ const Opportunities = () => {
               <div className="col-span-2 space-y-1">
                 <label className="text-sm font-medium text-slate-700">Date de clôture prévue</label>
                 <input type="date" value={form.expected_close_date} onChange={e => setForm(p => ({ ...p, expected_close_date: e.target.value }))}
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm" />
               </div>
               <div className="col-span-2 space-y-1">
                 <label className="text-sm font-medium text-slate-700">Notes</label>
                 <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))}
                   rows={2} placeholder="Détails, conditions, remarques..."
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 text-sm resize-none" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy text-sm resize-none" />
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-2 border-t">
               <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} disabled={isSaving}>Annuler</Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white min-w-[120px]" disabled={isSaving}>
+              <Button type="submit" className="bg-nc-navy hover:bg-nc-navy-light text-white min-w-[120px]" disabled={isSaving}>
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : (oppToEdit ? 'Mettre à jour' : 'Enregistrer')}
               </Button>
             </div>

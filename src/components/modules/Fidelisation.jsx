@@ -318,7 +318,7 @@ const Fidelisation = () => {
             placeholder="Rechercher un client..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-9 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-10 pr-9 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy"
           />
           {search && (
             <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">

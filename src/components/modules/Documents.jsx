@@ -224,12 +224,12 @@ const Documents = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input type="text" placeholder="Rechercher un document..."
                 value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+                className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy text-sm" />
             </div>
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-slate-400 flex-shrink-0" />
               <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}
-                className="p-2.5 border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 text-sm text-slate-700">
+                className="p-2.5 border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-nc-navy text-sm text-slate-700">
                 <option value="">Toutes les catégories</option>
                 {CATEGORY_OPTIONS.map(c => <option key={c}>{c}</option>)}
               </select>
@@ -355,7 +355,7 @@ const Documents = () => {
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Catégorie</label>
                 <select value={uploadForm.category} onChange={e => setUploadForm(p => ({ ...p, category: e.target.value }))}
-                  className="w-full p-2.5 border border-slate-200 rounded-md bg-white focus:ring-2 focus:ring-blue-500 text-sm">
+                  className="w-full p-2.5 border border-slate-200 rounded-md bg-white focus:ring-2 focus:ring-nc-navy text-sm">
                   {CATEGORY_OPTIONS.map(c => <option key={c}>{c}</option>)}
                 </select>
               </div>
@@ -364,13 +364,13 @@ const Documents = () => {
                 <input type="text" value={uploadForm.client_name}
                   onChange={e => setUploadForm(p => ({ ...p, client_name: e.target.value }))}
                   placeholder="ex: Jean Dupont"
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm" />
               </div>
               <div className="col-span-2 space-y-1">
                 <label className="text-sm font-medium text-slate-700">Notes</label>
                 <textarea value={uploadForm.notes} onChange={e => setUploadForm(p => ({ ...p, notes: e.target.value }))}
                   rows={2} placeholder="Informations complémentaires..."
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 text-sm resize-none" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy text-sm resize-none" />
               </div>
             </div>
 
@@ -388,7 +388,7 @@ const Documents = () => {
 
             <div className="flex justify-end gap-3 pt-2 border-t">
               <Button type="button" variant="outline" onClick={() => setIsUploadModalOpen(false)} disabled={isUploading}>Annuler</Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white min-w-[130px]" disabled={isUploading || !selectedFile}>
+              <Button type="submit" className="bg-nc-navy hover:bg-nc-navy-light text-white min-w-[130px]" disabled={isUploading || !selectedFile}>
                 {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Upload className="h-4 w-4 mr-2" />Envoyer</>}
               </Button>
             </div>

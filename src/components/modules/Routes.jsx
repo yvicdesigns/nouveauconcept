@@ -74,7 +74,7 @@ const RouteModal = ({ open, onOpenChange, onSaved, routeToEdit }) => {
               value={form.from_location}
               onChange={e => setForm(p => ({ ...p, from_location: e.target.value }))}
               placeholder="ex: Brazzaville Centre"
-              className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
             />
           </div>
           <div className="space-y-2">
@@ -83,7 +83,7 @@ const RouteModal = ({ open, onOpenChange, onSaved, routeToEdit }) => {
               value={form.to_location}
               onChange={e => setForm(p => ({ ...p, to_location: e.target.value }))}
               placeholder="ex: Aéroport Maya-Maya"
-              className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
             />
           </div>
           <div className="space-y-2">
@@ -94,12 +94,12 @@ const RouteModal = ({ open, onOpenChange, onSaved, routeToEdit }) => {
               value={form.price}
               onChange={e => setForm(p => ({ ...p, price: e.target.value }))}
               placeholder="ex: 50000"
-              className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
             />
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Annuler</Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+            <Button type="submit" className="bg-nc-navy hover:bg-nc-navy-light text-white" disabled={isLoading}>
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               {routeToEdit ? 'Mettre à jour' : 'Enregistrer'}
             </Button>
@@ -160,7 +160,7 @@ const Routes = () => {
           <h1 className="text-3xl font-bold text-slate-900">Tarifs par Destination</h1>
           <p className="text-slate-600 mt-1">Gérez les trajets et leurs tarifs forfaitaires</p>
         </div>
-        <Button onClick={() => { setRouteToEdit(null); setIsModalOpen(true); }} className="bg-blue-600 hover:bg-blue-700 text-white">
+        <Button onClick={() => { setRouteToEdit(null); setIsModalOpen(true); }} className="bg-nc-navy hover:bg-nc-navy-light text-white">
           <Plus className="h-4 w-4 mr-2" /> Ajouter un trajet
         </Button>
       </div>
@@ -172,7 +172,7 @@ const Routes = () => {
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             placeholder="Rechercher un trajet..."
-            className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy"
           />
         </div>
 

@@ -198,7 +198,7 @@ const AddTicketModal = ({ open, onOpenChange, onTicketSaved, ticketToEdit = null
                   value={formData.ticket_number}
                   onChange={handleChange}
                   required
-                  className="flex-1 p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 font-mono font-medium"
+                  className="flex-1 p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy font-mono font-medium"
                 />
                 {!isEditing && (
                   <Button type="button" variant="outline" size="icon" onClick={() => setFormData(prev => ({...prev, ticket_number: generateTicketNumber()}))} title="Générer nouveau">
@@ -215,7 +215,7 @@ const AddTicketModal = ({ open, onOpenChange, onTicketSaved, ticketToEdit = null
                   name="client_id"
                   value={formData.client_id}
                   onChange={handleClientSelect}
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white"
                 >
                   <option value="">Sélectionner un client...</option>
                   {clients.map(c => (
@@ -239,7 +239,7 @@ const AddTicketModal = ({ open, onOpenChange, onTicketSaved, ticketToEdit = null
               onChange={handleChange}
               required
               placeholder="Résumé du problème..."
-              className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy"
             />
           </div>
 
@@ -250,7 +250,7 @@ const AddTicketModal = ({ open, onOpenChange, onTicketSaved, ticketToEdit = null
               value={formData.description}
               onChange={handleChange}
               rows={4}
-              className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy resize-none"
               placeholder="Détails complets de la demande..."
             />
           </div>
@@ -311,7 +311,7 @@ const AddTicketModal = ({ open, onOpenChange, onTicketSaved, ticketToEdit = null
               value={formData.notes}
               onChange={handleChange}
               rows={2}
-              className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy resize-none"
               placeholder="Notes visibles uniquement par l'équipe..."
             />
           </div>
@@ -327,7 +327,7 @@ const AddTicketModal = ({ open, onOpenChange, onTicketSaved, ticketToEdit = null
             </Button>
             <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white min-w-[150px]"
+              className="bg-nc-navy hover:bg-nc-navy-light text-white min-w-[150px]"
               disabled={isLoading}
             >
               {isLoading ? (

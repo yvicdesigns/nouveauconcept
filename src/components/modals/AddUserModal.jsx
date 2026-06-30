@@ -191,12 +191,12 @@ const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) =>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-slate-700">Nom complet</label>
               <input type="text" name="full_name" value={formData.full_name} onChange={handleChange} required
-                className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm" placeholder="Jean Dupont" />
+                className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-nc-navy text-sm" placeholder="Jean Dupont" />
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-slate-700">Email</label>
               <input type="email" name="email" value={formData.email} onChange={handleChange} required disabled={isEditing}
-                className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-slate-50 disabled:text-slate-400" placeholder="jean@exemple.com" />
+                className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-nc-navy text-sm disabled:bg-slate-50 disabled:text-slate-400" placeholder="jean@exemple.com" />
               {isEditing && <p className="text-xs text-amber-600 flex items-center gap-1"><AlertTriangle className="h-3 w-3" />L'email de connexion ne peut pas être modifié.</p>}
             </div>
           </div>
@@ -210,7 +210,7 @@ const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) =>
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <input type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange}
-                    required minLength={6} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm pr-10" placeholder="Minimum 6 caractères" />
+                    required minLength={6} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-nc-navy text-sm pr-10" placeholder="Minimum 6 caractères" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" tabIndex="-1">
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -300,7 +300,7 @@ const AddUserModal = ({ open, onOpenChange, onUserSaved, userToEdit = null }) =>
 
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Annuler</Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white min-w-[160px]" disabled={isLoading}>
+            <Button type="submit" className="bg-nc-navy hover:bg-nc-navy-light text-white min-w-[160px]" disabled={isLoading}>
               {isLoading
                 ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Enregistrement…</>
                 : <><CheckCircle className="mr-2 h-4 w-4" />{isEditing ? 'Mettre à jour' : 'Créer le compte'}</>}

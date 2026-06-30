@@ -110,7 +110,7 @@ const AdminChangePasswordModal = ({ isOpen, onClose, user }) => {
               required
               minLength={6}
               placeholder="••••••••"
-              className="focus-visible:ring-blue-500"
+              className="focus-visible:ring-nc-navy"
             />
           </div>
           <div className="space-y-2">
@@ -123,14 +123,14 @@ const AdminChangePasswordModal = ({ isOpen, onClose, user }) => {
               required
               minLength={6}
               placeholder="••••••••"
-              className="focus-visible:ring-blue-500"
+              className="focus-visible:ring-nc-navy"
             />
           </div>
           <DialogFooter>
              <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
               Annuler
             </Button>
-            <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700">
+            <Button type="submit" disabled={loading} className="bg-nc-navy hover:bg-nc-navy-light">
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Mettre à jour
             </Button>

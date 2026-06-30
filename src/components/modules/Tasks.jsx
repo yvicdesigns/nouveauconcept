@@ -179,7 +179,7 @@ const Tasks = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input type="text" placeholder="Rechercher une tâche..."
               value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+              className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy text-sm" />
           </div>
           {filterStatus !== 'Toutes' && (
             <Button variant="outline" size="sm" onClick={() => setFilterStatus('Toutes')} className="text-xs">
@@ -261,37 +261,37 @@ const Tasks = () => {
                 <label className="text-sm font-medium text-slate-700">Titre *</label>
                 <input required type="text" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
                   placeholder="ex: Rappeler le client Dupont"
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm" />
               </div>
               <div className="col-span-2 space-y-1">
                 <label className="text-sm font-medium text-slate-700">Description</label>
                 <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
                   rows={2} placeholder="Détails de la tâche..."
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 text-sm resize-none" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy text-sm resize-none" />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Priorité</label>
                 <select value={form.priority} onChange={e => setForm(p => ({ ...p, priority: e.target.value }))}
-                  className="w-full p-2.5 border border-slate-200 rounded-md bg-white focus:ring-2 focus:ring-blue-500 text-sm">
+                  className="w-full p-2.5 border border-slate-200 rounded-md bg-white focus:ring-2 focus:ring-nc-navy text-sm">
                   {PRIORITY_OPTIONS.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Statut</label>
                 <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value }))}
-                  className="w-full p-2.5 border border-slate-200 rounded-md bg-white focus:ring-2 focus:ring-blue-500 text-sm">
+                  className="w-full p-2.5 border border-slate-200 rounded-md bg-white focus:ring-2 focus:ring-nc-navy text-sm">
                   {STATUS_OPTIONS.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Date d'échéance</label>
                 <input type="date" value={form.due_date} onChange={e => setForm(p => ({ ...p, due_date: e.target.value }))}
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm" />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Catégorie</label>
                 <select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
-                  className="w-full p-2.5 border border-slate-200 rounded-md bg-white focus:ring-2 focus:ring-blue-500 text-sm">
+                  className="w-full p-2.5 border border-slate-200 rounded-md bg-white focus:ring-2 focus:ring-nc-navy text-sm">
                   {CATEGORY_OPTIONS.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
@@ -299,12 +299,12 @@ const Tasks = () => {
                 <label className="text-sm font-medium text-slate-700">Assigné à</label>
                 <input type="text" value={form.assigned_to} onChange={e => setForm(p => ({ ...p, assigned_to: e.target.value }))}
                   placeholder="ex: Jean, Équipe commerciale..."
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm" />
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-2 border-t">
               <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} disabled={isSaving}>Annuler</Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white min-w-[120px]" disabled={isSaving}>
+              <Button type="submit" className="bg-nc-navy hover:bg-nc-navy-light text-white min-w-[120px]" disabled={isSaving}>
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : (taskToEdit ? 'Mettre à jour' : 'Enregistrer')}
               </Button>
             </div>

@@ -278,7 +278,7 @@ const ViewContactModal = ({ contact, open, onOpenChange, onEdit, onSaved }) => {
           <Button variant="outline" onClick={() => { onOpenChange(false); onEdit?.(contact); }} className="gap-2">
             <Edit className="h-4 w-4" /> Modifier les infos
           </Button>
-          <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
+          <Button onClick={handleSave} disabled={isSaving} className="bg-nc-navy hover:bg-nc-navy-light text-white gap-2">
             {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Enregistrer
           </Button>

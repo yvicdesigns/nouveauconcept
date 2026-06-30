@@ -101,7 +101,7 @@ const AddLoanModal = ({ isOpen, onClose, vehicle, onSave }) => {
                  type="text"
                  value={formData.giver}
                  onChange={(e) => setFormData(prev => ({ ...prev, giver: e.target.value }))}
-                 className="w-full p-2.5 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500"
+                 className="w-full p-2.5 border border-gray-200 rounded-md focus:ring-2 focus:ring-nc-navy"
                />
              </div>
              <div className="space-y-2">
@@ -109,7 +109,7 @@ const AddLoanModal = ({ isOpen, onClose, vehicle, onSave }) => {
                <select
                  value={formData.loan_type}
                  onChange={(e) => setFormData(prev => ({ ...prev, loan_type: e.target.value }))}
-                 className="w-full p-2.5 border border-gray-200 rounded-md bg-white focus:ring-2 focus:ring-blue-500"
+                 className="w-full p-2.5 border border-gray-200 rounded-md bg-white focus:ring-2 focus:ring-nc-navy"
                >
                  <option value="prêt">Prêt temporaire</option>
                  <option value="don">Don / Affectation</option>
@@ -126,7 +126,7 @@ const AddLoanModal = ({ isOpen, onClose, vehicle, onSave }) => {
               onChange={(e) => setFormData(prev => ({ ...prev, receiver: e.target.value }))}
               placeholder="Nom du bénéficiaire"
               required
-              className="w-full p-2.5 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2.5 border border-gray-200 rounded-md focus:ring-2 focus:ring-nc-navy"
             />
           </div>
 
@@ -136,7 +136,7 @@ const AddLoanModal = ({ isOpen, onClose, vehicle, onSave }) => {
               type="date"
               value={formData.loan_date}
               onChange={(e) => setFormData(prev => ({ ...prev, loan_date: e.target.value }))}
-              className="w-full p-2.5 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2.5 border border-gray-200 rounded-md focus:ring-2 focus:ring-nc-navy"
             />
           </div>
 
@@ -145,14 +145,14 @@ const AddLoanModal = ({ isOpen, onClose, vehicle, onSave }) => {
              <textarea 
                value={formData.notes}
                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-               className="w-full p-2.5 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500"
+               className="w-full p-2.5 border border-gray-200 rounded-md focus:ring-2 focus:ring-nc-navy"
                rows={2}
              />
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>Annuler</Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+            <Button type="submit" className="bg-nc-navy hover:bg-nc-navy-light text-white" disabled={isLoading}>
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
               Valider le Prêt
             </Button>

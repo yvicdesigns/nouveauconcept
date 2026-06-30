@@ -82,7 +82,7 @@ const ViewInvoiceModal = ({ open, onOpenChange, invoice }) => {
               </Button>
             )}
             <Button size="sm" onClick={downloadPDF} disabled={isExporting}
-              className="bg-blue-600 hover:bg-blue-700 text-white min-w-[130px]">
+              className="bg-nc-navy hover:bg-nc-navy-light text-white min-w-[130px]">
               {isExporting
                 ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Export…</>
                 : <><Download className="h-4 w-4 mr-2" />Télécharger PDF</>}

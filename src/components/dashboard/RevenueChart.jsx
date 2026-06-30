@@ -43,7 +43,7 @@ const RevenueChart = ({ data = [] }) => {
                   initial={{ height: 0 }}
                   animate={{ height: `${(item.value / maxValue) * 100}%` }}
                   transition={{ duration: 0.8, delay: index * 0.1 }}
-                  className="w-full max-w-[60px] bg-blue-600 rounded-t-lg hover:bg-blue-700 transition-colors cursor-pointer relative shadow-sm min-h-[4px]"
+                  className="w-full max-w-[60px] bg-nc-navy rounded-t-lg hover:bg-nc-navy-light transition-colors cursor-pointer relative shadow-sm min-h-[4px]"
                 >
                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap z-10 shadow-lg pointer-events-none">
                     {item.value.toLocaleString()} FCFA

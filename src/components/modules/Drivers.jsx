@@ -93,32 +93,32 @@ const DriverModal = ({ open, onOpenChange, onSaved, driverToEdit, vehicles }) =>
             <div className="col-span-2 space-y-1.5">
               <label className="text-sm font-medium text-slate-700">Nom complet *</label>
               <input name="name" value={form.name} onChange={handleChange} placeholder="ex: Michel Ouabari" required
-                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none" />
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-slate-700">Téléphone</label>
               <input name="phone" value={form.phone} onChange={handleChange} placeholder="+242 06 ..."
-                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none" />
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-slate-700">Email</label>
               <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="chauffeur@email.com"
-                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none" />
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-slate-700">N° Permis</label>
               <input name="license_number" value={form.license_number} onChange={handleChange} placeholder="ex: CG-2024-001"
-                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none" />
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-slate-700">Expiration permis</label>
               <input name="license_expiry" type="date" value={form.license_expiry} onChange={handleChange}
-                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none" />
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-slate-700">Statut</label>
               <select name="status" value={form.status} onChange={handleChange}
-                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none bg-white">
                 <option value="active">Actif</option>
                 <option value="inactive">Inactif</option>
                 <option value="on_leave">En congé</option>
@@ -127,12 +127,12 @@ const DriverModal = ({ open, onOpenChange, onSaved, driverToEdit, vehicles }) =>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-slate-700">Commission (%)</label>
               <input name="commission_rate" type="number" min="0" max="100" step="0.5" value={form.commission_rate} onChange={handleChange}
-                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none" />
             </div>
             <div className="col-span-2 space-y-1.5">
               <label className="text-sm font-medium text-slate-700">Véhicule assigné</label>
               <select name="vehicle_id" value={form.vehicle_id} onChange={handleChange}
-                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none bg-white">
                 <option value="">— Aucun véhicule —</option>
                 {vehicles.map(v => (
                   <option key={v.id} value={v.id}>{v.name || `${v.brand} ${v.model}`} — {v.license_plate}</option>
@@ -142,7 +142,7 @@ const DriverModal = ({ open, onOpenChange, onSaved, driverToEdit, vehicles }) =>
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Annuler</Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+            <Button type="submit" className="bg-nc-navy hover:bg-nc-navy-light text-white" disabled={isLoading}>
               {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
               {driverToEdit ? 'Mettre à jour' : 'Enregistrer'}
             </Button>
@@ -213,7 +213,7 @@ const Drivers = () => {
           <h1 className="text-3xl font-bold text-slate-900">Chauffeurs</h1>
           <p className="text-slate-600 mt-1">Gérez les profils, permis et affectations de vos chauffeurs</p>
         </div>
-        <Button onClick={() => { setDriverToEdit(null); setIsModalOpen(true); }} className="bg-blue-600 hover:bg-blue-700 text-white">
+        <Button onClick={() => { setDriverToEdit(null); setIsModalOpen(true); }} className="bg-nc-navy hover:bg-nc-navy-light text-white">
           <Plus className="h-4 w-4 mr-2" /> Ajouter un chauffeur
         </Button>
       </div>
@@ -225,7 +225,7 @@ const Drivers = () => {
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             placeholder="Rechercher par nom ou numéro de permis..."
-            className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy"
           />
         </div>
 

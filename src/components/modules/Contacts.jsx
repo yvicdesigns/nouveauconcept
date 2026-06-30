@@ -190,7 +190,7 @@ const Contacts = () => {
                   </span>
                 )}
               </div>
-              <Button onClick={handleAddContact} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button onClick={handleAddContact} className="bg-nc-navy hover:bg-nc-navy-light text-white">
                 <Plus className="h-4 w-4 mr-2" />
                 Ajouter un contact
               </Button>
@@ -253,7 +253,7 @@ const Contacts = () => {
                     {client.phone && (
                       <a
                         href={`tel:${client.phone}`}
-                        className="flex-1 flex items-center justify-center gap-1.5 text-sm font-semibold bg-blue-600 text-white rounded-md px-3 py-1.5 hover:bg-blue-700 transition-colors"
+                        className="flex-1 flex items-center justify-center gap-1.5 text-sm font-semibold bg-nc-navy text-white rounded-md px-3 py-1.5 hover:bg-nc-navy-light transition-colors"
                       >
                         <PhoneCall className="h-3.5 w-3.5" /> Appeler
                       </a>
@@ -275,7 +275,7 @@ const Contacts = () => {
             placeholder="Rechercher par nom, entreprise ou email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy transition-all"
           />
         </div>
 

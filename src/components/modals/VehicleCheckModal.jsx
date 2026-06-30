@@ -160,7 +160,7 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
   const isCheckOut = type === 'checkout';
   const title = isCheckOut ? 'Départ Véhicule (Check-out)' : 'Retour Véhicule (Check-in)';
   const confirmLabel = isCheckOut ? 'Valider le Départ' : 'Valider le Retour';
-  const confirmColor = isCheckOut ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700';
+  const confirmColor = isCheckOut ? 'bg-nc-navy hover:bg-nc-navy-light' : 'bg-green-600 hover:bg-green-700';
   
   const baseMileage = parseInt(String(vehicle.mileage).replace(/[^0-9]/g, '')) || 0;
   const mileageDiff = currentMileage - baseMileage;
@@ -229,7 +229,7 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
                         <select
                           value={selectedClientId}
                           onChange={(e) => setSelectedClientId(e.target.value)}
-                          className="w-full px-4 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                          className="w-full px-4 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-nc-navy focus:border-nc-navy outline-none transition-all"
                         >
                           <option value="">Sélectionner un client...</option>
                           {clients.map(client => (
@@ -250,7 +250,7 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
                         type="time"
                         value={departureTime}
                         onChange={(e) => setDepartureTime(e.target.value)}
-                        className="w-full px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                        className="w-full px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-nc-navy focus:border-nc-navy outline-none transition-all"
                       />
                     </div>
 
@@ -264,7 +264,7 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
                         value={expectedReturnDate}
                         min={new Date().toISOString().split('T')[0]}
                         onChange={(e) => setExpectedReturnDate(e.target.value)}
-                        className="w-full px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                        className="w-full px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-nc-navy focus:border-nc-navy outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -282,7 +282,7 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
                         type="number" 
                         value={currentMileage}
                         onChange={(e) => setCurrentMileage(parseInt(e.target.value) || 0)}
-                        className="w-full pl-4 pr-12 py-3 text-2xl font-bold text-gray-900 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        className="w-full pl-4 pr-12 py-3 text-2xl font-bold text-gray-900 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-nc-navy focus:border-nc-navy transition-all"
                       />
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-400">km</span>
                     </div>
@@ -329,7 +329,7 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
                     value={observations}
                     onChange={(e) => setObservations(e.target.value)}
                     placeholder="État de propreté, odeurs, accessoires manquants..."
-                    className="w-full h-32 p-4 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none bg-gray-50 shadow-sm transition-all"
+                    className="w-full h-32 p-4 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-nc-navy focus:border-nc-navy resize-none bg-gray-50 shadow-sm transition-all"
                   />
                 </div>
               </div>

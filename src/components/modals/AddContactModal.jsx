@@ -189,7 +189,7 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="ex: Jean Mokoko"
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                 />
               </div>
               <div className="space-y-2">
@@ -198,7 +198,7 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none bg-white"
                 >
                   <option value="Active">Actif</option>
                   <option value="Inactive">Inactif</option>
@@ -222,7 +222,7 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="jean@exemple.cg"
-                    className="w-full pl-9 p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full pl-9 p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                   />
                 </div>
               </div>
@@ -236,7 +236,7 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="+242 06 123 4567"
-                    className="w-full pl-9 p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full pl-9 p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                   />
                 </div>
                 <p className="text-xs text-slate-500">Format: +242 suivi de 8-9 chiffres</p>
@@ -258,7 +258,7 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
                     value={formData.company}
                     onChange={handleChange}
                     placeholder="Brazza Tech"
-                    className="w-full pl-9 p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full pl-9 p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                   />
                 </div>
               </div>
@@ -270,7 +270,7 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
                   value={formData.position}
                   onChange={handleChange}
                   placeholder="Directeur Commercial"
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                 />
               </div>
             </div>
@@ -290,7 +290,7 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
                     value={formData.address}
                     onChange={handleChange}
                     placeholder="Avenue de la Paix"
-                    className="w-full pl-9 p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full pl-9 p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                   />
                 </div>
               </div>
@@ -303,7 +303,7 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
                     value={formData.city}
                     onChange={handleChange}
                     placeholder="Brazzaville"
-                    className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                   />
                 </div>
                 <div className="space-y-2">
@@ -314,7 +314,7 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
                     value={formData.postal_code}
                     onChange={handleChange}
                     placeholder="BP 1234"
-                    className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                   />
                 </div>
                 <div className="space-y-2">
@@ -325,7 +325,7 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
                     value={formData.country}
                     onChange={handleChange}
                     placeholder="Congo"
-                    className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                   />
                 </div>
               </div>
@@ -340,7 +340,7 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
               value={formData.notes}
               onChange={handleChange}
               rows={3}
-              className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
+              className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none resize-none"
               placeholder="Observations ou informations importantes..."
             />
           </div>
@@ -355,7 +355,7 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
                   name="satisfaction"
                   value={formData.satisfaction}
                   onChange={handleChange}
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none bg-white"
                 >
                   <option value="">— Non évalué —</option>
                   <option value="Très satisfait">😄 Très satisfait</option>
@@ -371,7 +371,7 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
                   name="remarque_type"
                   value={formData.remarque_type}
                   onChange={handleChange}
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none bg-white"
                 >
                   <option value="">— Aucun —</option>
                   <option value="Félicitation">✅ Félicitation</option>
@@ -388,7 +388,7 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
                 value={formData.remarque}
                 onChange={handleChange}
                 rows={3}
-                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
+                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none resize-none"
                 placeholder="Décrivez le retour du client..."
               />
             </div>
@@ -399,7 +399,7 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
                 name="action_requise"
                 checked={formData.action_requise}
                 onChange={(e) => setFormData(prev => ({ ...prev, action_requise: e.target.checked }))}
-                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-nc-navy"
               />
               <label htmlFor="action_requise" className="text-sm font-medium text-slate-700">
                 Action requise <span className="text-xs text-slate-500">(à traiter en priorité)</span>
@@ -418,7 +418,7 @@ const AddContactModal = ({ open, onOpenChange, onContactSaved, contactToEdit = n
             </Button>
             <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white min-w-[150px]"
+              className="bg-nc-navy hover:bg-nc-navy-light text-white min-w-[150px]"
               disabled={isLoading}
             >
               {isLoading ? (

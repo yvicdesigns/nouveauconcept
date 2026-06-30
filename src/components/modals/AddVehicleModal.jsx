@@ -382,7 +382,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="ex: Peugeot 3008 GT"
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                 />
               </div>
               <div className="space-y-2">
@@ -394,7 +394,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   value={formData.brand}
                   onChange={handleChange}
                   placeholder="ex: Peugeot"
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                 />
               </div>
               <div className="space-y-2">
@@ -406,7 +406,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   value={formData.model}
                   onChange={handleChange}
                   placeholder="ex: 3008"
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                 />
               </div>
               <div className="space-y-2">
@@ -418,7 +418,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   value={formData.license_plate}
                   onChange={handleChange}
                   placeholder="ex: AB-123-CD"
-                  className="w-full p-2 border border-slate-200 rounded-md uppercase focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full p-2 border border-slate-200 rounded-md uppercase focus:ring-2 focus:ring-nc-navy focus:outline-none"
                 />
               </div>
               <div className="space-y-2">
@@ -430,7 +430,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   onChange={handleChange}
                   min="1990"
                   max={new Date().getFullYear() + 1}
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                 />
               </div>
               <div className="space-y-2">
@@ -441,7 +441,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   value={formData.color}
                   onChange={handleChange}
                   placeholder="ex: Gris, Noir..."
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                 />
               </div>
               <div className="space-y-2">
@@ -452,7 +452,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   value={formData.chassis_number}
                   onChange={handleChange}
                   placeholder="ex: VF3..."
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none uppercase"
                 />
               </div>
               <div className="space-y-2">
@@ -462,7 +462,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   name="acquisition_date"
                   value={formData.acquisition_date}
                   onChange={handleChange}
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                 />
               </div>
             </div>
@@ -478,7 +478,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none bg-white"
                 >
                   <option value="Berline">Berline</option>
                   <option value="SUV">SUV</option>
@@ -496,7 +496,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   name="fuel_type"
                   value={formData.fuel_type}
                   onChange={handleChange}
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none bg-white"
                 >
                   <option value="Essence">Essence</option>
                   <option value="Diesel">Diesel</option>
@@ -510,7 +510,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   name="transmission"
                   value={formData.transmission}
                   onChange={handleChange}
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none bg-white"
                 >
                   <option value="Manuelle">Manuelle</option>
                   <option value="Automatique">Automatique</option>
@@ -524,7 +524,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   value={formData.mileage}
                   onChange={handleChange}
                   min="0"
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                 />
               </div>
               <div className="space-y-2">
@@ -536,7 +536,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   onChange={handleChange}
                   min="1"
                   max="60"
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                 />
               </div>
             </div>
@@ -557,7 +557,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                       name="last_insurance_date"
                       value={formData.last_insurance_date}
                       onChange={handleChange}
-                      className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm"
                     />
                   </div>
                   <div className="space-y-2">
@@ -567,7 +567,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                       name="insurance_expiry_date"
                       value={formData.insurance_expiry_date}
                       onChange={handleChange}
-                      className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm"
                     />
                     <p className="text-xs text-slate-400 italic">Auto: +1 an</p>
                   </div>
@@ -585,7 +585,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                       name="last_technical_check_date"
                       value={formData.last_technical_check_date}
                       onChange={handleChange}
-                      className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm"
                     />
                   </div>
                   <div className="space-y-2">
@@ -595,7 +595,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                       name="technical_check_expiry_date"
                       value={formData.technical_check_expiry_date}
                       onChange={handleChange}
-                      className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm"
                     />
                     <p className="text-xs text-slate-400 italic">Auto: +6 mois</p>
                   </div>
@@ -620,7 +620,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                       value={formData.patente}
                       onChange={handleChange}
                       placeholder="ex: PAT-2024-001"
-                      className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm"
                     />
                   </div>
                   <div className="space-y-2">
@@ -630,7 +630,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                       name="patente_expiry_date"
                       value={formData.patente_expiry_date}
                       onChange={handleChange}
-                      className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm"
                     />
                   </div>
                 </div>
@@ -650,7 +650,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                         onChange={handleChange}
                         min="0"
                         placeholder="ex: 45000"
-                        className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                        className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm"
                       />
                     </div>
                     <div className="space-y-2">
@@ -662,7 +662,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                         onChange={handleChange}
                         min="1000"
                         placeholder="5000"
-                        className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                        className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm"
                       />
                     </div>
                   </div>
@@ -673,7 +673,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                       name="last_oil_change_date"
                       value={formData.last_oil_change_date}
                       onChange={handleChange}
-                      className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm"
                     />
                   </div>
                 </div>
@@ -695,7 +695,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   value={formData.daily_rate}
                   onChange={handleChange}
                   placeholder="ex: 25000"
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                 />
               </div>
               <div className="space-y-2">
@@ -706,7 +706,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   value={formData.purchase_price}
                   onChange={handleChange}
                   placeholder="Optionnel"
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                 />
               </div>
               <div className="space-y-2">
@@ -715,7 +715,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none bg-white"
                 >
                   <option value="DISPONIBLE">DISPONIBLE</option>
                   <option value="LOUÉ">LOUÉ</option>
@@ -739,7 +739,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   value={formData.breakdown_type}
                   onChange={handleChange}
                   placeholder="ex: Problème moteur, crevaison..."
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                 />
               </div>
               <div className="space-y-2">
@@ -750,7 +750,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
                   value={formData.anomaly}
                   onChange={handleChange}
                   placeholder="ex: Voyant ABS allumé"
-                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
                 />
               </div>
             </div>
@@ -764,7 +764,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
               value={formData.notes}
               onChange={handleChange}
               rows={3}
-              className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
+              className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none resize-none"
               placeholder="Informations supplémentaires..."
             />
           </div>
@@ -780,7 +780,7 @@ const AddVehicleModal = ({ open, onOpenChange, onVehicleSaved, vehicleToEdit = n
             </Button>
             <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white min-w-[150px]"
+              className="bg-nc-navy hover:bg-nc-navy-light text-white min-w-[150px]"
               disabled={isLoading}
             >
               {isLoading ? (

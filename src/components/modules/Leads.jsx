@@ -208,12 +208,12 @@ const Leads = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input type="text" placeholder="Rechercher un prospect..."
                 value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+                className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy text-sm" />
             </div>
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-slate-400 flex-shrink-0" />
               <select value={sourceFilter} onChange={e => setSourceFilter(e.target.value)}
-                className="p-2.5 border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 text-sm text-slate-700">
+                className="p-2.5 border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-nc-navy text-sm text-slate-700">
                 <option value="">Toutes les sources</option>
                 {SOURCE_OPTIONS.map(s => <option key={s}>{s}</option>)}
               </select>
@@ -323,31 +323,31 @@ const Leads = () => {
                 <label className="text-sm font-medium text-slate-700">Nom complet *</label>
                 <input required type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
                   placeholder="ex: Marie Laurent"
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm" />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Email</label>
                 <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
                   placeholder="email@exemple.com"
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm" />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Téléphone</label>
                 <input type="text" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
                   placeholder="+225 07 00 00 00"
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm" />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Source</label>
                 <select value={form.source} onChange={e => setForm(p => ({ ...p, source: e.target.value }))}
-                  className="w-full p-2.5 border border-slate-200 rounded-md bg-white focus:ring-2 focus:ring-blue-500 text-sm">
+                  className="w-full p-2.5 border border-slate-200 rounded-md bg-white focus:ring-2 focus:ring-nc-navy text-sm">
                   {SOURCE_OPTIONS.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Statut</label>
                 <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value }))}
-                  className="w-full p-2.5 border border-slate-200 rounded-md bg-white focus:ring-2 focus:ring-blue-500 text-sm">
+                  className="w-full p-2.5 border border-slate-200 rounded-md bg-white focus:ring-2 focus:ring-nc-navy text-sm">
                   {STATUS_OPTIONS.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
@@ -355,18 +355,18 @@ const Leads = () => {
                 <label className="text-sm font-medium text-slate-700">Véhicule souhaité</label>
                 <input type="text" value={form.interest} onChange={e => setForm(p => ({ ...p, interest: e.target.value }))}
                   placeholder="ex: SUV, Berline, Pick-up..."
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none text-sm" />
               </div>
               <div className="col-span-2 space-y-1">
                 <label className="text-sm font-medium text-slate-700">Notes</label>
                 <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))}
                   rows={2} placeholder="Informations complémentaires..."
-                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 text-sm resize-none" />
+                  className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy text-sm resize-none" />
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-2 border-t">
               <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} disabled={isSaving}>Annuler</Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white min-w-[120px]" disabled={isSaving}>
+              <Button type="submit" className="bg-nc-navy hover:bg-nc-navy-light text-white min-w-[120px]" disabled={isSaving}>
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : (leadToEdit ? 'Mettre à jour' : 'Enregistrer')}
               </Button>
             </div>

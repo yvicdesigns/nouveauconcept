@@ -17,6 +17,14 @@ module.exports = {
 		},
 		extend: {
 			colors: {
+				nc: {
+					navy:    '#00283c',
+					'navy-light': '#003a56',
+					red:     '#cc0000',
+					'red-light': '#e53333',
+					gold:    '#c8b478',
+					'gold-dark': '#b48c28',
+				},
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',

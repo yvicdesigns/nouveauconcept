@@ -127,7 +127,7 @@ const ChangePasswordModal = ({ isOpen, onClose, userEmail }) => {
              <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
               Annuler
             </Button>
-            <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700">
+            <Button type="submit" disabled={loading} className="bg-nc-navy hover:bg-nc-navy-light">
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Changer le mot de passe
             </Button>

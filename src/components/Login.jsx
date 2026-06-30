@@ -124,7 +124,7 @@ const Login = ({ onLoginSuccess }) => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-nc-navy focus:border-nc-navy sm:text-sm transition-colors"
                   placeholder="admin@nouveauconcept.com"
                 />
               </div>
@@ -143,7 +143,7 @@ const Login = ({ onLoginSuccess }) => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors pr-10"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-nc-navy focus:border-nc-navy sm:text-sm transition-colors pr-10"
                   placeholder="••••••••"
                 />
                 <button
@@ -162,7 +162,7 @@ const Login = ({ onLoginSuccess }) => {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-blue-600 focus:ring-nc-navy border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
                   Se souvenir de moi
@@ -180,7 +180,7 @@ const Login = ({ onLoginSuccess }) => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-nc-navy hover:bg-nc-navy-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-nc-navy transition-all"
               >
                 {isLoading ? (
                   <>
@@ -218,7 +218,7 @@ const Login = ({ onLoginSuccess }) => {
             </div>
             <button
               onClick={handleInstall}
-              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition-all shrink-0"
+              className="flex items-center gap-1.5 bg-nc-navy hover:bg-nc-navy-light text-white text-xs font-bold px-3 py-2 rounded-lg transition-all shrink-0"
             >
               <Download className="h-3.5 w-3.5" />
               Installer

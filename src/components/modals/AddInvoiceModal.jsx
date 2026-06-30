@@ -341,7 +341,7 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
                   value={formData.reservation_id}
                   onChange={handleReservationSelect}
                   disabled={isEditing} 
-                  className="w-full p-2.5 pl-3 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-slate-100 disabled:text-slate-500"
+                  className="w-full p-2.5 pl-3 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white disabled:bg-slate-100 disabled:text-slate-500"
                 >
                   <option value="">Sélectionner une réservation...</option>
                   {reservations.map(r => (
@@ -368,7 +368,7 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
                   value={formData.invoice_number}
                   onChange={handleChange}
                   required
-                  className="flex-1 p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 font-mono font-medium"
+                  className="flex-1 p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy font-mono font-medium"
                 />
                 {!isEditing && (
                   <Button type="button" variant="outline" size="icon" onClick={() => setFormData(prev => ({...prev, invoice_number: generateInvoiceNumber()}))} title="Générer nouveau">
@@ -390,7 +390,7 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
                 onChange={handleChange}
                 required
                 placeholder="Nom du client"
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy"
               />
             </div>
             <div className="space-y-2">
@@ -402,7 +402,7 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
                 onChange={handleChange}
                 required
                 placeholder="Marque, Modèle, Plaque"
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy"
               />
             </div>
             <div className="space-y-2">
@@ -413,7 +413,7 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
                 value={formData.client_phone}
                 onChange={handleChange}
                 placeholder="+242 06..."
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy"
               />
             </div>
             <div className="space-y-2">
@@ -424,7 +424,7 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
                 value={formData.client_cni}
                 onChange={handleChange}
                 placeholder="Numéro CNI..."
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy"
               />
             </div>
             <div className="space-y-2">
@@ -433,7 +433,7 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
                 name="driver_id"
                 value={formData.driver_id}
                 onChange={handleChange}
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white"
               >
                 <option value="">— Aucun chauffeur —</option>
                 {drivers.map(d => (
@@ -606,7 +606,7 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
                 name="payment_method"
                 value={formData.payment_method}
                 onChange={handleChange}
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white"
               >
                 <option value="Espèces">Espèces</option>
                 <option value="Mobile Money">Mobile Money</option>
@@ -622,7 +622,7 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
                 value={formData.payment_conditions}
                 onChange={handleChange}
                 placeholder="Ex: Paiement à réception..."
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy"
               />
             </div>
           </div>
@@ -634,7 +634,7 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
               value={formData.notes}
               onChange={handleChange}
               rows={2}
-              className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy resize-none"
               placeholder="Instructions de paiement, remerciements..."
             />
           </div>
@@ -650,7 +650,7 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
             </Button>
             <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white min-w-[150px]"
+              className="bg-nc-navy hover:bg-nc-navy-light text-white min-w-[150px]"
               disabled={isLoading}
             >
               {isLoading ? (

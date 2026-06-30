@@ -89,7 +89,7 @@ const AddInsuranceModal = ({ isOpen, onClose, vehicle, onSave }) => {
               type="date"
               value={formData.insurance_date}
               onChange={(e) => setFormData(prev => ({ ...prev, insurance_date: e.target.value }))}
-              className="w-full p-2.5 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2.5 border border-gray-200 rounded-md focus:ring-2 focus:ring-nc-navy"
             />
           </div>
 
@@ -99,14 +99,14 @@ const AddInsuranceModal = ({ isOpen, onClose, vehicle, onSave }) => {
               type="date"
               value={formData.insurance_expiry}
               onChange={(e) => setFormData(prev => ({ ...prev, insurance_expiry: e.target.value }))}
-              className="w-full p-2.5 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2.5 border border-gray-200 rounded-md focus:ring-2 focus:ring-nc-navy"
               required
             />
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>Annuler</Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+            <Button type="submit" className="bg-nc-navy hover:bg-nc-navy-light text-white" disabled={isLoading}>
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
               Enregistrer
             </Button>

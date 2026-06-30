@@ -163,7 +163,7 @@ const Reservations = () => {
         
         <Button 
           onClick={handleAdd} 
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          className="bg-nc-navy hover:bg-nc-navy-light text-white"
         >
           <Plus className="h-4 w-4 mr-2" />
           Ajouter une réservation
@@ -179,7 +179,7 @@ const Reservations = () => {
             placeholder="Rechercher par client ou véhicule..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-nc-navy"
           />
         </div>
         <div className="flex flex-wrap gap-2">
@@ -189,7 +189,7 @@ const Reservations = () => {
               onClick={() => setStatusFilter(s)}
               className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
                 statusFilter === s
-                  ? 'bg-blue-600 text-white border-blue-600'
+                  ? 'bg-nc-navy text-white border-blue-600'
                   : 'bg-white text-gray-600 border-gray-200 hover:border-blue-400 hover:text-blue-600'
               }`}
             >

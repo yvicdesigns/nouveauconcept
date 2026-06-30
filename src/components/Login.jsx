@@ -1,16 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/customSupabaseClient';
-import { Eye, EyeOff, Loader2, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, Loader2, ShieldCheck, Download, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Helmet } from 'react-helmet';
 
 const Login = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState(''); // Note: In a real production app with Supabase Auth, password handling is different.
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
+
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+      setShowInstallBanner(true);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') setShowInstallBanner(false);
+    setInstallPrompt(null);
+  };
 
   const withTimeout = (promise, ms = 12000) =>
     Promise.race([
@@ -188,6 +209,33 @@ const Login = ({ onLoginSuccess }) => {
           </div>
         </div>
       </div>
+      {/* PWA Install Banner */}
+      {showInstallBanner && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-sm mx-auto px-4 z-50">
+          <div className="bg-white border border-blue-200 rounded-2xl shadow-xl p-4 flex items-center gap-3">
+            <div className="h-10 w-10 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center shrink-0">
+              <ShieldCheck className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-slate-900">Installer l'application</p>
+              <p className="text-xs text-slate-500">Accès rapide depuis votre écran d'accueil</p>
+            </div>
+            <button
+              onClick={handleInstall}
+              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition-all shrink-0"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Installer
+            </button>
+            <button
+              onClick={() => setShowInstallBanner(false)}
+              className="text-slate-400 hover:text-slate-600 shrink-0"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -213,9 +213,7 @@ const Login = ({ onLoginSuccess }) => {
       {showInstallBanner && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-sm mx-auto px-4 z-50">
           <div className="bg-white border border-blue-200 rounded-2xl shadow-xl p-4 flex items-center gap-3">
-            <div className="h-10 w-10 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center shrink-0">
-              <ShieldCheck className="h-5 w-5 text-white" />
-            </div>
+            <img src="/icons/icon-96x96.png" alt="Nouveau Concept" className="h-10 w-10 rounded-xl shrink-0 object-cover" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-slate-900">Installer l'application</p>
               <p className="text-xs text-slate-500">Accès rapide depuis votre écran d'accueil</p>

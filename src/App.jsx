@@ -25,6 +25,7 @@ import Maintenance from '@/components/modules/Maintenance';
 import DestinationsModule from '@/components/modules/Routes';
 import Drivers from '@/components/modules/Drivers';
 import Tutorial from '@/components/modules/Tutorial';
+import Fidelisation from '@/components/modules/Fidelisation';
 import { Toaster } from '@/components/ui/toaster';
 import { Loader2 } from 'lucide-react';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
@@ -98,6 +99,7 @@ function App() {
     '/routes': 'Tarifs par Destination',
     '/drivers': 'Chauffeurs',
     '/tutorial': 'Guide d\'utilisation',
+    '/fidelisation': 'Programme de Fidélisation',
   };
 
   const getActiveModuleTitle = () => {
@@ -251,6 +253,7 @@ function App() {
           <Route path="routes" element={<ProtectedRoute moduleId="routes" permissions={userPermissions}><ErrorBoundary><DestinationsModule /></ErrorBoundary></ProtectedRoute>} />
           <Route path="drivers" element={<ProtectedRoute moduleId="drivers" permissions={userPermissions}><ErrorBoundary><Drivers /></ErrorBoundary></ProtectedRoute>} />
           <Route path="tutorial" element={<ErrorBoundary><Tutorial /></ErrorBoundary>} />
+          <Route path="fidelisation" element={<ProtectedRoute moduleId="fidelisation" permissions={userPermissions}><ErrorBoundary><Fidelisation /></ErrorBoundary></ProtectedRoute>} />
         </Route>
         <Route path="*" element={<Dashboard />} />
       </Routes>

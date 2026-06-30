@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, CalendarDays, Car, CreditCard, Headphones as HeadphonesIcon, UserCog, Settings as SettingsIcon, LogOut, X, History, Wrench, KeyRound, MapPin, UserCheck } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, Car, CreditCard, Headphones as HeadphonesIcon, UserCog, Settings as SettingsIcon, LogOut, X, History, Wrench, KeyRound, MapPin, UserCheck, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import ChangePasswordModal from '@/components/modals/ChangePasswordModal';
@@ -14,6 +14,7 @@ const ALL_MENU_ITEMS = [
   { id: 'billing',      label: 'Facturation',      icon: CreditCard,      path: '/billing' },
   { id: 'drivers',      label: 'Chauffeurs',       icon: UserCheck,       path: '/drivers' },
   { id: 'routes',       label: 'Destinations',     icon: MapPin,          path: '/routes' },
+  { id: 'fidelisation', label: 'Fidélisation',      icon: Crown,           path: '/fidelisation' },
   { id: 'history',      label: 'Historique',       icon: History,         path: '/history' },
   { id: 'support',      label: 'Support',          icon: HeadphonesIcon,  path: '/support' },
   { id: 'users',        label: 'Utilisateurs',     icon: UserCog,         path: '/users' },

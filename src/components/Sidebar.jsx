@@ -60,7 +60,10 @@ const Sidebar = ({ isOpen, setIsOpen, user, onLogout, permissions }) => {
         {/* Header */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="Nouveau Concept" className="h-9 w-auto object-contain" />
+            <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm">
+              <img src="/logo.png" alt="Nouveau Concept" className="h-8 w-8 object-contain" />
+            </div>
+            <span className="font-bold text-sm tracking-wide text-white/90">Nouveau Concept</span>
           </div>
           <button 
             onClick={() => setIsOpen(false)}

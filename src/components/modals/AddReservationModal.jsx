@@ -17,6 +17,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
   const [clients, setClients] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [drivers, setDrivers] = useState([]);
+  const [routesList, setRoutesList] = useState([]);
   const [vehicleReservations, setVehicleReservations] = useState([]);
   const [calendarVehicleId, setCalendarVehicleId] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -30,6 +31,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
     end_time: '18:00',
     status: 'En attente',
     payment_mode: 'immediate',
+    selected_route_id: '',
     departure_location: '',
     return_location: '',
     notes: '',
@@ -53,6 +55,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
             end_time: reservationToEdit.end_date ? format(new Date(reservationToEdit.end_date), 'HH:mm') : '18:00',
             status: reservationToEdit.status,
             payment_mode: reservationToEdit.payment_mode || 'immediate',
+            selected_route_id: '',
             departure_location: reservationToEdit.departure_location || '',
             return_location: reservationToEdit.return_location || '',
             notes: reservationToEdit.notes || '',
@@ -69,6 +72,14 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
     }
   }, [open, reservationToEdit]);
 
+  const calcRoutePriceForRow = (routeId, startDate, endDate) => {
+    const route = routesList.find(r => r.id === routeId);
+    if (!route) return null;
+    const days = startDate && endDate ? (differenceInDays(parseISO(endDate), parseISO(startDate)) || 1) : 1;
+    const daysAtDest = Math.max(0, days - 1);
+    return { route, daysAtDest, total: 2 * route.price + daysAtDest * (route.daily_rate || 0) };
+  };
+
   // Recalculate all rows when dates change
   useEffect(() => {
     if (!formData.start_date || !formData.end_date || vehicles.length === 0) return;
@@ -76,24 +87,31 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
       ...prev,
       vehicleRows: prev.vehicleRows.map(row => {
         if (!row.vehicle_id) return row;
+        // Route-based pricing takes priority
+        if (prev.selected_route_id) {
+          const calc = calcRoutePriceForRow(prev.selected_route_id, prev.start_date, prev.end_date);
+          if (calc) return { ...row, price: calc.total };
+        }
         const v = vehicles.find(v => v.id === row.vehicle_id);
         if (!v || !v.daily_rate) return row;
         const days = differenceInDays(parseISO(prev.end_date), parseISO(prev.start_date)) || 1;
         return { ...row, price: days * v.daily_rate };
       }),
     }));
-  }, [formData.start_date, formData.end_date]);
+  }, [formData.start_date, formData.end_date, formData.selected_route_id]);
 
   const fetchDependencies = async () => {
     try {
-      const [{ data: clientsData }, { data: vehiclesData }, { data: driversData }] = await Promise.all([
+      const [{ data: clientsData }, { data: vehiclesData }, { data: driversData }, { data: routesData }] = await Promise.all([
         supabase.from('contacts').select('id, name').order('name'),
         supabase.from('vehicles').select('id, name, brand, model, license_plate, daily_rate, status').order('name'),
         supabase.from('drivers').select('id, name, status').order('name'),
+        supabase.from('routes').select('id, from_location, to_location, price, daily_rate').order('from_location'),
       ]);
       setClients(clientsData || []);
       setVehicles(vehiclesData || []);
       setDrivers(driversData || []);
+      setRoutesList(routesData || []);
       return driversData || [];
     } catch (error) {
       console.error('Error fetching dependencies:', error);
@@ -139,13 +157,18 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
 
       // Auto-calculate price when vehicle is selected
       if (field === 'vehicle_id' && value) {
-        const v = vehicles.find(v => v.id === value);
-        if (v && v.daily_rate) {
-          if (prev.start_date && prev.end_date) {
-            const days = differenceInDays(parseISO(prev.end_date), parseISO(prev.start_date)) || 1;
-            rows[index].price = days * v.daily_rate;
-          } else {
-            rows[index].price = v.daily_rate; // tarif 1 jour par défaut
+        if (prev.selected_route_id) {
+          const calc = calcRoutePriceForRow(prev.selected_route_id, prev.start_date, prev.end_date);
+          if (calc) rows[index].price = calc.total;
+        } else {
+          const v = vehicles.find(v => v.id === value);
+          if (v && v.daily_rate) {
+            if (prev.start_date && prev.end_date) {
+              const days = differenceInDays(parseISO(prev.end_date), parseISO(prev.start_date)) || 1;
+              rows[index].price = days * v.daily_rate;
+            } else {
+              rows[index].price = v.daily_rate;
+            }
           }
         }
       }
@@ -514,6 +537,49 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
               </div>
             </div>
 
+            {/* Trajet (route) */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-blue-600" /> Trajet
+              </label>
+              <select
+                name="selected_route_id"
+                value={formData.selected_route_id}
+                onChange={(e) => {
+                  const rid = e.target.value;
+                  const route = routesList.find(r => r.id === rid);
+                  setFormData(prev => ({
+                    ...prev,
+                    selected_route_id: rid,
+                    departure_location: route ? route.from_location : prev.departure_location,
+                    return_location: route ? route.to_location : prev.return_location,
+                  }));
+                }}
+                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white text-sm"
+              >
+                <option value="">— Trajet local / tarif journalier —</option>
+                {routesList.map(r => (
+                  <option key={r.id} value={r.id}>
+                    {r.from_location} → {r.to_location} ({Number(r.price).toLocaleString()} FCFA / trajet)
+                  </option>
+                ))}
+              </select>
+              {formData.selected_route_id && (() => {
+                const calc = calcRoutePriceForRow(formData.selected_route_id, formData.start_date, formData.end_date);
+                if (!calc) return null;
+                const days = formData.start_date && formData.end_date ? (differenceInDays(parseISO(formData.end_date), parseISO(formData.start_date)) || 1) : 1;
+                return (
+                  <div className="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 text-xs text-blue-800 space-y-1">
+                    <div className="flex justify-between"><span>Aller</span><span className="font-bold">{Number(calc.route.price).toLocaleString()} FCFA</span></div>
+                    {calc.daysAtDest > 0 && <div className="flex justify-between"><span>{calc.daysAtDest} jour{calc.daysAtDest > 1 ? 's' : ''} sur place</span><span className="font-bold">{(calc.daysAtDest * (calc.route.daily_rate || 0)).toLocaleString()} FCFA</span></div>}
+                    <div className="flex justify-between"><span>Retour</span><span className="font-bold">{Number(calc.route.price).toLocaleString()} FCFA</span></div>
+                    <div className="flex justify-between border-t border-blue-200 pt-1 font-bold"><span>Total / véhicule</span><span className="text-nc-navy">{calc.total.toLocaleString()} FCFA</span></div>
+                  </div>
+                );
+              })()}
+              <p className="text-xs text-slate-400 italic">Prix auto-calculé selon le trajet — modifiable par véhicule ci-dessus.</p>
+            </div>
+
             {/* Locations */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -521,7 +587,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                   <MapPin className="h-4 w-4 text-green-600" /> Lieu de départ
                 </label>
                 <input type="text" name="departure_location" value={formData.departure_location} onChange={handleChange}
-                  placeholder="ex: Bras-à-vite, Aéroport…"
+                  placeholder="ex: Brazzaville Centre…"
                   className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white text-sm" />
               </div>
               <div className="space-y-2">
@@ -529,7 +595,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                   <MapPin className="h-4 w-4 text-red-500" /> Lieu de retour
                 </label>
                 <input type="text" name="return_location" value={formData.return_location} onChange={handleChange}
-                  placeholder="ex: Agence, Saint-Denis…"
+                  placeholder="ex: Pointe-Noire, Aéroport…"
                   className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white text-sm" />
               </div>
             </div>

@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 const RouteModal = ({ open, onOpenChange, onSaved, routeToEdit }) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const init = { from_location: '', to_location: '', price: '' };
+  const init = { from_location: '', to_location: '', price: '', daily_rate: '' };
   const [form, setForm] = useState(init);
 
   useEffect(() => {
@@ -27,6 +27,7 @@ const RouteModal = ({ open, onOpenChange, onSaved, routeToEdit }) => {
         from_location: routeToEdit.from_location || '',
         to_location: routeToEdit.to_location || '',
         price: routeToEdit.price || '',
+        daily_rate: routeToEdit.daily_rate || '',
       } : init);
     }
   }, [open, routeToEdit]);
@@ -39,7 +40,7 @@ const RouteModal = ({ open, onOpenChange, onSaved, routeToEdit }) => {
     }
     setIsLoading(true);
     try {
-      const payload = { from_location: form.from_location, to_location: form.to_location, price: Number(form.price) };
+      const payload = { from_location: form.from_location, to_location: form.to_location, price: Number(form.price), daily_rate: Number(form.daily_rate) || 0 };
       let data, error;
       if (routeToEdit) {
         ({ data, error } = await supabase.from('routes').update(payload).eq('id', routeToEdit.id).select().single());
@@ -86,16 +87,31 @@ const RouteModal = ({ open, onOpenChange, onSaved, routeToEdit }) => {
               className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">Prix (FCFA) *</label>
-            <input
-              type="number"
-              min="0"
-              value={form.price}
-              onChange={e => setForm(p => ({ ...p, price: e.target.value }))}
-              placeholder="ex: 50000"
-              className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Prix du trajet (FCFA) *</label>
+              <input
+                type="number"
+                min="0"
+                value={form.price}
+                onChange={e => setForm(p => ({ ...p, price: e.target.value }))}
+                placeholder="ex: 150000"
+                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
+              />
+              <p className="text-xs text-slate-400">Aller ou retour</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Prix/jour sur place (FCFA)</label>
+              <input
+                type="number"
+                min="0"
+                value={form.daily_rate}
+                onChange={e => setForm(p => ({ ...p, daily_rate: e.target.value }))}
+                placeholder="ex: 100000"
+                className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy focus:outline-none"
+              />
+              <p className="text-xs text-slate-400">Jours supplémentaires</p>
+            </div>
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Annuler</Button>
@@ -191,7 +207,8 @@ const Routes = () => {
                 <tr className="border-b border-slate-100">
                   <th className="text-left py-3 px-4 font-semibold text-slate-600">Départ</th>
                   <th className="text-left py-3 px-4 font-semibold text-slate-600">Destination</th>
-                  <th className="text-right py-3 px-4 font-semibold text-slate-600">Prix (FCFA)</th>
+                  <th className="text-right py-3 px-4 font-semibold text-slate-600">Prix trajet</th>
+                  <th className="text-right py-3 px-4 font-semibold text-slate-600">Prix/jour</th>
                   <th className="py-3 px-4" />
                 </tr>
               </thead>
@@ -213,6 +230,16 @@ const Routes = () => {
                     <td className="py-3 px-4 text-right">
                       <span className="font-bold text-slate-900">{Number(route.price).toLocaleString()}</span>
                       <span className="text-slate-500 ml-1 text-xs">FCFA</span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      {route.daily_rate > 0 ? (
+                        <>
+                          <span className="font-semibold text-slate-700">{Number(route.daily_rate).toLocaleString()}</span>
+                          <span className="text-slate-500 ml-1 text-xs">FCFA</span>
+                        </>
+                      ) : (
+                        <span className="text-slate-300 text-xs">—</span>
+                      )}
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center justify-end gap-2">

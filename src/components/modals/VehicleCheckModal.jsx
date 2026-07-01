@@ -22,10 +22,11 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
   const [departureTime, setDepartureTime] = useState('');
   const [expectedReturnDate, setExpectedReturnDate] = useState('');
   const [drivers, setDrivers] = useState([]);
+  const [routes, setRoutes] = useState([]);
   const [driverName, setDriverName] = useState('');
   const [customDriver, setCustomDriver] = useState(false);
   const [customPrice, setCustomPrice] = useState('');
-  const [destination, setDestination] = useState('');
+  const [selectedRouteId, setSelectedRouteId] = useState('');
   const [paymentMode, setPaymentMode] = useState('immediate');
   
   const diagramRef = useRef(null);
@@ -85,7 +86,7 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
       setDriverName('');
       setCustomDriver(false);
       setCustomPrice('');
-      setDestination('');
+      setSelectedRouteId('');
       setPaymentMode('immediate');
 
       if (type === 'checkout') {
@@ -116,12 +117,33 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
 
   const fetchDrivers = async () => {
     try {
-      const { data } = await supabase.from('drivers').select('id, name').order('name');
-      if (data) setDrivers(data);
+      const [{ data: driversData }, { data: routesData }] = await Promise.all([
+        supabase.from('drivers').select('id, name').order('name'),
+        supabase.from('routes').select('id, from_location, to_location, price, daily_rate').order('from_location'),
+      ]);
+      if (driversData) setDrivers(driversData);
+      if (routesData) setRoutes(routesData);
     } catch (e) {
-      console.error('Error fetching drivers:', e);
+      console.error('Error fetching drivers/routes:', e);
     }
   };
+
+  const calcRoutePrice = (routeId, returnDate) => {
+    const route = routes.find(r => r.id === routeId);
+    if (!route) return null;
+    const today = new Date();
+    const ret = returnDate ? new Date(returnDate) : null;
+    const daysBetween = ret ? Math.max(0, Math.round((ret - today) / 86400000)) : 1;
+    const daysAtDest = Math.max(0, daysBetween - 1);
+    return { route, daysAtDest, total: 2 * route.price + daysAtDest * route.daily_rate };
+  };
+
+  useEffect(() => {
+    if (selectedRouteId && expectedReturnDate) {
+      const calc = calcRoutePrice(selectedRouteId, expectedReturnDate);
+      if (calc) setCustomPrice(String(calc.total));
+    }
+  }, [expectedReturnDate, selectedRouteId]);
 
   const handleDiagramClick = (e) => {
     if (!diagramRef.current) return;
@@ -174,7 +196,7 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
       expectedReturnDate,
       driverName: driverName || null,
       customPrice: customPrice ? Number(customPrice) : null,
-      destination: destination || null,
+      destination: selectedRouteId ? (() => { const r = routes.find(x => x.id === selectedRouteId); return r ? `${r.from_location} → ${r.to_location}` : null; })() : null,
       paymentMode,
     });
     onClose();
@@ -332,26 +354,52 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
                       )}
                     </div>
 
-                    {/* Destination */}
+                    {/* Trajet / Destination */}
                     <div className="space-y-3">
                       <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
                         <MapPin className="h-4 w-4 text-blue-500" />
-                        Destination
+                        Trajet
                       </label>
-                      <input
-                        type="text"
-                        value={destination}
-                        onChange={(e) => setDestination(e.target.value)}
-                        placeholder="Ex : Pointe-Noire, Aéroport…"
+                      <select
+                        value={selectedRouteId}
+                        onChange={(e) => {
+                          const rid = e.target.value;
+                          setSelectedRouteId(rid);
+                          if (rid) {
+                            const calc = calcRoutePrice(rid, expectedReturnDate);
+                            if (calc) setCustomPrice(String(calc.total));
+                          } else {
+                            setCustomPrice('');
+                          }
+                        }}
                         className="w-full px-4 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-nc-navy focus:border-nc-navy outline-none transition-all"
-                      />
+                      >
+                        <option value="">— Trajet local (tarif libre) —</option>
+                        {routes.map(r => (
+                          <option key={r.id} value={r.id}>
+                            {r.from_location} → {r.to_location} ({Number(r.price).toLocaleString()} FCFA)
+                          </option>
+                        ))}
+                      </select>
+                      {selectedRouteId && (() => {
+                        const calc = calcRoutePrice(selectedRouteId, expectedReturnDate);
+                        if (!calc) return null;
+                        return (
+                          <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 text-xs text-blue-800 space-y-1">
+                            <div className="flex justify-between"><span>Aller</span><span className="font-bold">{Number(calc.route.price).toLocaleString()} FCFA</span></div>
+                            {calc.daysAtDest > 0 && <div className="flex justify-between"><span>{calc.daysAtDest} jour{calc.daysAtDest > 1 ? 's' : ''} sur place</span><span className="font-bold">{(calc.daysAtDest * calc.route.daily_rate).toLocaleString()} FCFA</span></div>}
+                            <div className="flex justify-between"><span>Retour</span><span className="font-bold">{Number(calc.route.price).toLocaleString()} FCFA</span></div>
+                            <div className="flex justify-between border-t border-blue-200 pt-1 mt-1"><span className="font-bold">Total estimé</span><span className="font-bold text-nc-navy">{calc.total.toLocaleString()} FCFA</span></div>
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* Tarif */}
                     <div className="space-y-3">
                       <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
                         <DollarSign className="h-4 w-4 text-blue-500" />
-                        Tarif (FCFA)
+                        Tarif final (FCFA)
                       </label>
                       <input
                         type="number"
@@ -360,6 +408,7 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
                         placeholder="Laisser vide = tarif journalier du véhicule"
                         className="w-full px-4 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-nc-navy focus:border-nc-navy outline-none transition-all"
                       />
+                      <p className="text-xs text-gray-400">Pré-rempli selon le trajet — modifiable selon la négociation.</p>
                     </div>
 
                     {/* Mode de paiement */}

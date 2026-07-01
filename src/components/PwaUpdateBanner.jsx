@@ -8,15 +8,24 @@ const PwaUpdateBanner = () => {
   const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
-    if (needRefresh) {
-      fetch('/changelog.json')
-        .then(r => r.json())
-        .then(setChangelog)
-        .catch(() => {});
-    }
+    if (!needRefresh) return;
+    fetch('/changelog.json')
+      .then(r => r.json())
+      .then(data => {
+        setChangelog(data);
+        // Mise à jour silencieuse si notify === false
+        if (data.notify === false) {
+          updateServiceWorker(true);
+        }
+      })
+      .catch(() => {
+        // Pas de changelog → mise à jour silencieuse par défaut
+        updateServiceWorker(true);
+      });
   }, [needRefresh]);
 
-  if (!needRefresh) return null;
+  // N'affiche rien si pas de mise à jour, ou si notify est false (silencieux)
+  if (!needRefresh || !changelog || changelog.notify === false) return null;
 
   return (
     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4">
@@ -27,12 +36,8 @@ const PwaUpdateBanner = () => {
             <Sparkles className="h-5 w-5 text-nc-gold" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold">
-              {changelog ? changelog.titre : 'Nouvelle version disponible'}
-            </p>
-            <p className="text-xs text-white/50">
-              {changelog ? `Version ${changelog.version}` : 'Des améliorations vous attendent'}
-            </p>
+            <p className="text-sm font-bold">{changelog.titre}</p>
+            <p className="text-xs text-white/50">Version {changelog.version}</p>
           </div>
           <button
             onClick={() => setNeedRefresh(false)}
@@ -43,32 +48,28 @@ const PwaUpdateBanner = () => {
         </div>
 
         {/* Détails changelog */}
-        {changelog && (
-          <>
-            <button
-              onClick={() => setShowDetails(v => !v)}
-              className="w-full px-4 pb-2 flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80 transition-colors"
-            >
-              {showDetails ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-              {showDetails ? 'Masquer les détails' : 'Voir ce qui a changé'}
-            </button>
+        <button
+          onClick={() => setShowDetails(v => !v)}
+          className="w-full px-4 pb-2 flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80 transition-colors"
+        >
+          {showDetails ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          {showDetails ? 'Masquer les détails' : 'Voir ce qui a changé'}
+        </button>
 
-            {showDetails && (
-              <div className="px-4 pb-3 space-y-1 max-h-48 overflow-y-auto">
-                {changelog.nouveautes?.map((item, i) => (
+        {showDetails && (
+          <div className="px-4 pb-3 space-y-1 max-h-48 overflow-y-auto">
+            {changelog.nouveautes?.map((item, i) => (
+              <p key={i} className="text-xs text-white/70 leading-relaxed">{item}</p>
+            ))}
+            {changelog.corrections?.length > 0 && (
+              <>
+                <p className="text-xs font-bold text-white/40 uppercase tracking-wide pt-1">Corrections</p>
+                {changelog.corrections.map((item, i) => (
                   <p key={i} className="text-xs text-white/70 leading-relaxed">{item}</p>
                 ))}
-                {changelog.corrections?.length > 0 && (
-                  <>
-                    <p className="text-xs font-bold text-white/40 uppercase tracking-wide pt-1">Corrections</p>
-                    {changelog.corrections.map((item, i) => (
-                      <p key={i} className="text-xs text-white/70 leading-relaxed">{item}</p>
-                    ))}
-                  </>
-                )}
-              </div>
+              </>
             )}
-          </>
+          </div>
         )}
 
         {/* Action */}

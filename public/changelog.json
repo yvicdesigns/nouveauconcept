@@ -1,6 +1,7 @@
 {
   "version": "1.3.0",
   "date": "2026-07-01",
+  "notify": true,
   "titre": "Mise à jour — Programme de fidélité & améliorations",
   "nouveautes": [
     "🎉 Nouveau module Programme de Fidélisation : suivez vos meilleurs clients et leurs avantages (Essentiel, Confort, Privilège, Élite)",

@@ -9,7 +9,7 @@ import { historyService } from '@/lib/historyService';
 import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isWithinInterval, parseISO, startOfDay, endOfDay, differenceInDays, getDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-const newRow = () => ({ key: Date.now() + Math.random(), vehicle_id: '', price: 0 });
+const newRow = () => ({ key: Date.now() + Math.random(), vehicle_id: '', price: 0, driver_name: '', customDriver: false });
 
 const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservationToEdit = null }) => {
   const { toast } = useToast();
@@ -17,7 +17,6 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
   const [clients, setClients] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [drivers, setDrivers] = useState([]);
-  const [driverMode, setDriverMode] = useState('list'); // 'list' | 'custom'
   const [vehicleReservations, setVehicleReservations] = useState([]);
   const [calendarVehicleId, setCalendarVehicleId] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -31,7 +30,6 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
     end_time: '18:00',
     status: 'En attente',
     payment_mode: 'immediate',
-    driver_name: '',
     departure_location: '',
     return_location: '',
     notes: '',
@@ -46,17 +44,15 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
         if (reservationToEdit) {
           const existingName = reservationToEdit.driver_name || '';
           const inList = loadedDrivers.some(d => d.name === existingName);
-          setDriverMode(existingName && !inList ? 'custom' : 'list');
           setFormData({
             client_id: reservationToEdit.client_id,
-            vehicleRows: [{ key: 0, vehicle_id: reservationToEdit.vehicle_id, price: reservationToEdit.total_price || 0 }],
+            vehicleRows: [{ key: 0, vehicle_id: reservationToEdit.vehicle_id, price: reservationToEdit.total_price || 0, driver_name: existingName, customDriver: existingName && !inList }],
             start_date: reservationToEdit.start_date ? format(new Date(reservationToEdit.start_date), 'yyyy-MM-dd') : '',
             start_time: reservationToEdit.start_date ? format(new Date(reservationToEdit.start_date), 'HH:mm') : '09:00',
             end_date: reservationToEdit.end_date ? format(new Date(reservationToEdit.end_date), 'yyyy-MM-dd') : '',
             end_time: reservationToEdit.end_date ? format(new Date(reservationToEdit.end_date), 'HH:mm') : '18:00',
             status: reservationToEdit.status,
             payment_mode: reservationToEdit.payment_mode || 'immediate',
-            driver_name: existingName,
             departure_location: reservationToEdit.departure_location || '',
             return_location: reservationToEdit.return_location || '',
             notes: reservationToEdit.notes || '',
@@ -65,7 +61,6 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
           setCalendarVehicleId(reservationToEdit.vehicle_id);
           fetchVehicleReservations(reservationToEdit.vehicle_id);
         } else {
-          setDriverMode('list');
           setFormData(initialFormState);
           setVehicleReservations([]);
           setCalendarVehicleId('');
@@ -264,7 +259,6 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
         end_date:             fullEndDate.toISOString(),
         status:               formData.status,
         payment_mode:         formData.payment_mode,
-        driver_name:          formData.driver_name || null,
         departure_location:   formData.departure_location || null,
         return_location:      formData.return_location || null,
         notes:                formData.notes,
@@ -279,7 +273,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
         const row = filledRows[0];
         const { data, error } = await supabase
           .from('reservations')
-          .update({ ...commonPayload, vehicle_id: row.vehicle_id, total_price: row.price })
+          .update({ ...commonPayload, vehicle_id: row.vehicle_id, total_price: row.price, driver_name: row.driver_name || null })
           .eq('id', reservationToEdit.id)
           .select('*, contacts(name), vehicles(name)')
           .single();
@@ -300,7 +294,7 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
         for (const row of filledRows) {
           const { data, error } = await supabase
             .from('reservations')
-            .insert([{ ...commonPayload, vehicle_id: row.vehicle_id, total_price: row.price }])
+            .insert([{ ...commonPayload, vehicle_id: row.vehicle_id, total_price: row.price, driver_name: row.driver_name || null }])
             .select('*, contacts(name), vehicles(name)')
             .single();
           if (error) throw new Error(`Erreur technique lors de la création. Contactez le développeur si le problème persiste. (Code : ${error.code || error.message})`);
@@ -376,44 +370,6 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
               </select>
             </div>
 
-            {/* Driver */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <User className="h-4 w-4" /> Chauffeur
-              </label>
-              <select
-                value={driverMode === 'custom' ? '__custom__' : (formData.driver_name || '')}
-                onChange={e => {
-                  if (e.target.value === '__custom__') {
-                    setDriverMode('custom');
-                    setFormData(prev => ({ ...prev, driver_name: '' }));
-                  } else {
-                    setDriverMode('list');
-                    setFormData(prev => ({ ...prev, driver_name: e.target.value }));
-                  }
-                }}
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white"
-              >
-                <option value="">— Aucun chauffeur —</option>
-                {drivers.map(d => (
-                  <option key={d.id} value={d.name} disabled={d.status === 'inactive'}>
-                    {d.name}{d.status === 'inactive' ? ' (inactif)' : d.status === 'on_leave' ? ' (congé)' : ''}
-                  </option>
-                ))}
-                <option value="__custom__">✏ Saisie libre…</option>
-              </select>
-              {driverMode === 'custom' && (
-                <input
-                  type="text"
-                  name="driver_name"
-                  value={formData.driver_name}
-                  onChange={handleChange}
-                  placeholder="Nom du chauffeur"
-                  autoFocus
-                  className="w-full p-2.5 border border-blue-300 rounded-md focus:ring-2 focus:ring-nc-navy bg-white"
-                />
-              )}
-            </div>
 
             {/* Vehicles — multi-row */}
             <div className="space-y-3">
@@ -441,50 +397,88 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                 {formData.vehicleRows.map((row, index) => (
                   <div
                     key={row.key}
-                    className={`flex items-center gap-2 p-2 rounded-lg border transition-colors ${
+                    className={`p-3 rounded-lg border transition-colors space-y-2 ${
                       calendarVehicleId === row.vehicle_id && row.vehicle_id
                         ? 'border-blue-300 bg-blue-50'
                         : 'border-slate-200 bg-white'
                     }`}
                   >
-                    <div className="flex-1">
-                      <select
-                        value={row.vehicle_id}
-                        onChange={e => updateVehicleRow(index, 'vehicle_id', e.target.value)}
-                        onClick={() => row.vehicle_id && setCalendarVehicleId(row.vehicle_id)}
-                        className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white text-sm"
-                      >
-                        <option value="">Sélectionner un véhicule…</option>
-                        {vehicles.map(v => {
-                          const alreadySelected = formData.vehicleRows.some((r, i) => i !== index && r.vehicle_id === v.id);
-                          const isLoued = v.status === 'LOUÉ';
-                          return (
-                            <option key={v.id} value={v.id} disabled={alreadySelected || isLoued}>
-                              {isLoued ? '🔴 ' : '🟢 '}{v.name} — {v.license_plate} ({v.daily_rate?.toLocaleString()} FCFA/j){isLoued ? ' [Actuellement louée]' : ''}
+                    {/* Véhicule + prix */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <select
+                          value={row.vehicle_id}
+                          onChange={e => updateVehicleRow(index, 'vehicle_id', e.target.value)}
+                          onClick={() => row.vehicle_id && setCalendarVehicleId(row.vehicle_id)}
+                          className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white text-sm"
+                        >
+                          <option value="">Sélectionner un véhicule…</option>
+                          {vehicles.map(v => {
+                            const alreadySelected = formData.vehicleRows.some((r, i) => i !== index && r.vehicle_id === v.id);
+                            const isLoued = v.status === 'LOUÉ';
+                            return (
+                              <option key={v.id} value={v.id} disabled={alreadySelected || isLoued}>
+                                {isLoued ? '🔴 ' : '🟢 '}{v.name} — {v.license_plate} ({v.daily_rate?.toLocaleString()} FCFA/j){isLoued ? ' [Actuellement louée]' : ''}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
+                      <div className="w-32">
+                        <input
+                          type="number"
+                          value={row.price}
+                          onChange={e => updateVehicleRow(index, 'price', e.target.value)}
+                          className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy text-sm font-bold text-slate-900 text-right"
+                          placeholder="Prix"
+                        />
+                      </div>
+                      <span className="text-xs text-slate-400 whitespace-nowrap">FCFA</span>
+                      {formData.vehicleRows.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeVehicleRow(index)}
+                          className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                    {/* Chauffeur pour ce véhicule */}
+                    <div className="flex items-center gap-2">
+                      <User className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                      {!row.customDriver ? (
+                        <select
+                          value={row.driver_name || ''}
+                          onChange={e => {
+                            if (e.target.value === '__custom__') {
+                              updateVehicleRow(index, 'customDriver', true);
+                              updateVehicleRow(index, 'driver_name', '');
+                            } else {
+                              updateVehicleRow(index, 'driver_name', e.target.value);
+                            }
+                          }}
+                          className="flex-1 p-1.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white text-sm"
+                        >
+                          <option value="">— Chauffeur pour ce véhicule —</option>
+                          {drivers.map(d => (
+                            <option key={d.id} value={d.name} disabled={d.status === 'inactive'}>
+                              {d.name}{d.status === 'inactive' ? ' (inactif)' : d.status === 'on_leave' ? ' (congé)' : ''}
                             </option>
-                          );
-                        })}
-                      </select>
+                          ))}
+                          <option value="__custom__">✏ Saisie libre…</option>
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          value={row.driver_name}
+                          onChange={e => updateVehicleRow(index, 'driver_name', e.target.value)}
+                          placeholder="Nom du chauffeur"
+                          autoFocus
+                          className="flex-1 p-1.5 border border-blue-300 rounded-md focus:ring-2 focus:ring-nc-navy bg-white text-sm"
+                        />
+                      )}
                     </div>
-                    <div className="w-32">
-                      <input
-                        type="number"
-                        value={row.price}
-                        onChange={e => updateVehicleRow(index, 'price', e.target.value)}
-                        className="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy text-sm font-bold text-slate-900 text-right"
-                        placeholder="Prix"
-                      />
-                    </div>
-                    <span className="text-xs text-slate-400 whitespace-nowrap">FCFA</span>
-                    {formData.vehicleRows.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeVehicleRow(index)}
-                        className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    )}
                   </div>
                 ))}
               </div>

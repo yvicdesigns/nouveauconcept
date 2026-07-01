@@ -5,6 +5,7 @@ import { Routes, Route, Outlet, useNavigate, useLocation } from 'react-router-do
 import { getPermissions, canAccessModule } from '@/lib/permissions';
 
 import Login from '@/components/Login';
+import PwaUpdateBanner from '@/components/PwaUpdateBanner';
 import Sidebar from '@/components/Sidebar';
 import MainContentHeader from '@/components/common/MainContentHeader';
 import Dashboard from '@/components/modules/Dashboard';
@@ -219,6 +220,7 @@ function App() {
         <title>Nouveau Concept CRM - Gestion de Location de Voitures</title>
         <meta name="description" content="CRM complet pour Nouveau Concept - Gestion de flotte, réservations et clients." />
       </Helmet>
+      <PwaUpdateBanner />
       
       <Routes>
         <Route

@@ -62,10 +62,10 @@ const Login = ({ onLoginSuccess }) => {
         throw new Error("Compte utilisateur introuvable ou accès non autorisé.");
       }
 
-      const allowedRoles = ['admin', 'manager'];
-      if (!allowedRoles.includes(userData.role?.toLowerCase())) {
+      const knownRoles = ['admin', 'manager', 'agent', 'fleet', 'accountant', 'readonly', 'staff', 'viewer'];
+      if (!userData.role || !knownRoles.includes(userData.role?.toLowerCase())) {
         await supabase.auth.signOut();
-        throw new Error("Accès refusé : droits insuffisants.");
+        throw new Error("Accès refusé : rôle non reconnu. Contactez l'administrateur.");
       }
 
       const sessionData = {

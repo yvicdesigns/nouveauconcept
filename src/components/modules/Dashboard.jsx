@@ -152,15 +152,18 @@ const Dashboard = () => {
         color: statusMapping[key]?.color || '#94a3b8',
       })));
 
-      // Graphique revenus 6 mois (réservations confirmées/actives/terminées)
+      // Graphique 6 mois : CA factures + nombre de réservations terminées
+      const allResTerminees = allResCA?.filter(r => r.status === 'Terminée') || [];
       const revenueHistory = Array.from({ length: 6 }, (_, i) => {
         const date  = subMonths(now, 5 - i);
         const start = startOfMonth(date).toISOString();
         const end   = endOfMonth(date).toISOString();
-        const total = paidInvoices
+        const ca = paidInvoices
           .filter(inv => inv.issue_date >= start && inv.issue_date <= end)
           .reduce((sum, inv) => sum + (Number(inv.total_amount) || 0), 0);
-        return { month: format(date, 'MMM', { locale: fr }), value: total };
+        const nbRes = allResTerminees
+          .filter(r => r.start_date >= start && r.start_date <= end).length;
+        return { month: format(date, 'MMM', { locale: fr }), ca, reservations: nbRes };
       });
       setRevenueData(revenueHistory);
 

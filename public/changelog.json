@@ -1,0 +1,18 @@
+{
+  "version": "1.3.0",
+  "date": "2026-07-01",
+  "titre": "Mise à jour — Programme de fidélité & améliorations",
+  "nouveautes": [
+    "🎉 Nouveau module Programme de Fidélisation : suivez vos meilleurs clients et leurs avantages (Essentiel, Confort, Privilège, Élite)",
+    "📊 Graphique d'évolution du parc amélioré : visualisez le chiffre d'affaires et les réservations mois par mois",
+    "🔔 Notification automatique lors des mises à jour — vous serez toujours informé des nouveautés",
+    "👥 Gestion des accès personnalisés par utilisateur — chaque membre voit uniquement ses modules",
+    "🔑 Tous les rôles (agent, comptable, flotte…) peuvent maintenant se connecter",
+    "🖼️ Aperçu du site avec le logo Nouveau Concept sur WhatsApp et réseaux sociaux",
+    "🔄 Bouton de réinitialisation des données de test dans Paramètres (admin uniquement)"
+  ],
+  "corrections": [
+    "✅ Correction : le chauffeur et le téléphone client s'affichent automatiquement dans la facture depuis une réservation",
+    "✅ Correction : les couleurs du CRM correspondent maintenant aux couleurs officielles de Nouveau Concept"
+  ]
+}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trash2, AlertCircle, Gauge, Fuel, CheckCircle2, User, Clock, Loader2, CalendarDays } from 'lucide-react';
+import { X, Trash2, AlertCircle, Gauge, Fuel, CheckCircle2, User, Clock, Loader2, CalendarDays, MapPin, CreditCard, DollarSign } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -21,6 +21,12 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
   const [selectedClientId, setSelectedClientId] = useState('');
   const [departureTime, setDepartureTime] = useState('');
   const [expectedReturnDate, setExpectedReturnDate] = useState('');
+  const [drivers, setDrivers] = useState([]);
+  const [driverName, setDriverName] = useState('');
+  const [customDriver, setCustomDriver] = useState(false);
+  const [customPrice, setCustomPrice] = useState('');
+  const [destination, setDestination] = useState('');
+  const [paymentMode, setPaymentMode] = useState('immediate');
   
   const diagramRef = useRef(null);
 
@@ -76,9 +82,15 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
       const tomorrow = new Date(now);
       tomorrow.setDate(tomorrow.getDate() + 1);
       setExpectedReturnDate(tomorrow.toISOString().split('T')[0]);
+      setDriverName('');
+      setCustomDriver(false);
+      setCustomPrice('');
+      setDestination('');
+      setPaymentMode('immediate');
 
       if (type === 'checkout') {
         fetchClients();
+        fetchDrivers();
       }
     }
   }, [isOpen, vehicle, type]);
@@ -99,6 +111,15 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
       console.error("Error fetching clients:", error);
     } finally {
       setIsLoadingClients(false);
+    }
+  };
+
+  const fetchDrivers = async () => {
+    try {
+      const { data } = await supabase.from('drivers').select('id, name').order('name');
+      if (data) setDrivers(data);
+    } catch (e) {
+      console.error('Error fetching drivers:', e);
     }
   };
 
@@ -151,6 +172,10 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
       clientName: clients.find(c => c.id === selectedClientId)?.name || 'Client inconnu',
       departureTime,
       expectedReturnDate,
+      driverName: driverName || null,
+      customPrice: customPrice ? Number(customPrice) : null,
+      destination: destination || null,
+      paymentMode,
     });
     onClose();
   };
@@ -266,6 +291,101 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
                         onChange={(e) => setExpectedReturnDate(e.target.value)}
                         className="w-full px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-nc-navy focus:border-nc-navy outline-none transition-all"
                       />
+                    </div>
+
+                    {/* Chauffeur */}
+                    <div className="space-y-3">
+                      <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
+                        <User className="h-4 w-4 text-blue-500" />
+                        Chauffeur
+                      </label>
+                      {!customDriver ? (
+                        <select
+                          value={driverName}
+                          onChange={(e) => {
+                            if (e.target.value === '__custom__') { setCustomDriver(true); setDriverName(''); }
+                            else setDriverName(e.target.value);
+                          }}
+                          className="w-full px-4 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-nc-navy focus:border-nc-navy outline-none transition-all"
+                        >
+                          <option value="">— Sélectionner un chauffeur —</option>
+                          {drivers.map(d => (
+                            <option key={d.id} value={d.name}>{d.name}</option>
+                          ))}
+                          <option value="__custom__">✏ Saisie libre…</option>
+                        </select>
+                      ) : (
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={driverName}
+                            onChange={(e) => setDriverName(e.target.value)}
+                            placeholder="Nom du chauffeur"
+                            className="flex-1 px-4 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-nc-navy focus:border-nc-navy outline-none transition-all"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => { setCustomDriver(false); setDriverName(''); }}
+                            className="px-3 py-2 text-xs text-gray-500 hover:text-gray-800 bg-gray-100 rounded-xl transition-colors"
+                          >Liste</button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Destination */}
+                    <div className="space-y-3">
+                      <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
+                        <MapPin className="h-4 w-4 text-blue-500" />
+                        Destination
+                      </label>
+                      <input
+                        type="text"
+                        value={destination}
+                        onChange={(e) => setDestination(e.target.value)}
+                        placeholder="Ex : Pointe-Noire, Aéroport…"
+                        className="w-full px-4 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-nc-navy focus:border-nc-navy outline-none transition-all"
+                      />
+                    </div>
+
+                    {/* Tarif */}
+                    <div className="space-y-3">
+                      <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
+                        <DollarSign className="h-4 w-4 text-blue-500" />
+                        Tarif (FCFA)
+                      </label>
+                      <input
+                        type="number"
+                        value={customPrice}
+                        onChange={(e) => setCustomPrice(e.target.value)}
+                        placeholder="Laisser vide = tarif journalier du véhicule"
+                        className="w-full px-4 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-nc-navy focus:border-nc-navy outline-none transition-all"
+                      />
+                    </div>
+
+                    {/* Mode de paiement */}
+                    <div className="space-y-3">
+                      <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
+                        <CreditCard className="h-4 w-4 text-blue-500" />
+                        Mode de paiement
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMode('immediate')}
+                          className={`p-3 rounded-xl border-2 text-sm font-medium transition-all text-left ${paymentMode === 'immediate' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300'}`}
+                        >
+                          <span className="block text-base mb-0.5">💵</span>
+                          Paiement immédiat
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMode('end')}
+                          className={`p-3 rounded-xl border-2 text-sm font-medium transition-all text-left ${paymentMode === 'end' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300'}`}
+                        >
+                          <span className="block text-base mb-0.5">🧾</span>
+                          Paiement à la fin
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}

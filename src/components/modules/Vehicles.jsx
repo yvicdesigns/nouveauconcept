@@ -290,7 +290,7 @@ const Vehicles = () => {
   };
 
   const handleCheckModalConfirm = async (data) => {
-    const { vehicleId, type, finalMileage, observations, damages, clientId, clientName, departureTime, expectedReturnDate } = data;
+    const { vehicleId, type, finalMileage, observations, damages, clientId, clientName, departureTime, expectedReturnDate, driverName, customPrice, destination, paymentMode } = data;
     const vehicle = vehicles.find(v => v.id === vehicleId);
     
     if (!vehicle) return;
@@ -351,7 +351,11 @@ const Vehicles = () => {
           : new Date(startDateTime.getTime() + 24 * 60 * 60 * 1000);
 
         const dailyRate = Number(vehicle.rawData?.daily_rate) || 0;
-        const estimatedPrice = dailyRate; 
+        const estimatedPrice = customPrice !== null ? customPrice : dailyRate;
+        const noteParts = [];
+        if (destination) noteParts.push(`Destination : ${destination}`);
+        if (observations) noteParts.push(observations);
+        if (!noteParts.length) noteParts.push('Départ immédiat via module Véhicules');
 
         const { error: resError } = await supabase
           .from('reservations')
@@ -362,7 +366,9 @@ const Vehicles = () => {
             end_date: endDateTime.toISOString(),
             status: 'En cours',
             total_price: estimatedPrice,
-            notes: observations || 'Départ immédiat via module Véhicules'
+            driver_name: driverName || null,
+            payment_mode: paymentMode || 'immediate',
+            notes: noteParts.join(' — '),
           });
 
         if (resError) {
@@ -375,8 +381,8 @@ const Vehicles = () => {
         }
       }
 
-      const logDescription = type === 'checkout' 
-        ? `Départ client: ${clientName} à ${departureTime}. Kilométrage: ${finalMileage} km.${observations ? ` Notes: ${observations}` : ''}`
+      const logDescription = type === 'checkout'
+        ? `Départ client: ${clientName} à ${departureTime}. Kilométrage: ${finalMileage} km.${driverName ? ` Chauffeur: ${driverName}.` : ''}${destination ? ` Destination: ${destination}.` : ''}${observations ? ` Notes: ${observations}` : ''}`
         : `Retour du véhicule. Kilométrage: ${finalMileage} km.${observations ? ` Notes: ${observations}` : ''}`;
 
       const logData = {

@@ -75,7 +75,7 @@ const PwaUpdateBanner = () => {
         {/* Action */}
         <div className="px-4 pb-4">
           <button
-            onClick={() => updateServiceWorker(true)}
+            onClick={() => { updateServiceWorker(true); setTimeout(() => window.location.reload(), 300); }}
             className="w-full bg-white text-nc-navy text-sm font-bold py-2.5 rounded-xl hover:bg-white/90 transition-all flex items-center justify-center gap-2"
           >
             <RefreshCw className="h-4 w-4" />

@@ -1,193 +1,122 @@
-import React, { useState } from 'react';
-import { X, Wrench, CheckCircle, AlertTriangle } from 'lucide-react';
-
-// Chaque zone : id, label, couleur selon statut, path SVG
-const ZONES = [
-  { id: 'bumper_front',    label: 'Pare-chocs avant',   x: 75,  y: 18,  w: 110, h: 22,  rx: 8  },
-  { id: 'hood',            label: 'Capot',               x: 82,  y: 44,  w: 96,  h: 72,  rx: 6  },
-  { id: 'windshield_front',label: 'Pare-brise avant',   x: 88,  y: 120, w: 84,  h: 32,  rx: 5  },
-  { id: 'door_fl',         label: 'Portière avant gauche', x: 62, y: 158, w: 30, h: 58,  rx: 4  },
-  { id: 'door_fr',         label: 'Portière avant droite', x: 168, y: 158, w: 30, h: 58, rx: 4  },
-  { id: 'door_rl',         label: 'Portière arrière gauche', x: 62, y: 220, w: 30, h: 52, rx: 4 },
-  { id: 'door_rr',         label: 'Portière arrière droite', x: 168, y: 220, w: 30, h: 52, rx: 4 },
-  { id: 'windshield_rear', label: 'Lunette arrière',    x: 88,  y: 276, w: 84,  h: 28,  rx: 5  },
-  { id: 'trunk',           label: 'Coffre',              x: 82,  y: 308, w: 96,  h: 58,  rx: 6  },
-  { id: 'bumper_rear',     label: 'Pare-chocs arrière', x: 75,  y: 370, w: 110, h: 22,  rx: 8  },
-  { id: 'wheel_fl',        label: 'Roue avant gauche',  x: 34,  y: 148, w: 26,  h: 44,  rx: 6  },
-  { id: 'wheel_fr',        label: 'Roue avant droite',  x: 200, y: 148, w: 26,  h: 44,  rx: 6  },
-  { id: 'wheel_rl',        label: 'Roue arrière gauche',x: 34,  y: 220, w: 26,  h: 44,  rx: 6  },
-  { id: 'wheel_rr',        label: 'Roue arrière droite',x: 200, y: 220, w: 26,  h: 44,  rx: 6  },
-];
-
-// Données de démonstration — seront remplacées par vraies données Supabase
-const DEMO_DATA = {
-  wheel_fl:   { status: 'critical',  items: [{ date: '2026-05-10', desc: 'Pneu usé — à remplacer d\'urgence', cost: 45000 }] },
-  door_fl:    { status: 'warning',   items: [{ date: '2026-04-22', desc: 'Rayure profonde côté gauche', cost: 12000 }] },
-  hood:       { status: 'ok',        items: [{ date: '2026-06-01', desc: 'Vidange moteur effectuée', cost: 25000 }] },
-  windshield_front: { status: 'critical', items: [{ date: '2026-06-10', desc: 'Fissure pare-brise — visibilité réduite', cost: 80000 }] },
+export const DOT_POS = {
+  bumper_front: {x:150,y:62},  hood:{x:150,y:125},  windshield:{x:150,y:210},
+  door_fl:{x:58,y:265},        cabin:{x:150,y:310},  door_fr:{x:242,y:265},
+  door_rl:{x:58,y:355},        door_rr:{x:242,y:355},rear_window:{x:150,y:435},
+  trunk:{x:150,y:505},         bumper_rear:{x:150,y:550},
+  wheel_fl:{x:38,y:155},       wheel_fr:{x:262,y:155},
+  wheel_rl:{x:42,y:455},       wheel_rr:{x:258,y:455},
 };
 
-const statusStyle = {
-  ok:       { fill: '#dcfce7', stroke: '#16a34a', dot: 'bg-green-500',  text: 'text-green-700',  label: 'OK'       },
-  warning:  { fill: '#fef9c3', stroke: '#ca8a04', dot: 'bg-yellow-500', text: 'text-yellow-700', label: 'Attention' },
-  critical: { fill: '#fee2e2', stroke: '#dc2626', dot: 'bg-red-500',    text: 'text-red-700',    label: 'Critique' },
-  none:     { fill: '#f1f5f9', stroke: '#cbd5e1', dot: 'bg-slate-300',  text: 'text-slate-500',  label: 'RAS'      },
+export const ZONE_LABELS = {
+  bumper_front: 'Pare-chocs AV', hood: 'Capot',           windshield:  'Pare-brise',
+  door_fl:      'Portière AV G', cabin: 'Habitacle/Toit', door_fr:     'Portière AV D',
+  door_rl:      'Portière AR G', door_rr: 'Portière AR D',rear_window: 'Lunette AR',
+  trunk:        'Coffre',        bumper_rear: 'Pare-chocs AR',
+  wheel_fl:     'Roue AV G',     wheel_fr: 'Roue AV D',   wheel_rl:   'Roue AR G', wheel_rr: 'Roue AR D',
 };
 
-const CarDiagram2D = ({ maintenanceData = DEMO_DATA }) => {
-  const [selected, setSelected] = useState(null);
-  const [hovered, setHovered]   = useState(null);
+const TD_BODY = 'M 150,40 C 240,40 270,100 270,180 L 260,450 C 260,540 220,570 150,570 C 80,570 40,540 40,450 L 30,180 C 30,100 60,40 150,40 Z';
 
-  const getStatus = (id) => {
-    if (!maintenanceData[id]) return 'none';
-    return maintenanceData[id].status;
+const CarDiagram2D = ({ selectedPart, hoveredPart, onSelect, onHover, issuePartIds = [], width = 220 }) => {
+  const oc = id => {
+    if (selectedPart === id) return 'rgba(251,191,36,0.40)';
+    if (hoveredPart  === id) return 'rgba(147,197,253,0.40)';
+    if (issuePartIds.includes(id)) return 'rgba(252,165,165,0.40)';
+    return 'transparent';
   };
-
-  const selectedZone = ZONES.find(z => z.id === selected);
-  const selectedData = selected ? maintenanceData[selected] : null;
-  const cfg = selected ? statusStyle[getStatus(selected)] : null;
+  const os = id => {
+    if (selectedPart === id) return '#d97706';
+    if (hoveredPart  === id) return '#2563eb';
+    if (issuePartIds.includes(id)) return '#dc2626';
+    return 'transparent';
+  };
+  const zp = id => ({
+    fill: oc(id), stroke: os(id), strokeWidth: 2,
+    style: { cursor: 'pointer', transition: 'fill 0.12s' },
+    onClick: () => onSelect(selectedPart === id ? null : id),
+    onMouseEnter: () => onHover(id),
+    onMouseLeave: () => onHover(null),
+  });
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 items-start">
+    <svg viewBox="0 0 300 600" width={width} style={{ display: 'block', userSelect: 'none', margin: '0 auto' }}>
+      <defs>
+        <clipPath id="tdBodyClip"><path d={TD_BODY} /></clipPath>
+        <linearGradient id="td_bodyGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="#ffffff" /><stop offset="100%" stopColor="#f1f5f9" />
+        </linearGradient>
+        <linearGradient id="td_glassGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="#e2e8f0" /><stop offset="100%" stopColor="#cbd5e1" />
+        </linearGradient>
+        <filter id="td_shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="8" />
+          <feOffset dx="0" dy="8" result="b" />
+          <feComponentTransfer><feFuncA type="linear" slope="0.15" /></feComponentTransfer>
+          <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+      </defs>
 
-      {/* SVG voiture */}
-      <div className="flex-shrink-0">
-        <p className="text-xs text-slate-400 text-center mb-2 uppercase tracking-widest">Vue de dessus — cliquez sur une zone</p>
-        <svg
-          viewBox="0 0 260 410"
-          width="220"
-          className="mx-auto drop-shadow-md"
-        >
-          {/* Carrosserie de base */}
-          <rect x="70" y="38" width="120" height="334" rx="30" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1.5" />
-          {/* Toit (centre) */}
-          <rect x="88" y="158" width="84" height="114" rx="4" fill="#cbd5e1" stroke="#94a3b8" strokeWidth="1" />
-          {/* Ligne centrale */}
-          <line x1="130" y1="38" x2="130" y2="372" stroke="#94a3b8" strokeWidth="0.5" strokeDasharray="4,3" opacity="0.4" />
+      {/* Roues */}
+      <rect x="20" y="120" width="40" height="70" rx="10" fill="#334155" />
+      <rect x="240" y="120" width="40" height="70" rx="10" fill="#334155" />
+      <rect x="30" y="420" width="40" height="70" rx="10" fill="#334155" />
+      <rect x="230" y="420" width="40" height="70" rx="10" fill="#334155" />
 
-          {/* Zones cliquables */}
-          {ZONES.map(zone => {
-            const status = getStatus(zone.id);
-            const s = statusStyle[status];
-            const isHov = hovered === zone.id;
-            const isSel = selected === zone.id;
+      {/* Carrosserie */}
+      <path d={TD_BODY} fill="url(#td_bodyGrad)" stroke="#e2e8f0" strokeWidth="2" filter="url(#td_shadow)" />
 
-            return (
-              <g key={zone.id}>
-                <rect
-                  x={zone.x} y={zone.y} width={zone.w} height={zone.h} rx={zone.rx}
-                  fill={isSel ? s.stroke : isHov ? s.fill : s.fill}
-                  stroke={isSel ? s.stroke : isHov ? s.stroke : s.stroke}
-                  strokeWidth={isSel ? 2.5 : isHov ? 2 : 1.5}
-                  opacity={isSel ? 1 : isHov ? 0.95 : 0.85}
-                  style={{ cursor: 'pointer', transition: 'all 0.15s' }}
-                  onMouseEnter={() => setHovered(zone.id)}
-                  onMouseLeave={() => setHovered(null)}
-                  onClick={() => setSelected(selected === zone.id ? null : zone.id)}
-                />
-                {/* Point de statut */}
-                {status !== 'none' && (
-                  <circle
-                    cx={zone.x + zone.w / 2}
-                    cy={zone.y + zone.h / 2}
-                    r={5}
-                    fill={s.stroke}
-                    opacity={0.9}
-                    style={{ pointerEvents: 'none' }}
-                  />
-                )}
-              </g>
-            );
-          })}
+      {/* Pare-brise */}
+      <path d="M 50,160 Q 150,130 250,160 L 245,280 Q 150,260 55,280 Z"
+        fill="url(#td_glassGrad)" stroke="#cbd5e1" strokeWidth="1" pointerEvents="none" />
+      {/* Toit */}
+      <path d="M 55,290 Q 150,270 245,290 L 240,400 Q 150,410 60,400 Z"
+        fill="#ffffff" stroke="#f1f5f9" pointerEvents="none" />
+      {/* Lunette AR */}
+      <path d="M 60,410 Q 150,420 240,410 L 235,460 Q 150,470 65,460 Z"
+        fill="url(#td_glassGrad)" stroke="#cbd5e1" strokeWidth="1" pointerEvents="none" />
+      {/* Ligne capot */}
+      <path d="M 70,150 Q 150,120 230,150" fill="none" stroke="#e2e8f0" strokeWidth="2" pointerEvents="none" />
+      {/* Phares AV */}
+      <path d="M 50,70 Q 70,90 90,80" fill="none" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" pointerEvents="none" />
+      <path d="M 250,70 Q 230,90 210,80" fill="none" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" pointerEvents="none" />
+      {/* Feux AR */}
+      <path d="M 60,540 Q 80,520 100,530" fill="none" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" pointerEvents="none" />
+      <path d="M 240,540 Q 220,520 200,530" fill="none" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" pointerEvents="none" />
+      {/* Rétroviseurs */}
+      <path d="M 30,160 L 10,150 L 10,180 L 30,190 Z" fill="#cbd5e1" pointerEvents="none" />
+      <path d="M 270,160 L 290,150 L 290,180 L 270,190 Z" fill="#cbd5e1" pointerEvents="none" />
 
-          {/* Labels roues */}
-          {['fl','fr','rl','rr'].map(pos => {
-            const z = ZONES.find(z => z.id === `wheel_${pos}`);
-            return (
-              <text key={pos} x={z.x + z.w/2} y={z.y + z.h/2 + 1}
-                textAnchor="middle" dominantBaseline="middle"
-                fontSize="7" fill="#64748b" style={{ pointerEvents: 'none' }}>
-                {pos.toUpperCase()}
-              </text>
-            );
-          })}
-        </svg>
+      {/* Zones cliquables */}
+      <g clipPath="url(#tdBodyClip)">
+        <rect {...zp('bumper_front')} x="40"  y="40"  width="220" height="52" />
+        <rect {...zp('hood')}         x="40"  y="92"  width="220" height="68" />
+        <path {...zp('windshield')}   d="M 50,160 Q 150,130 250,160 L 245,280 Q 150,260 55,280 Z" />
+        <rect {...zp('door_fl')}      x="32"  y="160" width="78"  height="120" />
+        <rect {...zp('cabin')}        x="110" y="160" width="80"  height="250" />
+        <rect {...zp('door_fr')}      x="190" y="160" width="78"  height="120" />
+        <rect {...zp('door_rl')}      x="32"  y="280" width="78"  height="130" />
+        <rect {...zp('door_rr')}      x="190" y="280" width="78"  height="130" />
+        <path {...zp('rear_window')}  d="M 60,410 Q 150,420 240,410 L 235,460 Q 150,470 65,460 Z" />
+        <rect {...zp('trunk')}        x="42"  y="460" width="216" height="72" />
+        <rect {...zp('bumper_rear')}  x="50"  y="532" width="200" height="38" />
+      </g>
+      {/* Zones roues */}
+      <rect {...zp('wheel_fl')} x="20" y="120" width="40" height="70" rx="10" />
+      <rect {...zp('wheel_fr')} x="240" y="120" width="40" height="70" rx="10" />
+      <rect {...zp('wheel_rl')} x="30" y="420" width="40" height="70" rx="10" />
+      <rect {...zp('wheel_rr')} x="230" y="420" width="40" height="70" rx="10" />
 
-        {/* Légende */}
-        <div className="flex justify-center gap-4 mt-3 flex-wrap">
-          {Object.entries(statusStyle).map(([key, s]) => (
-            <div key={key} className="flex items-center gap-1.5">
-              <div className={`w-2.5 h-2.5 rounded-full ${s.dot}`} />
-              <span className="text-xs text-slate-500">{s.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Panneau info */}
-      <div className="flex-1 min-w-0">
-        {!selected ? (
-          <div className="h-full flex flex-col items-center justify-center py-12 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">
-            <Wrench className="h-10 w-10 mb-3 text-slate-300" />
-            <p className="font-medium text-slate-500">Cliquez sur une zone</p>
-            <p className="text-sm mt-1">Sélectionnez une partie du véhicule pour voir l'état et les interventions</p>
-          </div>
-        ) : (
-          <div className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-            {/* Header zone sélectionnée */}
-            <div className={`px-5 py-4 flex items-center justify-between`}
-              style={{ backgroundColor: statusStyle[getStatus(selected)].fill, borderBottom: `2px solid ${statusStyle[getStatus(selected)].stroke}` }}>
-              <div>
-                <p className="text-xs text-slate-500 uppercase tracking-widest mb-0.5">Zone sélectionnée</p>
-                <h3 className="text-lg font-bold text-slate-900">{selectedZone?.label}</h3>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className={`px-3 py-1 rounded-full text-xs font-bold border ${cfg.text}`}
-                  style={{ borderColor: statusStyle[getStatus(selected)].stroke, backgroundColor: 'white' }}>
-                  {cfg.label}
-                </span>
-                <button onClick={() => setSelected(null)} className="text-slate-400 hover:text-slate-600">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Contenu */}
-            <div className="p-5">
-              {!selectedData ? (
-                <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl border border-green-100">
-                  <CheckCircle className="h-6 w-6 text-green-500 shrink-0" />
-                  <div>
-                    <p className="font-semibold text-green-800">Aucune intervention enregistrée</p>
-                    <p className="text-sm text-green-600 mt-0.5">Cette partie du véhicule ne présente aucun problème signalé.</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">
-                    {selectedData.items.length} intervention{selectedData.items.length > 1 ? 's' : ''} enregistrée{selectedData.items.length > 1 ? 's' : ''}
-                  </p>
-                  {selectedData.items.map((item, i) => (
-                    <div key={i} className="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                      <AlertTriangle className={`h-5 w-5 shrink-0 mt-0.5 ${cfg.text}`} />
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-slate-800">{item.desc}</p>
-                        <div className="flex gap-4 mt-2">
-                          <span className="text-xs text-slate-400">📅 {item.date}</span>
-                          {item.cost && (
-                            <span className="text-xs font-semibold text-slate-600">💰 {item.cost.toLocaleString()} FCFA</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+      {/* Points d'alerte */}
+      {issuePartIds.map(id => {
+        const p = DOT_POS[id];
+        return p ? (
+          <g key={id} pointerEvents="none">
+            <circle cx={p.x} cy={p.y} r={8} fill="#ef4444" opacity="0.2" />
+            <circle cx={p.x} cy={p.y} r={5} fill="#ef4444" stroke="white" strokeWidth={1.5} />
+          </g>
+        ) : null;
+      })}
+    </svg>
   );
 };
 

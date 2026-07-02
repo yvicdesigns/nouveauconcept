@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 import { historyService } from '@/lib/historyService';
+import ClientCombobox from '@/components/ui/ClientCombobox';
 import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isWithinInterval, parseISO, startOfDay, endOfDay, differenceInDays, getDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -381,16 +382,12 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
               <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                 <User className="h-4 w-4" /> Client
               </label>
-              <select
-                name="client_id"
+              <ClientCombobox
+                clients={clients}
                 value={formData.client_id}
-                onChange={handleChange}
-                required
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white"
-              >
-                <option value="">Sélectionner un client...</option>
-                {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+                onChange={(id) => setFormData(prev => ({ ...prev, client_id: id }))}
+                placeholder="Rechercher un client..."
+              />
             </div>
 
 

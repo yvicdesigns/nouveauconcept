@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/customSupabaseClient';
+import ClientCombobox from '@/components/ui/ClientCombobox';
 
 const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
   const { toast } = useToast();
@@ -267,24 +268,18 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
                           <div>
                             <p className="font-bold text-sm text-amber-900">Aucun client disponible</p>
                             <p className="text-xs mt-1 text-amber-700">
-                              La table de contacts est vide ou ne contient aucun client actif. 
+                              La table de contacts est vide ou ne contient aucun client actif.
                               Veuillez ajouter des clients dans le module <strong>Contacts</strong>.
                             </p>
                           </div>
                         </div>
                       ) : (
-                        <select
+                        <ClientCombobox
+                          clients={clients}
                           value={selectedClientId}
-                          onChange={(e) => setSelectedClientId(e.target.value)}
-                          className="w-full px-4 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-nc-navy focus:border-nc-navy outline-none transition-all"
-                        >
-                          <option value="">Sélectionner un client...</option>
-                          {clients.map(client => (
-                            <option key={client.id} value={client.id}>
-                              {client.name} {client.company ? `(${client.company})` : ''}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={setSelectedClientId}
+                          placeholder="Rechercher un client..."
+                        />
                       )}
                     </div>
 

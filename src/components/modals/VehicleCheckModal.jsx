@@ -7,6 +7,7 @@ import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/customSupabaseClient';
 import ClientCombobox from '@/components/ui/ClientCombobox';
+import SearchCombobox from '@/components/ui/SearchCombobox';
 
 const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
   const { toast } = useToast();
@@ -25,7 +26,6 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
   const [drivers, setDrivers] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [driverName, setDriverName] = useState('');
-  const [customDriver, setCustomDriver] = useState(false);
   const [customPrice, setCustomPrice] = useState('');
   const [selectedRouteId, setSelectedRouteId] = useState('');
   const [paymentMode, setPaymentMode] = useState('immediate');
@@ -85,7 +85,6 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
       tomorrow.setDate(tomorrow.getDate() + 1);
       setExpectedReturnDate(tomorrow.toISOString().split('T')[0]);
       setDriverName('');
-      setCustomDriver(false);
       setCustomPrice('');
       setSelectedRouteId('');
       setPaymentMode('immediate');
@@ -316,37 +315,13 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
                         <User className="h-4 w-4 text-blue-500" />
                         Chauffeur
                       </label>
-                      {!customDriver ? (
-                        <select
-                          value={driverName}
-                          onChange={(e) => {
-                            if (e.target.value === '__custom__') { setCustomDriver(true); setDriverName(''); }
-                            else setDriverName(e.target.value);
-                          }}
-                          className="w-full px-4 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-nc-navy focus:border-nc-navy outline-none transition-all"
-                        >
-                          <option value="">— Sélectionner un chauffeur —</option>
-                          {drivers.map(d => (
-                            <option key={d.id} value={d.name}>{d.name}</option>
-                          ))}
-                          <option value="__custom__">✏ Saisie libre…</option>
-                        </select>
-                      ) : (
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={driverName}
-                            onChange={(e) => setDriverName(e.target.value)}
-                            placeholder="Nom du chauffeur"
-                            className="flex-1 px-4 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-nc-navy focus:border-nc-navy outline-none transition-all"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => { setCustomDriver(false); setDriverName(''); }}
-                            className="px-3 py-2 text-xs text-gray-500 hover:text-gray-800 bg-gray-100 rounded-xl transition-colors"
-                          >Liste</button>
-                        </div>
-                      )}
+                      <SearchCombobox
+                        items={drivers.map(d => ({ id: d.name, label: d.name }))}
+                        value={driverName}
+                        onChange={setDriverName}
+                        placeholder="— Sélectionner ou saisir un chauffeur —"
+                        allowFreeText
+                      />
                     </div>
 
                     {/* Trajet / Destination */}
@@ -355,10 +330,14 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
                         <MapPin className="h-4 w-4 text-blue-500" />
                         Trajet
                       </label>
-                      <select
+                      <SearchCombobox
+                        items={routes.map(r => ({
+                          id: r.id,
+                          label: `${r.from_location} → ${r.to_location}`,
+                          sublabel: `${Number(r.price).toLocaleString()} FCFA / trajet`,
+                        }))}
                         value={selectedRouteId}
-                        onChange={(e) => {
-                          const rid = e.target.value;
+                        onChange={(rid) => {
                           setSelectedRouteId(rid);
                           if (rid) {
                             const calc = calcRoutePrice(rid, expectedReturnDate);
@@ -367,15 +346,8 @@ const VehicleCheckModal = ({ isOpen, onClose, type, vehicle, onConfirm }) => {
                             setCustomPrice('');
                           }
                         }}
-                        className="w-full px-4 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-nc-navy focus:border-nc-navy outline-none transition-all"
-                      >
-                        <option value="">— Trajet local (tarif libre) —</option>
-                        {routes.map(r => (
-                          <option key={r.id} value={r.id}>
-                            {r.from_location} → {r.to_location} ({Number(r.price).toLocaleString()} FCFA)
-                          </option>
-                        ))}
-                      </select>
+                        placeholder="— Trajet local (tarif libre) —"
+                      />
                       {selectedRouteId && (() => {
                         const calc = calcRoutePrice(selectedRouteId, expectedReturnDate);
                         if (!calc) return null;

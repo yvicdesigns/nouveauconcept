@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 import { historyService } from '@/lib/historyService';
 import ClientCombobox from '@/components/ui/ClientCombobox';
+import SearchCombobox from '@/components/ui/SearchCombobox';
 import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isWithinInterval, parseISO, startOfDay, endOfDay, differenceInDays, getDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -467,37 +468,19 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                     {/* Chauffeur pour ce véhicule */}
                     <div className="flex items-center gap-2">
                       <User className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                      {!row.customDriver ? (
-                        <select
+                      <div className="flex-1">
+                        <SearchCombobox
+                          items={drivers.map(d => ({
+                            id: d.name,
+                            label: d.name,
+                            sublabel: d.status === 'inactive' ? 'inactif' : d.status === 'on_leave' ? 'en congé' : undefined,
+                          }))}
                           value={row.driver_name || ''}
-                          onChange={e => {
-                            if (e.target.value === '__custom__') {
-                              updateVehicleRow(index, 'customDriver', true);
-                              updateVehicleRow(index, 'driver_name', '');
-                            } else {
-                              updateVehicleRow(index, 'driver_name', e.target.value);
-                            }
-                          }}
-                          className="flex-1 p-1.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white text-sm"
-                        >
-                          <option value="">— Chauffeur pour ce véhicule —</option>
-                          {drivers.map(d => (
-                            <option key={d.id} value={d.name} disabled={d.status === 'inactive'}>
-                              {d.name}{d.status === 'inactive' ? ' (inactif)' : d.status === 'on_leave' ? ' (congé)' : ''}
-                            </option>
-                          ))}
-                          <option value="__custom__">✏ Saisie libre…</option>
-                        </select>
-                      ) : (
-                        <input
-                          type="text"
-                          value={row.driver_name}
-                          onChange={e => updateVehicleRow(index, 'driver_name', e.target.value)}
-                          placeholder="Nom du chauffeur"
-                          autoFocus
-                          className="flex-1 p-1.5 border border-blue-300 rounded-md focus:ring-2 focus:ring-nc-navy bg-white text-sm"
+                          onChange={val => updateVehicleRow(index, 'driver_name', val)}
+                          placeholder="— Chauffeur pour ce véhicule —"
+                          allowFreeText
                         />
-                      )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -539,11 +522,14 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
               <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-blue-600" /> Trajet
               </label>
-              <select
-                name="selected_route_id"
+              <SearchCombobox
+                items={routesList.map(r => ({
+                  id: r.id,
+                  label: `${r.from_location} → ${r.to_location}`,
+                  sublabel: `${Number(r.price).toLocaleString()} FCFA / trajet`,
+                }))}
                 value={formData.selected_route_id}
-                onChange={(e) => {
-                  const rid = e.target.value;
+                onChange={(rid) => {
                   const route = routesList.find(r => r.id === rid);
                   setFormData(prev => ({
                     ...prev,
@@ -552,15 +538,8 @@ const AddReservationModal = ({ open, onOpenChange, onReservationSaved, reservati
                     return_location: route ? route.to_location : prev.return_location,
                   }));
                 }}
-                className="w-full p-2.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-nc-navy bg-white text-sm"
-              >
-                <option value="">— Trajet local / tarif journalier —</option>
-                {routesList.map(r => (
-                  <option key={r.id} value={r.id}>
-                    {r.from_location} → {r.to_location} ({Number(r.price).toLocaleString()} FCFA / trajet)
-                  </option>
-                ))}
-              </select>
+                placeholder="— Trajet local / tarif journalier —"
+              />
               {formData.selected_route_id && (() => {
                 const calc = calcRoutePriceForRow(formData.selected_route_id, formData.start_date, formData.end_date);
                 if (!calc) return null;

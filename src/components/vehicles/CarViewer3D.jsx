@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
+import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, useGLTF } from '@react-three/drei';
 import { Loader2, CheckCircle, X, AlertTriangle, RotateCcw } from 'lucide-react';
@@ -155,7 +156,7 @@ const CarDiagram2D = ({ selectedPart, hoveredPart, onSelect, onHover, issuePartI
 const CarModel = ({ modelPath, issuePartIds }) => {
   const { scene } = useGLTF(modelPath);
 
-  const cloned = useMemo(() => {
+  const { cloned, position, scale } = useMemo(() => {
     const clone = scene.clone(true);
     clone.traverse(node => {
       if (node.isMesh && node.material) {
@@ -163,7 +164,17 @@ const CarModel = ({ modelPath, issuePartIds }) => {
         node.userData.originalColor = '#' + node.material.color.getHexString();
       }
     });
-    return clone;
+    // Auto-centre et normalise la scale quel que soit le modèle
+    const box = new THREE.Box3().setFromObject(clone);
+    const center = box.getCenter(new THREE.Vector3());
+    const size   = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const s      = maxDim > 0 ? 3.5 / maxDim : 1;
+    return {
+      cloned,
+      position: [-center.x * s, -center.y * s, -center.z * s],
+      scale: s,
+    };
   }, [scene]);
 
   useEffect(() => {
@@ -184,7 +195,7 @@ const CarModel = ({ modelPath, issuePartIds }) => {
     });
   }, [cloned, issuePartIds]);
 
-  return <primitive object={cloned} />;
+  return <primitive object={cloned} position={position} scale={scale} />;
 };
 
 // ─── Composant principal ──────────────────────────────────────────────────────

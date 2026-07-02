@@ -8,6 +8,7 @@ import { fr } from 'date-fns/locale';
 
 // ─── Modèles 3D ───────────────────────────────────────────────────────────────
 const VEHICLE_MODELS = [
+  { key: 'car',          label: 'Voiture',    file: '/models/car.glb' },
   { key: 'sedan',        label: 'Berline',    file: '/models/sedan.glb' },
   { key: 'sedan-sports', label: 'Sport',      file: '/models/sedan-sports.glb' },
   { key: 'suv',          label: 'SUV',        file: '/models/suv.glb' },
@@ -35,257 +36,117 @@ const PARTS = [
   { id: 'wheel_rr',     label: 'Roue AR D' },
 ];
 
-const DOT_POS = {
-  bumper_front: { x: 140, y: 38  },
-  hood:         { x: 140, y: 90  },
-  windshield:   { x: 140, y: 148 },
-  door_fl:      { x: 68,  y: 205 },
-  cabin:        { x: 140, y: 232 },
-  door_fr:      { x: 212, y: 205 },
-  door_rl:      { x: 68,  y: 282 },
-  door_rr:      { x: 212, y: 282 },
-  rear_window:  { x: 140, y: 345 },
-  trunk:        { x: 140, y: 405 },
-  bumper_rear:  { x: 140, y: 446 },
-  wheel_fl:     { x: 36,  y: 158 },
-  wheel_fr:     { x: 244, y: 158 },
-  wheel_rl:     { x: 36,  y: 330 },
-  wheel_rr:     { x: 244, y: 330 },
-};
+// ─── Diagramme 2D SVG (même teardrop que VehicleCheckModal + zones cliquables) ─
+const TD_BODY = 'M 150,40 C 240,40 270,100 270,180 L 260,450 C 260,540 220,570 150,570 C 80,570 40,540 40,450 L 30,180 C 30,100 60,40 150,40 Z';
 
-// ─── Diagramme 2D SVG — vue de dessus réaliste ───────────────────────────────
 const CarDiagram2D = ({ selectedPart, hoveredPart, onSelect, onHover, issuePartIds }) => {
-  const isGlass   = id => id === 'windshield' || id === 'rear_window';
-
-  const zoneFill = id => {
-    if (selectedPart === id) return '#fbbf24';
-    if (hoveredPart  === id) return '#93c5fd';
-    if (issuePartIds.includes(id)) return '#fca5a5';
-    // Default appearance by type
-    if (isGlass(id))             return '#242e42';  // dark glass
-    if (id.startsWith('wheel'))  return '#3a3a3a';  // dark tires
-    if (id === 'cabin')          return '#d8dde6';  // roof (slightly darker than body)
-    return '#efefef';  // body parts (white-ish)
+  const oc = id => {
+    if (selectedPart === id) return 'rgba(251,191,36,0.40)';
+    if (hoveredPart  === id) return 'rgba(147,197,253,0.40)';
+    if (issuePartIds.includes(id)) return 'rgba(252,165,165,0.40)';
+    return 'transparent';
   };
-
-  const zoneStroke = id => {
+  const os = id => {
     if (selectedPart === id) return '#d97706';
     if (hoveredPart  === id) return '#2563eb';
     if (issuePartIds.includes(id)) return '#dc2626';
-    if (isGlass(id))    return '#1a2233';
-    if (id === 'cabin') return '#b0b8c8';
-    return '#c0c0c0';
+    return 'transparent';
   };
-
-  const z = id => ({
-    fill:         zoneFill(id),
-    stroke:       zoneStroke(id),
-    strokeWidth:  selectedPart === id || hoveredPart === id ? 2.5 : 1,
-    style:        { cursor: 'pointer', transition: 'fill 0.12s, stroke 0.12s' },
-    onClick:      () => onSelect(selectedPart === id ? null : id),
+  const zp = id => ({
+    fill: oc(id), stroke: os(id), strokeWidth: 2,
+    style: { cursor: 'pointer', transition: 'fill 0.12s' },
+    onClick: () => onSelect(selectedPart === id ? null : id),
     onMouseEnter: () => onHover(id),
     onMouseLeave: () => onHover(null),
   });
 
-  // Silhouette de la voiture — contour réaliste (vue de dessus berline)
-  // Avant en haut, arrière en bas
-  const bodyPath =
-    'M140,28 ' +
-    'C162,28 185,40 200,60 C214,78 220,100 222,122 ' +
-    'L246,136 L222,150 ' +                                // rétroviseur droit
-    'C226,168 228,192 228,232 C228,280 224,315 218,348 ' +
-    'C210,390 196,422 140,448 ' +                         // arrière droit → centre
-    'C84,422 70,390 62,348 ' +                            // arrière gauche
-    'C56,315 52,280 52,232 C52,192 54,168 58,150 ' +
-    'L34,136 L58,122 ' +                                  // rétroviseur gauche
-    'C60,100 66,78 80,60 C95,40 118,28 140,28 Z';
+  const dotPos = {
+    bumper_front: {x:150,y:62},  hood:{x:150,y:125},  windshield:{x:150,y:210},
+    door_fl:{x:58,y:265},        cabin:{x:150,y:310},  door_fr:{x:242,y:265},
+    door_rl:{x:58,y:355},        door_rr:{x:242,y:355},rear_window:{x:150,y:435},
+    trunk:{x:150,y:505},         bumper_rear:{x:150,y:550},
+    wheel_fl:{x:38,y:155},       wheel_fr:{x:262,y:155},
+    wheel_rl:{x:42,y:455},       wheel_rr:{x:258,y:455},
+  };
 
   return (
-    <svg
-      viewBox="0 0 280 490"
-      width="100%"
-      style={{ maxHeight: 320, display: 'block', userSelect: 'none' }}
-    >
+    <svg viewBox="0 0 300 600" width="220" style={{ display: 'block', userSelect: 'none', margin: '0 auto' }}>
       <defs>
-        {/* Clip = contour exact de la carrosserie */}
-        <clipPath id="carClip">
-          <path d={bodyPath} />
-        </clipPath>
-
-        {/* Gradient latéral : ombres sur les côtés, blanc au centre */}
-        <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%"   stopColor="#b8b8b8" />
-          <stop offset="18%"  stopColor="#e0e0e0" />
-          <stop offset="50%"  stopColor="#f5f5f5" />
-          <stop offset="82%"  stopColor="#e0e0e0" />
-          <stop offset="100%" stopColor="#b8b8b8" />
+        <clipPath id="tdBodyClip"><path d={TD_BODY} /></clipPath>
+        <linearGradient id="td_bodyGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="#ffffff" /><stop offset="100%" stopColor="#f1f5f9" />
         </linearGradient>
-
-        {/* Reflet vitre avant */}
-        <linearGradient id="glare" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%"   stopColor="white" stopOpacity="0.22" />
-          <stop offset="60%"  stopColor="white" stopOpacity="0.04" />
-          <stop offset="100%" stopColor="white" stopOpacity="0"    />
+        <linearGradient id="td_glassGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="#e2e8f0" /><stop offset="100%" stopColor="#cbd5e1" />
         </linearGradient>
-
-        {/* Ombre portée sous le contour */}
-        <filter id="shadow">
-          <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#000" floodOpacity="0.18" />
+        <filter id="td_shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="8" />
+          <feOffset dx="0" dy="8" result="b" />
+          <feComponentTransfer><feFuncA type="linear" slope="0.15" /></feComponentTransfer>
+          <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
       </defs>
 
-      {/* ── Ombre de la carrosserie ── */}
-      <path d={bodyPath} fill="#00000018" transform="translate(2,4)" />
+      {/* Roues */}
+      <rect x="20" y="120" width="40" height="70" rx="10" fill="#334155" />
+      <rect x="240" y="120" width="40" height="70" rx="10" fill="#334155" />
+      <rect x="30" y="420" width="40" height="70" rx="10" fill="#334155" />
+      <rect x="230" y="420" width="40" height="70" rx="10" fill="#334155" />
 
-      {/* ── Base carrosserie (blanc/gris gradient) ── */}
-      <path d={bodyPath} fill="url(#bodyGrad)" stroke="#a0a0a0" strokeWidth="1.5" />
+      {/* Carrosserie (teardrop identique à VehicleCheckModal) */}
+      <path d={TD_BODY} fill="url(#td_bodyGrad)" stroke="#e2e8f0" strokeWidth="2" filter="url(#td_shadow)" />
 
-      {/* ── Zones cliquables (clippées au contour) ── */}
-      <g clipPath="url(#carClip)">
+      {/* Pare-brise */}
+      <path d="M 50,160 Q 150,130 250,160 L 245,280 Q 150,260 55,280 Z"
+        fill="url(#td_glassGrad)" stroke="#cbd5e1" strokeWidth="1" pointerEvents="none" />
+      {/* Toit */}
+      <path d="M 55,290 Q 150,270 245,290 L 240,400 Q 150,410 60,400 Z"
+        fill="#ffffff" stroke="#f1f5f9" pointerEvents="none" />
+      {/* Lunette AR */}
+      <path d="M 60,410 Q 150,420 240,410 L 235,460 Q 150,470 65,460 Z"
+        fill="url(#td_glassGrad)" stroke="#cbd5e1" strokeWidth="1" pointerEvents="none" />
+      {/* Ligne capot */}
+      <path d="M 70,150 Q 150,120 230,150" fill="none" stroke="#e2e8f0" strokeWidth="2" pointerEvents="none" />
+      {/* Phares AV */}
+      <path d="M 50,70 Q 70,90 90,80" fill="none" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" pointerEvents="none" />
+      <path d="M 250,70 Q 230,90 210,80" fill="none" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" pointerEvents="none" />
+      {/* Feux AR */}
+      <path d="M 60,540 Q 80,520 100,530" fill="none" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" pointerEvents="none" />
+      <path d="M 240,540 Q 220,520 200,530" fill="none" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" pointerEvents="none" />
+      {/* Rétroviseurs */}
+      <path d="M 30,160 L 10,150 L 10,180 L 30,190 Z" fill="#cbd5e1" pointerEvents="none" />
+      <path d="M 270,160 L 290,150 L 290,180 L 270,190 Z" fill="#cbd5e1" pointerEvents="none" />
 
-        {/* Pare-chocs avant */}
-        <rect {...z('bumper_front')} x="40" y="22" width="200" height="32" />
-
-        {/* Capot */}
-        <rect {...z('hood')} x="40" y="54" width="200" height="68" />
-
-        {/* Pare-brise avant (zone cliquable dark) */}
-        <path {...z('windshield')}
-          d="M 68,122 C 82,116 118,112 140,112 C 162,112 198,116 212,122
-             L 214,162 C 200,168 174,172 140,172 C 106,172 80,168 66,162 Z">
-          <title>Pare-brise</title>
-        </path>
-
-        {/* Portières avant gauche */}
-        <rect {...z('door_fl')} x="40" y="172" width="68" height="84" />
-
-        {/* Toit / habitacle (centre) */}
-        <rect {...z('cabin')} x="108" y="172" width="64" height="148" />
-
-        {/* Portières avant droite */}
-        <rect {...z('door_fr')} x="172" y="172" width="68" height="84" />
-
-        {/* Portières arrière gauche */}
-        <rect {...z('door_rl')} x="40" y="256" width="68" height="90" />
-
-        {/* Portières arrière droite */}
-        <rect {...z('door_rr')} x="172" y="256" width="68" height="90" />
-
-        {/* Lunette arrière (zone cliquable dark) */}
-        <path {...z('rear_window')}
-          d="M 68,346 C 80,340 114,336 140,336 C 166,336 200,340 212,346
-             L 212,384 C 200,390 170,394 140,394 C 110,394 80,390 68,384 Z">
-          <title>Lunette AR</title>
-        </path>
-
-        {/* Coffre */}
-        <rect {...z('trunk')} x="40" y="384" width="200" height="56" />
-
-        {/* Pare-chocs arrière */}
-        <rect {...z('bumper_rear')} x="40" y="440" width="200" height="20" />
-
+      {/* Zones cliquables (invisible par défaut, colorées au hover/sélection/alerte) */}
+      <g clipPath="url(#tdBodyClip)">
+        <rect {...zp('bumper_front')} x="40"  y="40"  width="220" height="52" />
+        <rect {...zp('hood')}         x="40"  y="92"  width="220" height="68" />
+        <path {...zp('windshield')}   d="M 50,160 Q 150,130 250,160 L 245,280 Q 150,260 55,280 Z" />
+        <rect {...zp('door_fl')}      x="32"  y="160" width="78"  height="120" />
+        <rect {...zp('cabin')}        x="110" y="160" width="80"  height="250" />
+        <rect {...zp('door_fr')}      x="190" y="160" width="78"  height="120" />
+        <rect {...zp('door_rl')}      x="32"  y="280" width="78"  height="130" />
+        <rect {...zp('door_rr')}      x="190" y="280" width="78"  height="130" />
+        <path {...zp('rear_window')}  d="M 60,410 Q 150,420 240,410 L 235,460 Q 150,470 65,460 Z" />
+        <rect {...zp('trunk')}        x="42"  y="460" width="216" height="72" />
+        <rect {...zp('bumper_rear')}  x="50"  y="532" width="200" height="38" />
       </g>
+      {/* Zones roues */}
+      <rect {...zp('wheel_fl')} x="20" y="120" width="40" height="70" rx="10" />
+      <rect {...zp('wheel_fr')} x="240" y="120" width="40" height="70" rx="10" />
+      <rect {...zp('wheel_rl')} x="30" y="420" width="40" height="70" rx="10" />
+      <rect {...zp('wheel_rr')} x="230" y="420" width="40" height="70" rx="10" />
 
-      {/* ── Décorations non-interactives (par-dessus les zones) ── */}
-
-      {/* Ligne de séparation portière AV / AR (gauche) */}
-      <line x1="52" y1="256" x2="108" y2="256"
-        stroke="#888" strokeWidth="1.5" strokeDasharray="2,1" pointerEvents="none" clipPath="url(#carClip)" />
-      {/* Ligne de séparation portière AV / AR (droite) */}
-      <line x1="172" y1="256" x2="228" y2="256"
-        stroke="#888" strokeWidth="1.5" strokeDasharray="2,1" pointerEvents="none" clipPath="url(#carClip)" />
-
-      {/* Montants B (entre habitacle et portes) */}
-      <line x1="108" y1="172" x2="108" y2="320"
-        stroke="#909090" strokeWidth="2" pointerEvents="none" />
-      <line x1="172" y1="172" x2="172" y2="320"
-        stroke="#909090" strokeWidth="2" pointerEvents="none" />
-
-      {/* Reflet vitre avant */}
-      <path clipPath="url(#carClip)" pointerEvents="none"
-        d="M 76,122 C 90,116 120,113 148,113 L 150,155 C 118,155 88,158 76,163 Z"
-        fill="url(#glare)" />
-
-      {/* Reflet vitre arrière (inversé) */}
-      <path clipPath="url(#carClip)" pointerEvents="none"
-        d="M 130,337 C 142,336 170,338 204,344 L 202,385 C 170,390 142,390 130,386 Z"
-        fill="url(#glare)" />
-
-      {/* Contour du toit (zone cabin) */}
-      <rect x="108" y="172" width="64" height="148"
-        fill="none" stroke="#9aa0ae" strokeWidth="1" pointerEvents="none" />
-
-      {/* Contour extérieur final (par-dessus tout pour l'épaisseur) */}
-      <path d={bodyPath} fill="none" stroke="#909090" strokeWidth="1.5" pointerEvents="none" />
-
-      {/* ── Rétroviseurs (visuels, aussi cliquables → dans door_fl/fr) ── */}
-      {/* Rétro gauche */}
-      <path
-        fill={selectedPart === 'door_fl' ? '#fbbf24' : hoveredPart === 'door_fl' ? '#93c5fd' : '#c8c8c8'}
-        stroke="#909090" strokeWidth="1"
-        d="M 58,122 L 34,136 L 36,146 L 58,150 Z"
-        style={{ cursor: 'pointer', transition: 'fill 0.12s' }}
-        onClick={() => onSelect(selectedPart === 'door_fl' ? null : 'door_fl')}
-        onMouseEnter={() => onHover('door_fl')}
-        onMouseLeave={() => onHover(null)}
-      >
-        <title>Rétroviseur / Portière AV G</title>
-      </path>
-      {/* Rétro droit */}
-      <path
-        fill={selectedPart === 'door_fr' ? '#fbbf24' : hoveredPart === 'door_fr' ? '#93c5fd' : '#c8c8c8'}
-        stroke="#909090" strokeWidth="1"
-        d="M 222,122 L 246,136 L 244,146 L 222,150 Z"
-        style={{ cursor: 'pointer', transition: 'fill 0.12s' }}
-        onClick={() => onSelect(selectedPart === 'door_fr' ? null : 'door_fr')}
-        onMouseEnter={() => onHover('door_fr')}
-        onMouseLeave={() => onHover(null)}
-      >
-        <title>Rétroviseur / Portière AV D</title>
-      </path>
-
-      {/* ── Roues (hors carrosserie, cliquables) ── */}
-      {/* AV G */}
-      <ellipse {...z('wheel_fl')} cx="38" cy="160" rx="14" ry="28"><title>Roue AV G</title></ellipse>
-      {/* AV D */}
-      <ellipse {...z('wheel_fr')} cx="242" cy="160" rx="14" ry="28"><title>Roue AV D</title></ellipse>
-      {/* AR G */}
-      <ellipse {...z('wheel_rl')} cx="38" cy="330" rx="14" ry="28"><title>Roue AR G</title></ellipse>
-      {/* AR D */}
-      <ellipse {...z('wheel_rr')} cx="242" cy="330" rx="14" ry="28"><title>Roue AR D</title></ellipse>
-
-      {/* Jantes (cercles blancs au centre des roues) */}
-      {[
-        { cx:38,  cy:160 }, { cx:242, cy:160 },
-        { cx:38,  cy:330 }, { cx:242, cy:330 },
-      ].map((p, i) => (
-        <ellipse key={i} cx={p.cx} cy={p.cy} rx={7} ry={14}
-          fill="#d0d0d0" stroke="#a0a0a0" strokeWidth="1" pointerEvents="none" />
-      ))}
-
-      {/* ── Points d'alerte (zones avec interventions) ── */}
+      {/* Points d'alerte */}
       {issuePartIds.map(id => {
-        const p = DOT_POS[id];
+        const p = dotPos[id];
         return p ? (
           <g key={id} pointerEvents="none">
-            <circle cx={p.x} cy={p.y} r={7} fill="#ef4444" opacity="0.25" />
+            <circle cx={p.x} cy={p.y} r={8} fill="#ef4444" opacity="0.2" />
             <circle cx={p.x} cy={p.y} r={5} fill="#ef4444" stroke="white" strokeWidth={1.5} />
           </g>
         ) : null;
       })}
-
-      {/* ── Feux avant (petites pastilles rouges/oranges) ── */}
-      <ellipse cx="92"  cy="28" rx="10" ry="5" fill="#ff6030" opacity="0.85" pointerEvents="none" />
-      <ellipse cx="188" cy="28" rx="10" ry="5" fill="#ff6030" opacity="0.85" pointerEvents="none" />
-      {/* Feux arrière */}
-      <ellipse cx="94"  cy="448" rx="12" ry="5" fill="#e02020" opacity="0.9" pointerEvents="none" />
-      <ellipse cx="186" cy="448" rx="12" ry="5" fill="#e02020" opacity="0.9" pointerEvents="none" />
-
-      {/* ── Orientations ── */}
-      <text x="140" y="10"  textAnchor="middle" fontSize="8" fill="#94a3b8" fontWeight="700" pointerEvents="none">▲ AVANT</text>
-      <text x="140" y="487" textAnchor="middle" fontSize="8" fill="#94a3b8" fontWeight="700" pointerEvents="none">▼ ARRIÈRE</text>
-      <text x="6"   y="250" textAnchor="middle" fontSize="7" fill="#94a3b8" transform="rotate(-90,6,250)"   pointerEvents="none">GAUCHE</text>
-      <text x="274" y="250" textAnchor="middle" fontSize="7" fill="#94a3b8" transform="rotate(90,274,250)" pointerEvents="none">DROITE</text>
     </svg>
   );
 };
@@ -328,7 +189,7 @@ const CarModel = ({ modelPath, issuePartIds }) => {
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 const CarViewer3D = ({ vehicleId = null }) => {
-  const [modelKey,     setModelKey]     = useState('sedan');
+  const [modelKey,     setModelKey]     = useState('car');
   const [selectedPart, setSelectedPart] = useState(null);
   const [hoveredPart,  setHoveredPart]  = useState(null);
   const [records,      setRecords]      = useState([]);

@@ -164,14 +164,14 @@ const CarModel = ({ modelPath, issuePartIds }) => {
         node.userData.originalColor = '#' + node.material.color.getHexString();
       }
     });
-    // Centrage + scale identique au prototype vanilla Three.js
+    // Scale d'abord, puis offset = -center*s pour centrer exactement à l'origine
     const box    = new Box3().setFromObject(clone);
     const center = box.getCenter(new Vector3());
     const size   = box.getSize(new Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
     const s      = maxDim > 0 ? 3.5 / maxDim : 1;
-    clone.position.sub(center);  // centre à l'origine
-    clone.scale.setScalar(s);    // normalise la taille
+    clone.scale.setScalar(s);
+    clone.position.set(-center.x * s, -center.y * s, -center.z * s);
     return clone;
   }, [scene]);
 

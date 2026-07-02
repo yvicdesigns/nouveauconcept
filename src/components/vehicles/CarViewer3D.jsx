@@ -21,21 +21,26 @@ const VEHICLE_MODELS = [
 
 // ─── Zones sélectionnables ────────────────────────────────────────────────────
 const PARTS = [
-  { id: 'bumper_front', label: 'Pare-chocs AV' },
+  { id: 'bumper_front', label: 'Pare-chocs avant' },
   { id: 'hood',         label: 'Capot' },
   { id: 'windshield',   label: 'Pare-brise' },
-  { id: 'door_fl',      label: 'Portière AV G' },
-  { id: 'cabin',        label: 'Habitacle / Toit' },
-  { id: 'door_fr',      label: 'Portière AV D' },
-  { id: 'door_rl',      label: 'Portière AR G' },
-  { id: 'door_rr',      label: 'Portière AR D' },
-  { id: 'rear_window',  label: 'Lunette AR' },
+  { id: 'door_fl',      label: 'Porte avant gauche' },
+  { id: 'cabin',        label: 'Toit' },
+  { id: 'door_fr',      label: 'Porte avant droite' },
+  { id: 'door_rl',      label: 'Porte arrière gauche' },
+  { id: 'door_rr',      label: 'Porte arrière droite' },
   { id: 'trunk',        label: 'Coffre' },
-  { id: 'bumper_rear',  label: 'Pare-chocs AR' },
-  { id: 'wheel_fl',     label: 'Roue AV G' },
-  { id: 'wheel_fr',     label: 'Roue AV D' },
-  { id: 'wheel_rl',     label: 'Roue AR G' },
-  { id: 'wheel_rr',     label: 'Roue AR D' },
+  { id: 'bumper_rear',  label: 'Pare-chocs arrière' },
+  { id: 'wheel_fl',     label: 'Roue avant gauche' },
+  { id: 'wheel_fr',     label: 'Roue avant droite' },
+  { id: 'wheel_rl',     label: 'Roue arrière gauche' },
+  { id: 'wheel_rr',     label: 'Roue arrière droite' },
+  { id: 'headlight_l',  label: 'Phare gauche' },
+  { id: 'headlight_r',  label: 'Phare droit' },
+  { id: 'taillight_l',  label: 'Feu arrière gauche' },
+  { id: 'taillight_r',  label: 'Feu arrière droit' },
+  { id: 'mirror_l',     label: 'Rétroviseur gauche' },
+  { id: 'mirror_r',     label: 'Rétroviseur droit' },
 ];
 
 // ─── Modèle 3D (visualisation uniquement) ────────────────────────────────────

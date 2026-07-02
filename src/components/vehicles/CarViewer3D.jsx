@@ -164,14 +164,14 @@ const CarModel = ({ modelPath, issuePartIds }) => {
         node.userData.originalColor = '#' + node.material.color.getHexString();
       }
     });
-    // Scale d'abord, puis offset = -center*s pour centrer exactement à l'origine
+    // Scale, puis position : X/Z centrés, Y = -min.y*s pour poser sur le sol
     const box    = new Box3().setFromObject(clone);
     const center = box.getCenter(new Vector3());
     const size   = box.getSize(new Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
     const s      = maxDim > 0 ? 3.5 / maxDim : 1;
     clone.scale.setScalar(s);
-    clone.position.set(-center.x * s, -center.y * s, -center.z * s);
+    clone.position.set(-center.x * s, -box.min.y * s, -center.z * s);
     return clone;
   }, [scene]);
 

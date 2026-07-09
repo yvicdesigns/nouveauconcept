@@ -45,23 +45,25 @@ export default function SurveyPublicPage() {
     setSubmitting(true);
     setError(null);
     try {
+      const responseId = crypto.randomUUID();
       const anonId = isAnonymous
         ? `anon_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
         : null;
 
-      const { data: resp, error: rErr } = await supabase
+      const { error: rErr } = await supabase
         .from('survey_responses')
         .insert({
+          id:               responseId,
           survey_id:        survey.id,
           respondent_name:  isAnonymous ? null : name  || null,
           respondent_phone: isAnonymous ? null : phone || null,
           is_anonymous:     isAnonymous,
           anonymous_id:     anonId,
-        }).select().single();
+        });
       if (rErr) throw rErr;
 
       const rows = questions.map(q => ({
-        response_id:  resp.id,
+        response_id:  responseId,
         question_id:  q.id,
         answer_text:  answers[q.id]?.text  ?? null,
         answer_value: answers[q.id]?.value ?? null,

@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/customSupabaseClient';
 import { QRCodeCanvas } from 'qrcode.react';
 import {
   Plus, Copy, QrCode, Trash2, Edit2, ChevronDown, ChevronUp,
   Loader2, ExternalLink, X, Check, ClipboardList, BarChart2,
-  Star, Download,
+  Star, Download, TrendingUp,
 } from 'lucide-react';
 
 const QUESTION_TYPES = [
@@ -303,6 +303,230 @@ const QrModal = ({ survey, onClose }) => {
   );
 };
 
+// ── Analytics : sous-composants ──────────────────────────────────────────
+const KpiCard = ({ label, value, unit, icon, bg, text }) => (
+  <div className={`rounded-2xl border p-4 ${bg}`}>
+    <div className="text-2xl mb-1">{icon}</div>
+    <p className={`text-2xl font-black ${text}`}>
+      {value}<span className="text-sm font-normal ml-0.5 opacity-70">{unit}</span>
+    </p>
+    <p className="text-xs text-slate-500 mt-0.5 font-medium">{label}</p>
+  </div>
+);
+
+const NpsBar = ({ answers }) => {
+  const total      = answers.length;
+  const promoters  = answers.filter(a => a.answer_value >= 9).length;
+  const passives   = answers.filter(a => a.answer_value >= 7 && a.answer_value <= 8).length;
+  const detractors = answers.filter(a => a.answer_value <= 6).length;
+  const pct = n => total ? Math.round(n / total * 100) : 0;
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 p-5">
+      <p className="text-sm font-bold text-slate-700 mb-4">Répartition NPS</p>
+      <div className="flex h-5 rounded-full overflow-hidden gap-0.5 mb-3">
+        {pct(detractors) > 0 && <div className="bg-red-400 flex items-center justify-center text-xs text-white font-bold" style={{ width: `${pct(detractors)}%` }}>{pct(detractors) > 8 ? `${pct(detractors)}%` : ''}</div>}
+        {pct(passives)   > 0 && <div className="bg-amber-300 flex items-center justify-center text-xs text-white font-bold" style={{ width: `${pct(passives)}%`   }}>{pct(passives)   > 8 ? `${pct(passives)}%`   : ''}</div>}
+        {pct(promoters)  > 0 && <div className="bg-green-400 flex items-center justify-center text-xs text-white font-bold" style={{ width: `${pct(promoters)}%`  }}>{pct(promoters)  > 8 ? `${pct(promoters)}%`  : ''}</div>}
+      </div>
+      <div className="flex flex-wrap gap-4 text-xs text-slate-600">
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block" />Détracteurs 0–6 <strong>({detractors})</strong></span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-300 inline-block" />Passifs 7–8 <strong>({passives})</strong></span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-green-400 inline-block" />Promoteurs 9–10 <strong>({promoters})</strong></span>
+      </div>
+    </div>
+  );
+};
+
+const MonthlyChart = ({ data }) => {
+  const H = 80;
+  const barCount = data.length;
+  const gap = 6;
+  const svgW = 300;
+  const barW = Math.max(8, Math.floor((svgW - gap * (barCount - 1)) / barCount));
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 p-5">
+      <p className="text-sm font-bold text-slate-700 mb-5">Évolution mensuelle de la satisfaction</p>
+      <svg viewBox={`0 0 ${svgW} ${H + 22}`} className="w-full overflow-visible">
+        {data.map((d, i) => {
+          const h    = Math.round((d.avg / 5) * H);
+          const x    = i * (barW + gap);
+          const y    = H - h;
+          const fill = d.avg >= 4 ? '#4ade80' : d.avg >= 3 ? '#fbbf24' : '#f87171';
+          return (
+            <g key={d.month}>
+              <rect x={x} y={y} width={barW} height={Math.max(h, 2)} rx={3} fill={fill} opacity={0.85} />
+              <text x={x + barW / 2} y={Math.max(y - 3, 8)} textAnchor="middle" fontSize={8} fill="#64748b" fontWeight="600">
+                {d.avg.toFixed(1)}
+              </text>
+              <text x={x + barW / 2} y={H + 14} textAnchor="middle" fontSize={8} fill="#94a3b8">
+                {d.label}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+};
+
+const QuestionBreakdown = ({ bd }) => (
+  <div className="bg-white rounded-2xl border border-slate-200 p-5">
+    <p className="text-sm font-bold text-slate-700 mb-0.5 leading-snug">{bd.question.question_text}</p>
+    <p className="text-xs text-slate-400 mb-4">{bd.total} réponse{bd.total !== 1 ? 's' : ''}</p>
+    <div className="space-y-2.5">
+      {bd.counts.map(c => {
+        const pct = bd.total ? Math.round(c.count / bd.total * 100) : 0;
+        return (
+          <div key={c.label} className="flex items-center gap-3">
+            <span className="text-xs text-slate-600 w-32 shrink-0 truncate">{c.label}</span>
+            <div className="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-full bg-blue-400 rounded-full transition-all duration-700"
+                style={{ width: `${pct}%` }} />
+            </div>
+            <span className="text-xs font-bold text-slate-700 w-8 text-right shrink-0">{pct}%</span>
+            <span className="text-xs text-slate-400 w-6 text-right shrink-0 hidden sm:block">({c.count})</span>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+);
+
+// ── Onglet Analytiques ────────────────────────────────────────────────────
+const AnalyticsTab = ({ surveys }) => {
+  const [selectedId, setSelectedId] = useState('');
+  const [questions, setQuestions]   = useState([]);
+  const [responses, setResponses]   = useState([]);
+  const [loading, setLoading]       = useState(false);
+
+  const load = useCallback(async (sid) => {
+    if (!sid) return;
+    setLoading(true);
+    const [{ data: qs }, { data: rs }] = await Promise.all([
+      supabase.from('survey_questions').select('*').eq('survey_id', sid).order('order'),
+      supabase.from('survey_responses').select('*, survey_answers(*)').eq('survey_id', sid).order('submitted_at'),
+    ]);
+    setQuestions(qs || []);
+    setResponses(rs || []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (selectedId) load(selectedId);
+    else { setQuestions([]); setResponses([]); }
+  }, [selectedId]);
+
+  const allAnswers = useMemo(() => responses.flatMap(r => r.survey_answers || []), [responses]);
+  const ratingQ    = useMemo(() => questions.find(q => q.question_type === 'rating'), [questions]);
+  const npsQ       = useMemo(() => questions.find(q => q.question_type === 'nps'),    [questions]);
+
+  const ratingAnswers = useMemo(() =>
+    ratingQ ? allAnswers.filter(a => a.question_id === ratingQ.id && a.answer_value != null) : [],
+    [allAnswers, ratingQ]);
+
+  const avgSat = useMemo(() =>
+    ratingAnswers.length ? ratingAnswers.reduce((s, a) => s + a.answer_value, 0) / ratingAnswers.length : null,
+    [ratingAnswers]);
+
+  const npsAnswers = useMemo(() =>
+    npsQ ? allAnswers.filter(a => a.question_id === npsQ.id && a.answer_value != null) : [],
+    [allAnswers, npsQ]);
+
+  const { npsScore, promoterPct } = useMemo(() => {
+    if (!npsAnswers.length) return { npsScore: null, promoterPct: null };
+    const promoters  = npsAnswers.filter(a => a.answer_value >= 9).length;
+    const detractors = npsAnswers.filter(a => a.answer_value <= 6).length;
+    return {
+      npsScore:    Math.round((promoters - detractors) / npsAnswers.length * 100),
+      promoterPct: Math.round(promoters / npsAnswers.length * 100),
+    };
+  }, [npsAnswers]);
+
+  const monthlyTrend = useMemo(() => {
+    if (!ratingQ || !responses.length) return [];
+    const months = {};
+    responses.forEach(r => {
+      const month = r.submitted_at.slice(0, 7);
+      const ans   = r.survey_answers?.find(a => a.question_id === ratingQ.id);
+      if (!months[month]) months[month] = { sum: 0, count: 0 };
+      if (ans?.answer_value) { months[month].sum += ans.answer_value; months[month].count += 1; }
+    });
+    return Object.entries(months)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-6)
+      .map(([month, { sum, count }]) => ({
+        month,
+        label: new Date(month + '-02').toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }),
+        avg:   count ? sum / count : 0,
+      }));
+  }, [responses, ratingQ]);
+
+  const breakdowns = useMemo(() =>
+    questions
+      .filter(q => ['choice', 'yesno'].includes(q.question_type))
+      .map(q => {
+        const qAns = allAnswers.filter(a => a.question_id === q.id && a.answer_text);
+        const opts  = q.question_type === 'yesno' ? ['Oui', 'Non'] : (q.options || []).filter(Boolean);
+        return {
+          question: q,
+          total:    qAns.length,
+          counts:   opts.map(opt => ({ label: opt, count: qAns.filter(a => a.answer_text === opt).length })),
+        };
+      }),
+    [questions, allAnswers]);
+
+  const npsColor = npsScore === null ? '' : npsScore >= 50 ? 'text-green-600' : npsScore >= 0 ? 'text-amber-500' : 'text-red-500';
+  const satBg    = avgSat === null ? 'bg-slate-50 border-slate-100' : avgSat >= 4 ? 'bg-green-50 border-green-100' : avgSat >= 3 ? 'bg-amber-50 border-amber-100' : 'bg-red-50 border-red-100';
+  const satText  = avgSat === null ? 'text-slate-400' : avgSat >= 4 ? 'text-green-700' : avgSat >= 3 ? 'text-amber-700' : 'text-red-700';
+  const npsBg    = npsScore === null ? 'bg-slate-50 border-slate-100' : npsScore >= 50 ? 'bg-green-50 border-green-100' : npsScore >= 0 ? 'bg-amber-50 border-amber-100' : 'bg-red-50 border-red-100';
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center gap-2">
+        <select value={selectedId} onChange={e => setSelectedId(e.target.value)}
+          className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+          <option value="">— Choisir un sondage —</option>
+          {surveys.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
+        </select>
+        {selectedId && <button onClick={() => load(selectedId)}
+          className="px-3 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm">↻</button>}
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-blue-500" /></div>
+      ) : !selectedId ? (
+        <div className="text-center py-14 text-slate-300">
+          <TrendingUp className="h-12 w-12 mx-auto mb-3" />
+          <p className="text-sm text-slate-400">Sélectionnez un sondage pour voir les statistiques</p>
+        </div>
+      ) : responses.length === 0 ? (
+        <div className="text-center py-10 text-slate-400 text-sm">Aucune réponse pour ce sondage</div>
+      ) : (
+        <>
+          {/* KPIs */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <KpiCard icon="📊" label="Total réponses"   value={responses.length}                                            unit=""   bg="bg-blue-50 border-blue-100"   text="text-blue-700" />
+            <KpiCard icon="⭐" label="Satisfaction moy." value={avgSat ? avgSat.toFixed(1) : '—'}                           unit="/5" bg={satBg}                         text={satText} />
+            <KpiCard icon="📈" label="Score NPS"        value={npsScore !== null ? (npsScore > 0 ? '+' : '') + npsScore : '—'} unit=""   bg={npsBg}                       text={`font-black ${npsColor}`} />
+            <KpiCard icon="😊" label="Taux promoteurs"  value={promoterPct !== null ? promoterPct : '—'}                   unit="%"  bg="bg-purple-50 border-purple-100" text="text-purple-700" />
+          </div>
+
+          {/* NPS breakdown */}
+          {npsAnswers.length > 0 && <NpsBar answers={npsAnswers} />}
+
+          {/* Monthly trend */}
+          {monthlyTrend.length > 1 && <MonthlyChart data={monthlyTrend} />}
+
+          {/* Question breakdowns */}
+          {breakdowns.map(bd => <QuestionBreakdown key={bd.question.id} bd={bd} />)}
+        </>
+      )}
+    </div>
+  );
+};
+
 // ── Onglet Résultats ──────────────────────────────────────────────────────
 const ResultsTab = ({ surveys }) => {
   const [selectedId, setSelectedId] = useState('');
@@ -488,8 +712,9 @@ export default function Surveys() {
       {/* Tabs */}
       <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit">
         {[
-          { id: 'surveys', label: 'Sondages', icon: ClipboardList },
-          { id: 'results', label: 'Résultats', icon: BarChart2 },
+          { id: 'surveys',   label: 'Sondages',    icon: ClipboardList },
+          { id: 'results',   label: 'Résultats',   icon: BarChart2 },
+          { id: 'analytics', label: 'Analytiques', icon: TrendingUp },
         ].map(t => {
           const Icon = t.icon;
           return (
@@ -577,6 +802,9 @@ export default function Surveys() {
 
       {/* ── Onglet Résultats ── */}
       {tab === 'results' && <ResultsTab surveys={surveys} />}
+
+      {/* ── Onglet Analytiques ── */}
+      {tab === 'analytics' && <AnalyticsTab surveys={surveys} />}
 
       {/* Modals */}
       {modalOpen && (

@@ -27,6 +27,8 @@ import DestinationsModule from '@/components/modules/Routes';
 import Drivers from '@/components/modules/Drivers';
 import Tutorial from '@/components/modules/Tutorial';
 import Fidelisation from '@/components/modules/Fidelisation';
+import Surveys from '@/components/modules/Surveys';
+import SurveyPublicPage from '@/pages/SurveyPublicPage';
 import { Toaster } from '@/components/ui/toaster';
 import { Loader2 } from 'lucide-react';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
@@ -101,6 +103,7 @@ function App() {
     '/drivers': 'Chauffeurs',
     '/tutorial': 'Guide d\'utilisation',
     '/fidelisation': 'Programme de Fidélisation',
+    '/surveys':      'Sondages',
   };
 
   const getActiveModuleTitle = () => {
@@ -206,6 +209,7 @@ function App() {
     return (
       <>
         <Routes>
+          <Route path="/survey/:slug" element={<SurveyPublicPage />} />
           <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
           <Route path="*" element={<Login onLoginSuccess={handleLoginSuccess} />} />
         </Routes>
@@ -223,6 +227,7 @@ function App() {
       <PwaUpdateBanner />
       
       <Routes>
+        <Route path="/survey/:slug" element={<SurveyPublicPage />} />
         <Route
           path="/"
           element={
@@ -256,6 +261,7 @@ function App() {
           <Route path="drivers" element={<ProtectedRoute moduleId="drivers" permissions={userPermissions}><ErrorBoundary><Drivers /></ErrorBoundary></ProtectedRoute>} />
           <Route path="tutorial" element={<ErrorBoundary><Tutorial /></ErrorBoundary>} />
           <Route path="fidelisation" element={<ProtectedRoute moduleId="fidelisation" permissions={userPermissions}><ErrorBoundary><Fidelisation /></ErrorBoundary></ProtectedRoute>} />
+          <Route path="surveys" element={<ProtectedRoute moduleId="surveys" permissions={userPermissions}><ErrorBoundary><Surveys /></ErrorBoundary></ProtectedRoute>} />
         </Route>
         <Route path="*" element={<Dashboard />} />
       </Routes>

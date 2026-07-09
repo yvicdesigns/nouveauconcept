@@ -4,15 +4,15 @@
 
 export const PERMISSIONS = {
   admin: {
-    modules: ['dashboard','contacts','reservations','vehicles','maintenance','billing','drivers','routes','fidelisation','history','support','users','settings'],
+    modules: ['dashboard','contacts','reservations','vehicles','maintenance','billing','drivers','routes','fidelisation','surveys','history','support','users','settings'],
     canWrite: true,
   },
   manager: {
-    modules: ['dashboard','contacts','reservations','vehicles','maintenance','billing','drivers','routes','fidelisation','history','support'],
+    modules: ['dashboard','contacts','reservations','vehicles','maintenance','billing','drivers','routes','fidelisation','surveys','history','support'],
     canWrite: true,
   },
   agent: {
-    modules: ['dashboard','contacts','reservations','vehicles','billing','routes','fidelisation','support'],
+    modules: ['dashboard','contacts','reservations','vehicles','billing','routes','fidelisation','surveys','support'],
     canWrite: true,
   },
   fleet: {
@@ -24,12 +24,12 @@ export const PERMISSIONS = {
     canWrite: true,
   },
   readonly: {
-    modules: ['dashboard','contacts','reservations','vehicles','maintenance','billing','drivers','routes','fidelisation','history','support'],
+    modules: ['dashboard','contacts','reservations','vehicles','maintenance','billing','drivers','routes','fidelisation','surveys','history','support'],
     canWrite: false,
   },
   // anciens rôles conservés
   staff: {
-    modules: ['dashboard','contacts','reservations','vehicles','billing','routes','fidelisation','support'],
+    modules: ['dashboard','contacts','reservations','vehicles','billing','routes','fidelisation','surveys','support'],
     canWrite: true,
   },
   viewer: {

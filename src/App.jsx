@@ -116,10 +116,11 @@ function App() {
     const { data } = await supabase.from('users').select('role, custom_permissions').eq('id', userId).single();
     if (data) {
       const base = getPermissions(data.role || 'admin');
-      setUserPermissions(data.custom_permissions
-        ? { modules: data.custom_permissions, canWrite: base.canWrite }
-        : base
-      );
+      // Merge custom_permissions with base role so new modules are always accessible
+      const modules = data.custom_permissions
+        ? [...new Set([...data.custom_permissions, ...base.modules])]
+        : base.modules;
+      setUserPermissions({ modules, canWrite: base.canWrite });
     } else {
       // Pas de profil trouvé → admin par défaut (propriétaire du CRM)
       setUserPermissions(getPermissions('admin'));

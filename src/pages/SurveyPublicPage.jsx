@@ -127,7 +127,7 @@ export default function SurveyPublicPage() {
 
         {/* En-tête du sondage */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center mb-4">
+          <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center mb-4">
             <img src="/logo.png" alt="" className="h-8 w-8 object-contain"
               onError={e => { e.target.style.display = 'none'; }} />
           </div>

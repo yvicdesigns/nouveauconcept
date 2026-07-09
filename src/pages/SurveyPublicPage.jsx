@@ -40,6 +40,24 @@ export default function SurveyPublicPage() {
     }));
   };
 
+  const isVisible = (q, qIdx) => {
+    const cond = q.condition;
+    if (!cond || cond.q_order >= qIdx) return true;
+    const refQ = questions[cond.q_order];
+    if (!refQ) return true;
+    const ans = answers[refQ.id];
+    const numeric = ['rating', 'nps'].includes(refQ.question_type);
+    const ansVal  = numeric ? ans?.value : ans?.text;
+    if (ansVal === undefined || ansVal === null) return false;
+    switch (cond.op) {
+      case 'lte': return Number(ansVal) <= Number(cond.val);
+      case 'gte': return Number(ansVal) >= Number(cond.val);
+      case 'eq':  return String(ansVal) === String(cond.val);
+      case 'neq': return String(ansVal) !== String(cond.val);
+      default: return true;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -62,12 +80,14 @@ export default function SurveyPublicPage() {
         });
       if (rErr) throw rErr;
 
-      const rows = questions.map(q => ({
-        response_id:  responseId,
-        question_id:  q.id,
-        answer_text:  answers[q.id]?.text  ?? null,
-        answer_value: answers[q.id]?.value ?? null,
-      }));
+      const rows = questions
+        .filter((q, i) => isVisible(q, i))
+        .map(q => ({
+          response_id:  responseId,
+          question_id:  q.id,
+          answer_text:  answers[q.id]?.text  ?? null,
+          answer_value: answers[q.id]?.value ?? null,
+        }));
       const { error: aErr } = await supabase.from('survey_answers').insert(rows);
       if (aErr) throw aErr;
 
@@ -161,7 +181,7 @@ export default function SurveyPublicPage() {
           </div>
 
           {/* Questions */}
-          {questions.map((q, idx) => (
+          {questions.map((q, idx) => !isVisible(q, idx) ? null : (
             <div key={q.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
               <p className="text-sm font-semibold text-slate-800 mb-4 leading-snug">
                 <span className="text-blue-600 mr-1">{idx + 1}.</span>

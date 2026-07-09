@@ -42,7 +42,7 @@ const SurveyModal = ({ survey, onClose, onSaved }) => {
 
   const addQuestion = () => setQuestions(prev => [
     ...prev,
-    { id: `new_${Date.now()}`, question_text: '', question_type: 'text', options: [], required: false, order: prev.length },
+    { id: `new_${Date.now()}`, question_text: '', question_type: 'text', options: [], required: false, order: prev.length, condition: null },
   ]);
 
   const updateQ = (idx, patch) => setQuestions(prev => prev.map((q, i) => i === idx ? { ...q, ...patch } : q));
@@ -70,6 +70,7 @@ const SurveyModal = ({ survey, onClose, onSaved }) => {
           survey_id: surveyId, question_text: q.question_text,
           question_type: q.question_type, options: q.options || [],
           required: q.required, order: i,
+          condition: q.condition || null,
         }));
         const { error: qErr } = await supabase.from('survey_questions').insert(rows);
         if (qErr) throw qErr;
@@ -151,6 +152,83 @@ const SurveyModal = ({ survey, onClose, onSaved }) => {
                             value={(q.options || []).join('\n')}
                             onChange={e => updateQ(idx, { options: e.target.value.split('\n') })}
                             className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs resize-none focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                        )}
+
+                        {/* ── Condition d'affichage ── */}
+                        {idx > 0 && (
+                          <div className="border-t border-slate-200 pt-2.5">
+                            <label className="flex items-center gap-2 text-xs text-slate-500 cursor-pointer select-none">
+                              <input type="checkbox"
+                                checked={!!q.condition}
+                                onChange={e => updateQ(idx, {
+                                  condition: e.target.checked ? { q_order: 0, op: 'lte', val: '' } : null
+                                })}
+                              />
+                              <span className="font-semibold text-slate-600">Afficher sous condition</span>
+                            </label>
+
+                            {q.condition && (
+                              <div className="flex items-center gap-1.5 mt-2 flex-wrap text-xs bg-blue-50 border border-blue-100 rounded-lg p-2">
+                                <span className="text-slate-500 font-medium">Afficher si</span>
+                                <select
+                                  value={q.condition.q_order}
+                                  onChange={e => updateQ(idx, { condition: { ...q.condition, q_order: Number(e.target.value), val: '' } })}
+                                  className="px-2 py-1 rounded-lg border border-blue-200 bg-white focus:outline-none max-w-[150px] font-medium"
+                                >
+                                  {questions.slice(0, idx).map((pq, pi) => (
+                                    <option key={pi} value={pi}>
+                                      Q{pi + 1} — {(pq.question_text || `Question ${pi + 1}`).slice(0, 22)}
+                                    </option>
+                                  ))}
+                                </select>
+                                <select
+                                  value={q.condition.op}
+                                  onChange={e => updateQ(idx, { condition: { ...q.condition, op: e.target.value } })}
+                                  className="px-2 py-1 rounded-lg border border-blue-200 bg-white focus:outline-none font-bold"
+                                >
+                                  <option value="lte">≤</option>
+                                  <option value="gte">≥</option>
+                                  <option value="eq">=</option>
+                                  <option value="neq">≠</option>
+                                </select>
+                                {['rating', 'nps'].includes(questions[q.condition.q_order]?.question_type) ? (
+                                  <input type="number"
+                                    value={q.condition.val}
+                                    onChange={e => updateQ(idx, { condition: { ...q.condition, val: e.target.value } })}
+                                    min={questions[q.condition.q_order]?.question_type === 'nps' ? 0 : 1}
+                                    max={questions[q.condition.q_order]?.question_type === 'nps' ? 10 : 5}
+                                    className="w-14 px-2 py-1 rounded-lg border border-blue-200 bg-white focus:outline-none text-center font-bold"
+                                  />
+                                ) : questions[q.condition.q_order]?.question_type === 'yesno' ? (
+                                  <select
+                                    value={q.condition.val}
+                                    onChange={e => updateQ(idx, { condition: { ...q.condition, val: e.target.value } })}
+                                    className="px-2 py-1 rounded-lg border border-blue-200 bg-white focus:outline-none font-medium"
+                                  >
+                                    <option value="Oui">Oui</option>
+                                    <option value="Non">Non</option>
+                                  </select>
+                                ) : questions[q.condition.q_order]?.question_type === 'choice' ? (
+                                  <select
+                                    value={q.condition.val}
+                                    onChange={e => updateQ(idx, { condition: { ...q.condition, val: e.target.value } })}
+                                    className="px-2 py-1 rounded-lg border border-blue-200 bg-white focus:outline-none max-w-[130px] font-medium"
+                                  >
+                                    {(questions[q.condition.q_order]?.options || []).filter(Boolean).map(opt => (
+                                      <option key={opt} value={opt}>{opt}</option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <input type="text"
+                                    value={q.condition.val}
+                                    onChange={e => updateQ(idx, { condition: { ...q.condition, val: e.target.value } })}
+                                    placeholder="valeur"
+                                    className="w-24 px-2 py-1 rounded-lg border border-blue-200 bg-white focus:outline-none"
+                                  />
+                                )}
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
                       <button type="button" onClick={() => removeQ(idx)}

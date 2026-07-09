@@ -10,6 +10,7 @@ import {
 const QUESTION_TYPES = [
   { value: 'text',   label: 'Texte libre',     icon: '📝' },
   { value: 'rating', label: 'Note (étoiles)',  icon: '⭐' },
+  { value: 'nps',    label: 'NPS (0–10)',      icon: '📊' },
   { value: 'yesno',  label: 'Oui / Non',       icon: '✅' },
   { value: 'choice', label: 'Choix multiple',  icon: '📋' },
 ];
@@ -313,12 +314,18 @@ const ResultsTab = ({ surveys }) => {
                       <div key={q.id}>
                         <p className="text-xs text-slate-400 mb-1">{q.question_text}</p>
                         {q.question_type === 'rating' ? (
-                          <div className="flex gap-1">
+                          <div className="flex gap-1 items-center">
                             {[1,2,3,4,5].map(s => (
                               <Star key={s} className={`h-4 w-4 ${(ans?.answer_value || 0) >= s ? 'fill-amber-400 text-amber-400' : 'fill-slate-200 text-slate-200'}`} />
                             ))}
                             <span className="text-xs text-slate-500 ml-1">{ans?.answer_value || 0}/5</span>
                           </div>
+                        ) : q.question_type === 'nps' ? (
+                          ans?.answer_value != null ? (
+                            <span className={`text-lg font-bold ${
+                              ans.answer_value <= 6 ? 'text-red-500' : ans.answer_value <= 8 ? 'text-amber-500' : 'text-green-600'
+                            }`}>{ans.answer_value}<span className="text-xs font-normal text-slate-400 ml-1">/10</span></span>
+                          ) : <p className="text-sm text-slate-300 italic">Sans réponse</p>
                         ) : ans?.answer_text ? (
                           <p className="text-sm font-semibold text-slate-800">{ans.answer_text}</p>
                         ) : (

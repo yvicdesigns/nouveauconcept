@@ -177,6 +177,31 @@ export default function SurveyPublicPage() {
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" />
               )}
 
+              {q.question_type === 'nps' && (
+                <div>
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {[0,1,2,3,4,5,6,7,8,9,10].map(n => (
+                      <button key={n} type="button" onClick={() => setAnswer(q.id, n, 'rating')}
+                        className={`w-10 h-10 rounded-xl text-sm font-bold border-2 transition-all ${
+                          answers[q.id]?.value === n
+                            ? n <= 6
+                              ? 'bg-red-500 text-white border-red-500 shadow-md'
+                              : n <= 8
+                              ? 'bg-amber-400 text-white border-amber-400 shadow-md'
+                              : 'bg-green-500 text-white border-green-500 shadow-md'
+                            : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                        }`}>
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex justify-between text-xs text-slate-400 mt-2 px-1">
+                    <span>😞 Pas du tout probable</span>
+                    <span>Très probable 😊</span>
+                  </div>
+                </div>
+              )}
+
               {q.question_type === 'rating' && (
                 <div className="flex gap-3 justify-center py-1">
                   {[1, 2, 3, 4, 5].map(star => (

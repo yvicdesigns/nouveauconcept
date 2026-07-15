@@ -80,9 +80,17 @@ const Dashboard = () => {
       const paidInvoices    = invoicesList.filter(i => i.status === 'Payé');
       const pendingInvoices = invoicesList.filter(i => ['Envoyé', 'Brouillon', 'En attente', 'En retard'].includes(i.status));
 
-      const caEncaisse  = paidInvoices.reduce((s, i) => s + (Number(i.total_amount) || 0), 0);
-      const caEnAttente = pendingInvoices.reduce((s, i) => s + (Number(i.total_amount) || 0), 0);
+      const caEncaisse     = paidInvoices.reduce((s, i) => s + (Number(i.total_amount) || 0), 0);
+      const caFactAttente  = pendingInvoices.reduce((s, i) => s + (Number(i.total_amount) || 0), 0);
       const penaltiesTotal = (cancelledRes || []).reduce((s, r) => s + (Number(r.cancellation_penalty) || 0), 0);
+
+      // Réservations terminées sans facture → calculé ici pour l'inclure dans le CA à encaisser
+      const invoicedIdsEarly  = new Set((invoicedResIds || []).map(r => r.reservation_id));
+      const unbilledEarly     = (resTerminees || []).filter(r => !invoicedIdsEarly.has(r.id));
+      const unbilledTotal     = unbilledEarly.reduce((s, r) => s + (Number(r.total_price) || 0), 0);
+
+      // CA à encaisser = factures en attente + locations terminées sans facture
+      const caEnAttente = caFactAttente + unbilledTotal;
       setRevenueBreakdown({ confirmed: caEncaisse, pending: caEnAttente, penalties: penaltiesTotal });
 
       // Revenu mensuel : factures payées ce mois
@@ -118,10 +126,8 @@ const Dashboard = () => {
         .slice(0, 6);
       setClientsToFollow(toFollow);
 
-      // Réservations Terminées sans facture
-      const invoicedIds = new Set((invoicedResIds || []).map(r => r.reservation_id));
-      const unbilled = (resTerminees || []).filter(r => !invoicedIds.has(r.id));
-      setUnbilledReservations(unbilled.slice(0, 5));
+      // Réservations Terminées sans facture (réutilise le calcul déjà fait)
+      setUnbilledReservations(unbilledEarly.slice(0, 5));
 
       setStats({
         fleetSize: totalVehicles,
@@ -363,7 +369,7 @@ const Dashboard = () => {
             <div>
               <p className="text-xs font-medium text-blue-700 uppercase tracking-wide">CA À encaisser</p>
               <p className="text-xl font-bold text-blue-800">{revenueBreakdown.pending.toLocaleString()} FCFA</p>
-              <p className="text-xs text-blue-600">Factures en attente · en retard</p>
+              <p className="text-xs text-blue-600">Factures en attente + locations sans facture</p>
             </div>
           </div>
           <div className="flex items-center gap-4 p-4 bg-orange-50 rounded-xl border border-orange-100">

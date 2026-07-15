@@ -217,15 +217,12 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
   // Recalculate when rates, days or commission_rate change
   useEffect(() => {
     if (formData.daily_rate && formData.days_count) {
-      const subtotal = formData.days_count * formData.daily_rate;
-      const commAmt = Math.round(subtotal * (Number(formData.commission_rate) || 0) / 100);
-      setFormData(prev => ({
-        ...prev,
-        subtotal,
-        tax_amount: 0,
-        commission_amount: commAmt,
-        total_amount: subtotal + commAmt,
-      }));
+      setFormData(prev => {
+        // Si une réservation est liée, on préserve son montant exact (évite le +1 FCFA d'arrondi)
+        const subtotal = prev.reservation_id ? prev.subtotal : prev.days_count * prev.daily_rate;
+        const commAmt  = Math.round(subtotal * (Number(prev.commission_rate) || 0) / 100);
+        return { ...prev, subtotal, tax_amount: 0, commission_amount: commAmt, total_amount: subtotal + commAmt };
+      });
     }
   }, [formData.daily_rate, formData.days_count, formData.commission_rate]);
 
@@ -238,10 +235,11 @@ const AddInvoiceModal = ({ open, onOpenChange, onInvoiceSaved, invoiceToEdit = n
         throw new Error("Le nom du client et le numéro de facture sont requis.");
       }
 
-      // Sanitize data: Convert empty string reservation_id to null
-      const invoiceData = { 
+      // Sanitize: convert empty strings to null for UUID fields
+      const invoiceData = {
         ...formData,
-        reservation_id: formData.reservation_id === '' ? null : formData.reservation_id
+        reservation_id: formData.reservation_id || null,
+        driver_id:      formData.driver_id      || null,
       };
 
       let resultData;

@@ -285,7 +285,7 @@ export default defineConfig({
 		react(),
 		addTransformIndexHtml,
 		VitePWA({
-			registerType: 'prompt',
+			registerType: 'autoUpdate',
 			includeAssets: ['icon.svg', 'apple-touch-icon.png', 'icons/*.png'],
 			manifest: {
 				name: 'NC — CRM',

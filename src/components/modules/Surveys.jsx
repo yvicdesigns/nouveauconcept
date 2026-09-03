@@ -4,7 +4,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 import {
   Plus, Copy, QrCode, Trash2, Edit2, ChevronDown, ChevronUp,
   Loader2, ExternalLink, X, Check, ClipboardList, BarChart2,
-  Star, Download, TrendingUp,
+  Star, Download, TrendingUp, MessageCircle,
 } from 'lucide-react';
 
 const QUESTION_TYPES = [
@@ -288,6 +288,16 @@ const QrModal = ({ survey, onClose }) => {
           </div>
         </div>
         <p className="text-xs text-slate-400 break-all mb-5 font-mono">{url}</p>
+        <button
+          onClick={() => window.open(
+            `https://wa.me/?text=${encodeURIComponent(
+              `Bonjour, merci d'avoir choisi Nouveau Concept ! Partagez-nous votre avis en 2 minutes : ${url}`
+            )}`,
+            '_blank', 'noopener'
+          )}
+          className="w-full mb-2 py-2.5 rounded-xl bg-green-600 text-white text-sm font-bold hover:bg-green-700 flex items-center justify-center gap-1.5 transition-colors">
+          <MessageCircle className="h-4 w-4" />Envoyer via WhatsApp
+        </button>
         <div className="flex gap-2">
           <button onClick={downloadQR}
             className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 flex items-center justify-center gap-1.5 transition-colors">
@@ -682,6 +692,14 @@ export default function Surveys() {
     setTimeout(() => setCopied(null), 2000);
   };
 
+  const shareWhatsApp = (s) => {
+    const url = `${window.location.origin}/survey/${s.slug}`;
+    const message =
+      `Bonjour, merci d'avoir choisi Nouveau Concept ! ` +
+      `Partagez-nous votre avis en 2 minutes : ${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener');
+  };
+
   const deleteSurvey = async (s) => {
     if (!window.confirm(`Supprimer "${s.title}" et toutes ses réponses ?`)) return;
     setDeleting(s.id);
@@ -773,6 +791,10 @@ export default function Surveys() {
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:border-blue-300 hover:text-blue-600 transition-colors">
                     {copied === s.id ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
                     {copied === s.id ? 'Copié !' : 'Lien'}
+                  </button>
+                  <button onClick={() => shareWhatsApp(s)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-green-200 text-xs font-semibold text-green-600 hover:border-green-400 hover:bg-green-50 transition-colors">
+                    <MessageCircle className="h-3.5 w-3.5" />WhatsApp
                   </button>
                   <button onClick={() => setQrSurvey(s)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:border-blue-300 hover:text-blue-600 transition-colors">
